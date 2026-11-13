@@ -1,0 +1,154 @@
+{
+ "1": {
+  "class_type": "CheckpointLoaderSimple",
+  "inputs": {
+   "ckpt_name": "sd_xl_base_1.0.safetensors"
+  }
+ },
+ "2": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "photo, realistic, 3d render, blurry, deformed face, extra fingers, bad hands, text, watermark, logo, signature, multiple people, cropped head, chibi, colorful background, smile with teeth",
+   "clip": [
+    "1",
+    1
+   ]
+  }
+ },
+ "8": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "1990s japanese anime cel-shaded illustration, retro anime art, clean line art, flat cel shading with hard shadows, muted night palette, deep blue and teal shadows, cold blue light, head and shoulders portrait of a young woman around thirty, three-quarter view, long straight ash blonde hair, calm melancholic grey eyes, black coat, white shirt collar, thin red scarf around her neck, plain cold grey-blue background",
+   "clip": [
+    "1",
+    1
+   ]
+  }
+ },
+ "9": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "width": 768,
+   "height": 1024,
+   "batch_size": 1
+  }
+ },
+ "10": {
+  "class_type": "KSampler",
+  "inputs": {
+   "seed": 7101,
+   "steps": 22,
+   "cfg": 6.5,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras",
+   "denoise": 1,
+   "model": [
+    "1",
+    0
+   ],
+   "positive": [
+    "8",
+    0
+   ],
+   "negative": [
+    "2",
+    0
+   ],
+   "latent_image": [
+    "9",
+    0
+   ]
+  }
+ },
+ "11": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "10",
+    0
+   ],
+   "vae": [
+    "1",
+    2
+   ]
+  }
+ },
+ "12": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": "buste_femme",
+   "images": [
+    "11",
+    0
+   ]
+  }
+ },
+ "13": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "1990s japanese anime cel-shaded illustration, retro anime art, clean line art, flat cel shading with hard shadows, muted night palette, deep blue and teal shadows, cold blue light, head and shoulders portrait of an elegant young man in his twenties, three-quarter view, slicked back black hair with one lock falling on his forehead, narrow sharp eyes, cold composed expression, black suit, white shirt, black tie, night city skyline with lit windows behind him, deep blue tones with a few red lights",
+   "clip": [
+    "1",
+    1
+   ]
+  }
+ },
+ "14": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "width": 768,
+   "height": 1024,
+   "batch_size": 1
+  }
+ },
+ "15": {
+  "class_type": "KSampler",
+  "inputs": {
+   "seed": 7102,
+   "steps": 22,
+   "cfg": 6.5,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras",
+   "denoise": 1,
+   "model": [
+    "1",
+    0
+   ],
+   "positive": [
+    "13",
+    0
+   ],
+   "negative": [
+    "2",
+    0
+   ],
+   "latent_image": [
+    "14",
+    0
+   ]
+  }
+ },
+ "16": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "15",
+    0
+   ],
+   "vae": [
+    "1",
+    2
+   ]
+  }
+ },
+ "17": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": "buste_soul",
+   "images": [
+    "16",
+    0
+   ]
+  }
+ }
+}

@@ -1,0 +1,40 @@
+# GET A JOB, carte appartement, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture e_appartement_coin_bureau e_appartement_coin_bureau.png
+texture e_appartement_lit e_appartement_lit.png
+texture etiq_chez_toi etiq_chez_toi.png
+texture etiq_e___descendre_dans_l_avenue etiq_e___descendre_dans_l_avenue.png
+texture halo_chaud halo_chaud.png
+texture halo_froid halo_froid.png
+texture int_appart int_appart.png
+texture joueur joueur.png
+texture m_horloge_sombre2 m_horloge_sombre2.png
+texture m_lampadaire_salon_sombre2a m_lampadaire_salon_sombre2a.png
+texture m_plante_fine_sombre2 m_plante_fine_sombre2.png
+texture m_radio_sombre2 m_radio_sombre2.png
+texture tele_ecran tele_ecran.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_appart 1 0 0 1.000 0 1.00
+image tele_ecran 1 294 110 1.000 2 1.00
+image halo_froid 4 243 55 1.000 1 0.50
+image halo_froid 4 165 115 1.000 1 0.25
+image m_lampadaire_salon_sombre2a 1 92 108 1.000 0 1.00
+image halo_chaud 4 77 90 1.000 1 0.30
+image m_plante_fine_sombre2 1 256 133 1.000 0 1.00
+image m_horloge_sombre2 1 302 44 1.000 0 1.00
+image m_radio_sombre2 1 424 126 1.000 0 1.00
+image e_appartement_coin_bureau 2 56 180 1.000 0 1.00
+solide 59 246 149 255
+image e_appartement_lit 2 352 206 1.000 0 1.00
+solide 355 248 453 257
+zone 13 0 480 etiq_chez_toi
+porte 0 44 270 avenue_bas 1197 192 0 etiq_e___descendre_dans_l_avenue
+limites 10 470 204 266
+depart 50 236
+repere canape 186 206
+repere lit 404 244
+repere livre 198 208
+repere plan 417 206
+repere tele 318 208

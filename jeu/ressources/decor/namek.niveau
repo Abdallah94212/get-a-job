@@ -1,0 +1,25 @@
+# GET A JOB, carte namek, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture etiq_e___rentrer_au_kremlin_bicetre etiq_e___rentrer_au_kremlin_bicetre.png
+texture etiq_namek etiq_namek.png
+texture int_namek int_namek.png
+texture joueur joueur.png
+texture rs6 rs6.png
+joueur joueur
+aide aide
+nuit 186 140 86
+image int_namek 1 0 0 1.000 0 1.00
+zone 1 0 960 etiq_namek
+porte 0 44 270 garage 400 240 0 etiq_e___rentrer_au_kremlin_bicetre
+limites 10 950 204 266
+depart 50 240
+image rs6 2 80 184 1.000 0 1.00
+solide 84 218 208 229
+repere baraque 812 206
+repere plant0 300 214
+repere plant1 420 246
+repere plant2 520 212
+repere plant3 610 250
+repere plant4 700 216
+repere plant5 860 248
+repere rs6 150 240

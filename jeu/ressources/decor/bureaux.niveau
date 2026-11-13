@@ -1,0 +1,50 @@
+# GET A JOB, carte bureaux, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture e_bureaux_poste_0 e_bureaux_poste_0.png
+texture e_bureaux_poste_1 e_bureaux_poste_1.png
+texture etiq_e___sortir_des_bureaux etiq_e___sortir_des_bureaux.png
+texture etiq_l_ascenseur etiq_l_ascenseur.png
+texture etiq_l_open_space etiq_l_open_space.png
+texture etiq_la_salle_de_reunion etiq_la_salle_de_reunion.png
+texture halo_froid halo_froid.png
+texture int_bureaux int_bureaux.png
+texture joueur joueur.png
+texture m_camera_froid2 m_camera_froid2.png
+texture m_chaise_tissu_froid2 m_chaise_tissu_froid2.png
+texture m_classeur_froid2 m_classeur_froid2.png
+texture m_horloge_froid2 m_horloge_froid2.png
+texture m_lampe_bureau_froid2 m_lampe_bureau_froid2.png
+texture m_plante_fine_froid2 m_plante_fine_froid2.png
+texture m_siege_bureau_2_froid2 m_siege_bureau_2_froid2.png
+texture m_siege_bureau_froid2 m_siege_bureau_froid2.png
+texture m_siege_rond_froid2 m_siege_rond_froid2.png
+texture m_telephone_froid2 m_telephone_froid2.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_bureaux 1 0 0 1.000 0 1.00
+image halo_froid 4 165 45 1.000 1 0.25
+image halo_froid 4 491 45 1.000 1 0.25
+zone 3 0 460 etiq_l_open_space
+zone 4 460 670 etiq_la_salle_de_reunion
+zone 5 670 760 etiq_l_ascenseur
+porte 0 44 270 avenue_haut 1864 192 0 etiq_e___sortir_des_bureaux
+limites 10 750 204 266
+depart 50 240
+image m_siege_bureau_froid2 1 76 146 1.000 0 1.00
+image m_siege_rond_froid2 1 152 138 1.000 0 1.00
+image m_siege_bureau_2_froid2 1 228 146 1.000 0 1.00
+image m_siege_bureau_froid2 1 380 146 1.000 0 1.00
+image m_lampe_bureau_froid2 1 98 90 1.000 8 1.00
+image m_telephone_froid2 1 138 102 1.000 0 1.00
+image m_classeur_froid2 1 438 117 1.000 0 1.00
+image m_horloge_froid2 1 434 50 1.000 0 1.00
+image m_chaise_tissu_froid2 1 500 137 1.000 0 1.00
+image m_chaise_tissu_froid2 1 536 137 1.000 0 1.00
+image m_chaise_tissu_froid2 1 604 137 1.000 8 1.00
+image m_plante_fine_froid2 1 658 135 1.000 0 1.00
+image m_camera_froid2 1 716 26 1.000 0 1.00
+image e_bureaux_poste_0 2 120 178 1.000 0 1.00
+solide 123 242 233 251
+image e_bureaux_poste_1 2 300 178 1.000 0 1.00
+solide 303 242 415 251

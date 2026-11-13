@@ -1,0 +1,55 @@
+# GET A JOB, carte maitre_poulet, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture caisse caisse.png
+texture comptoir comptoir.png
+texture e_maitre_poulet_plan_de_travail e_maitre_poulet_plan_de_travail.png
+texture e_maitre_poulet_table_0 e_maitre_poulet_table_0.png
+texture e_maitre_poulet_table_1 e_maitre_poulet_table_1.png
+texture etiq_e___sortir_par_la_ruelle etiq_e___sortir_par_la_ruelle.png
+texture etiq_e___sortir_sur_l_avenue etiq_e___sortir_sur_l_avenue.png
+texture etiq_l_arriere_boutique etiq_l_arriere_boutique.png
+texture etiq_la_cuisine etiq_la_cuisine.png
+texture etiq_la_salle etiq_la_salle.png
+texture etiq_le_comptoir_d_old_geto etiq_le_comptoir_d_old_geto.png
+texture halo_chaud halo_chaud.png
+texture halo_salle halo_salle.png
+texture halo_vert halo_vert.png
+texture int_poulet int_poulet.png
+texture joueur joueur.png
+texture m_plante_haute_chaud2 m_plante_haute_chaud2.png
+texture m_suspension_chaud2a m_suspension_chaud2a.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_poulet 1 0 0 1.000 0 1.00
+image comptoir 2 302 182 1.000 0 1.00
+image caisse 2 396 168 1.000 0 1.00
+solide 296 180 436 228
+image halo_salle 4 20 20 1.000 1 0.22
+image halo_salle 4 236 20 1.000 1 0.25
+image halo_salle 4 388 20 1.000 1 0.20
+image halo_vert 4 580 85 1.000 1 0.45
+image m_suspension_chaud2a 1 61 36 1.000 0 1.00
+image halo_chaud 4 52 44 1.000 1 0.40
+image m_suspension_chaud2a 1 131 36 1.000 0 1.00
+image halo_chaud 4 122 44 1.000 1 0.40
+image m_suspension_chaud2a 1 201 36 1.000 0 1.00
+image halo_chaud 4 192 44 1.000 1 0.40
+image m_plante_haute_chaud2 1 254 125 1.000 0 1.00
+image e_maitre_poulet_table_0 2 56 206 1.000 0 1.00
+solide 59 250 175 259
+image e_maitre_poulet_table_1 2 180 206 1.000 0 1.00
+solide 183 250 299 259
+image e_maitre_poulet_plan_de_travail 2 462 190 1.000 0 1.00
+solide 465 250 551 259
+zone 21 0 296 etiq_la_salle
+zone 22 296 436 etiq_le_comptoir_d_old_geto
+zone 23 436 606 etiq_la_cuisine
+zone 24 606 760 etiq_l_arriere_boutique
+porte 0 40 270 avenue_bas 575 192 0 etiq_e___sortir_sur_l_avenue
+porte 706 760 236 avenue_bas 725 192 0 etiq_e___sortir_par_la_ruelle
+limites 10 750 230 266
+depart 46 236
+repere arriere 668 240
+repere comptoir 366 232
+repere salle 150 244

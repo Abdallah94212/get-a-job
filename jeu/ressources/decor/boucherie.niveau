@@ -1,0 +1,26 @@
+# GET A JOB, carte boucherie, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture caisse caisse.png
+texture etiq_boucherie_de_crimee etiq_boucherie_de_crimee.png
+texture etiq_e___reprendre_la_ligne_7 etiq_e___reprendre_la_ligne_7.png
+texture halo_chaud halo_chaud.png
+texture halo_froid halo_froid.png
+texture int_boucherie int_boucherie.png
+texture joueur joueur.png
+texture m_balance_froid2 m_balance_froid2.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_boucherie 1 0 0 1.000 0 1.00
+image halo_froid 4 285 55 1.000 1 0.30
+image halo_chaud 4 122 92 1.000 1 0.20
+zone 3 0 600 etiq_boucherie_de_crimee
+porte 0 44 270 metro 860 236 0 etiq_e___reprendre_la_ligne_7
+limites 10 590 204 266
+depart 50 240
+image m_balance_froid2 1 300 84 1.000 0 1.00
+image caisse 1 430 108 1.000 0 1.00
+solide 256 180 474 204
+repere caisses 548 242
+repere entree 60 240
+repere mounir 505 210

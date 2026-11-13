@@ -1,0 +1,43 @@
+# GET A JOB, carte garage, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture e_garage_coin_omar e_garage_coin_omar.png
+texture etiq_e___prendre_la_rs6__cap_sur_namek etiq_e___prendre_la_rs6__cap_sur_namek.png
+texture etiq_e___sortir_du_garage etiq_e___sortir_du_garage.png
+texture etiq_l_atelier etiq_l_atelier.png
+texture etiq_la_rs6 etiq_la_rs6.png
+texture etiq_le_bureau_d_omar etiq_le_bureau_d_omar.png
+texture etiq_le_pont etiq_le_pont.png
+texture halo_froid halo_froid.png
+texture halo_orange halo_orange.png
+texture int_garage int_garage.png
+texture joueur joueur.png
+texture m_pendule_froid2 m_pendule_froid2.png
+texture m_radio_froid2 m_radio_froid2.png
+texture m_tabouret_froid2 m_tabouret_froid2.png
+texture m_ventilateur_froid2 m_ventilateur_froid2.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_garage 1 0 0 1.000 0 1.00
+image halo_froid 4 315 45 1.000 1 0.30
+image halo_orange 4 80 53 1.000 1 0.25
+zone 3 0 270 etiq_l_atelier
+zone 4 270 520 etiq_la_rs6
+zone 5 520 680 etiq_le_pont
+zone 6 680 760 etiq_le_bureau_d_omar
+porte 0 44 270 avenue_milieu 2529 192 0 etiq_e___sortir_du_garage
+limites 10 750 204 266
+depart 50 240
+image m_radio_froid2 1 66 108 1.000 0 1.00
+image m_ventilateur_froid2 1 104 96 1.000 0 1.00
+image m_tabouret_froid2 1 150 151 1.000 0 1.00
+image m_pendule_froid2 1 506 50 1.000 0 1.00
+image e_garage_coin_omar 2 618 178 1.000 0 1.00
+solide 621 244 743 253
+porte 300 490 232 namek 60 240 0 etiq_e___prendre_la_rs6__cap_sur_namek
+repere bureau 700 208
+repere entree 60 240
+repere etabli 152 206
+repere mecano 170 212
+repere omar 620 214
+repere rs6 396 208

@@ -1,0 +1,34 @@
+# GET A JOB, carte hall_tour, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture e_hall_tour_attente e_hall_tour_attente.png
+texture etiq_e___ascenseur__dernier_bouton etiq_e___ascenseur__dernier_bouton.png
+texture etiq_e___sortir_de_la_tour etiq_e___sortir_de_la_tour.png
+texture etiq_l_ascenseur etiq_l_ascenseur.png
+texture etiq_le_hall etiq_le_hall.png
+texture halo_froid halo_froid.png
+texture halo_orange halo_orange.png
+texture int_hall_tour int_hall_tour.png
+texture joueur joueur.png
+texture m_camera_froid2 m_camera_froid2.png
+texture m_ecran_poste_froid2e m_ecran_poste_froid2e.png
+texture m_plante_haute_froid2 m_plante_haute_froid2.png
+texture m_telephone_froid2 m_telephone_froid2.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_hall_tour 1 0 0 1.000 0 1.00
+image halo_orange 4 165 11 1.000 1 0.30
+image halo_froid 4 365 55 1.000 1 0.25
+zone 3 0 520 etiq_le_hall
+zone 4 520 640 etiq_l_ascenseur
+porte 0 44 270 avenue_haut 3840 192 0 etiq_e___sortir_de_la_tour
+limites 10 630 204 266
+depart 50 240
+image m_plante_haute_froid2 1 116 126 1.000 0 1.00
+image m_plante_haute_froid2 1 324 126 1.000 8 1.00
+image m_ecran_poste_froid2e 1 176 98 1.000 0 1.00
+image m_telephone_froid2 1 284 108 1.000 0 1.00
+image m_camera_froid2 1 484 34 1.000 0 1.00
+image e_hall_tour_attente 2 40 192 1.000 0 1.00
+solide 43 244 289 253
+porte 520 640 270 etage_anges 40 240 0 etiq_e___ascenseur__dernier_bouton

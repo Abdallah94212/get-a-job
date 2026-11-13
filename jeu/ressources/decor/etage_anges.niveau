@@ -1,0 +1,21 @@
+# GET A JOB, carte etage_anges, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture ange ange.png
+texture etiq_e___l_escalier_de_service etiq_e___l_escalier_de_service.png
+texture etiq_e___redescendre etiq_e___redescendre.png
+texture etiq_l_etage_sans_numero etiq_l_etage_sans_numero.png
+texture int_etage_anges int_etage_anges.png
+texture joueur joueur.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_etage_anges 1 0 0 1.000 0 1.00
+zone 1 0 960 etiq_l_etage_sans_numero
+porte 0 44 270 hall_tour 560 240 0 etiq_e___redescendre
+limites 10 950 204 266
+depart 50 240
+image ange 2 150 118 1.000 0 1.00
+image ange 2 330 118 1.000 0 1.00
+image ange 2 560 130 1.000 0 1.00
+image ange 2 720 118 1.000 0 1.00
+porte 880 960 270 bureau_baba 50 240 0 etiq_e___l_escalier_de_service

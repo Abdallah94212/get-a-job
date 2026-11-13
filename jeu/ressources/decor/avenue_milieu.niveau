@@ -1,0 +1,495 @@
+# GET A JOB, carte avenue_milieu, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture abri_vitre abri_vitre.png
+texture aide aide.png
+texture auto_0 auto_0.png
+texture auto_1 auto_1.png
+texture auto_2 auto_2.png
+texture barriere barriere.png
+texture boite_lettres boite_lettres.png
+texture buisson buisson.png
+texture cagettes cagettes.png
+texture camionnette camionnette.png
+texture ciel ciel.png
+texture dechets dechets.png
+texture devant_poteau devant_poteau.png
+texture drapeau_cafe drapeau_cafe.png
+texture drapeau_epicerie drapeau_epicerie.png
+texture drapeau_laverie drapeau_laverie.png
+texture drapeau_muscu drapeau_muscu.png
+texture etiq_e___entrer_dans_l_epicerie etiq_e___entrer_dans_l_epicerie.png
+texture etiq_e___entrer_dans_le_garage etiq_e___entrer_dans_le_garage.png
+texture etiq_e___entrer_dans_le_labo etiq_e___entrer_dans_le_labo.png
+texture etiq_garage_omar etiq_garage_omar.png
+texture etiq_la_laverie etiq_la_laverie.png
+texture etiq_la_salle etiq_la_salle.png
+texture etiq_le_cafe etiq_le_cafe.png
+texture etiq_le_labo_de_gero etiq_le_labo_de_gero.png
+texture etiq_le_mur_de_sisyphe etiq_le_mur_de_sisyphe.png
+texture etiq_le_parking etiq_le_parking.png
+texture etiq_notre_epicerie etiq_notre_epicerie.png
+texture facade_12 facade_12.png
+texture facade_13 facade_13.png
+texture facade_14 facade_14.png
+texture facade_15 facade_15.png
+texture facade_16 facade_16.png
+texture facade_17 facade_17.png
+texture facade_18 facade_18.png
+texture facade_19 facade_19.png
+texture facade_20 facade_20.png
+texture facade_21 facade_21.png
+texture facade_22 facade_22.png
+texture facade_23 facade_23.png
+texture flaque flaque.png
+texture flaque_verte flaque_verte.png
+texture garage_avenue garage_avenue.png
+texture garage_pignon garage_pignon.png
+texture grillage grillage.png
+texture halo_chaud halo_chaud.png
+texture halo_froid halo_froid.png
+texture halo_orange halo_orange.png
+texture halo_vert halo_vert.png
+texture joueur joueur.png
+texture labo labo.png
+texture lampadaire lampadaire.png
+texture lointain lointain.png
+texture m_fleurs_rue1 m_fleurs_rue1.png
+texture m_jardiniere_rue1 m_jardiniere_rue1.png
+texture m_plante_large_rue1 m_plante_large_rue1.png
+texture muret muret.png
+texture parking parking.png
+texture passage passage.png
+texture pignon_sisyphe pignon_sisyphe.png
+texture platane_0 platane_0.png
+texture platane_1 platane_1.png
+texture platane_2 platane_2.png
+texture platane_3 platane_3.png
+texture platane_4 platane_4.png
+texture platane_5 platane_5.png
+texture platane_6 platane_6.png
+texture platane_7 platane_7.png
+texture potelet potelet.png
+texture poubelle poubelle.png
+texture pub_krousty pub_krousty.png
+texture sol sol.png
+texture sol_cour sol_cour.png
+texture sol_rue sol_rue.png
+texture terrasse terrasse.png
+texture tiret tiret.png
+texture tour_loin_2 tour_loin_2.png
+texture velo velo.png
+joueur joueur
+aide aide
+nuit 30 30 42
+ciel ciel
+image facade_12 1 0 -154 1.000 0 1.00
+image facade_13 1 378 -276 1.000 0 1.00
+image sol_rue 1 756 156 1.000 0 1.00
+image sol_rue 1 820 156 1.000 0 1.00
+image pignon_sisyphe 1 876 -152 1.000 0 1.00
+zone 5 876 1026 etiq_le_mur_de_sisyphe
+image labo 1 1026 70 1.000 0 1.00
+image halo_vert 4 1034 101 1.000 1 0.50
+image flaque_verte 4 1034 176 1.000 1 0.60
+zone 9 1026 1196 etiq_le_labo_de_gero
+porte 1150 1180 202 labo 50 240 0 etiq_e___entrer_dans_le_labo
+image facade_14 1 1196 -176 1.000 0 1.00
+image drapeau_laverie 1 1198 82 1.000 0 1.00
+zone 13 1196 1322 etiq_la_laverie
+image drapeau_epicerie 1 1479 77 1.000 0 1.00
+image cagettes 2 1370 166 1.000 0 1.00
+image cagettes 2 1416 166 1.000 8 1.00
+image m_fleurs_rue1 2 1458 153 1.000 0 1.00
+image m_plante_large_rue1 2 1346 161 1.000 0 1.00
+zone 19 1364 1490 etiq_notre_epicerie
+porte 1466 1490 202 epicerie 50 240 0 etiq_e___entrer_dans_l_epicerie
+image facade_15 1 1490 -112 1.000 0 1.00
+image facade_16 1 1784 -176 1.000 0 1.00
+image facade_17 1 2036 -176 1.000 0 1.00
+image garage_pignon 1 2414 60 1.000 0 1.00
+image garage_avenue 1 2664 60 1.000 0 1.00
+image halo_froid 4 2454 65 1.000 1 0.30
+image flaque 4 2454 175 1.000 1 0.30
+zone 28 2414 2958 etiq_garage_omar
+porte 2454 2604 202 garage 50 240 0 etiq_e___entrer_dans_le_garage
+image facade_18 1 2958 -276 1.000 0 1.00
+image drapeau_cafe 1 3159 97 1.000 0 1.00
+image terrasse 2 3054 166 1.000 0 1.00
+image terrasse 2 3108 166 1.000 0 1.00
+image m_jardiniere_rue1 2 3042 169 1.000 0 1.00
+image m_jardiniere_rue1 2 3154 169 1.000 0 1.00
+image abri_vitre 2 3258 166 1.000 0 1.00
+image pub_krousty 2 3320 154 1.000 0 1.00
+image halo_orange 4 3177 59 1.000 1 0.30
+zone 39 3042 3168 etiq_le_cafe
+image facade_19 1 3336 -234 1.000 0 1.00
+image sol_cour 1 3630 156 1.000 0 1.00
+image muret 1 3630 92 1.000 0 1.00
+image sol_cour 1 3694 156 1.000 0 1.00
+image muret 1 3694 92 1.000 0 1.00
+image sol_cour 1 3758 156 1.000 0 1.00
+image muret 1 3758 92 1.000 0 1.00
+image sol_cour 1 3822 156 1.000 0 1.00
+image muret 1 3822 92 1.000 0 1.00
+image sol_cour 1 3886 156 1.000 0 1.00
+image muret 1 3886 92 1.000 0 1.00
+image sol_cour 1 3950 156 1.000 0 1.00
+image muret 1 3950 92 1.000 0 1.00
+image sol_cour 1 4014 156 1.000 0 1.00
+image muret 1 4014 92 1.000 0 1.00
+image grillage 1 3630 150 1.000 0 1.00
+image grillage 1 3630 118 1.000 0 1.00
+image grillage 1 3662 150 1.000 0 1.00
+image grillage 1 3662 118 1.000 0 1.00
+image grillage 1 3694 150 1.000 0 1.00
+image grillage 1 3694 118 1.000 0 1.00
+image grillage 1 3726 150 1.000 0 1.00
+image grillage 1 3726 118 1.000 0 1.00
+image grillage 1 3758 150 1.000 0 1.00
+image grillage 1 3758 118 1.000 0 1.00
+image grillage 1 3790 150 1.000 0 1.00
+image grillage 1 3790 118 1.000 0 1.00
+image grillage 1 3886 150 1.000 0 1.00
+image grillage 1 3886 118 1.000 0 1.00
+image grillage 1 3918 150 1.000 0 1.00
+image grillage 1 3918 118 1.000 0 1.00
+image grillage 1 3950 150 1.000 0 1.00
+image grillage 1 3950 118 1.000 0 1.00
+image grillage 1 3982 150 1.000 0 1.00
+image grillage 1 3982 118 1.000 0 1.00
+image grillage 1 4014 150 1.000 0 1.00
+image grillage 1 4014 118 1.000 0 1.00
+image grillage 1 4046 150 1.000 0 1.00
+image grillage 1 4046 118 1.000 0 1.00
+image camionnette 1 3930 116 1.000 0 0.80
+image barriere 2 3830 166 1.000 0 1.00
+solide 3830 178 3874 186
+image buisson 1 3638 165 1.000 0 0.80
+image buisson 1 3678 165 1.000 0 0.80
+image buisson 1 3718 165 1.000 0 0.80
+image buisson 1 3758 165 1.000 0 0.80
+image buisson 1 3798 165 1.000 0 0.80
+image parking 2 3634 162 1.000 0 1.00
+zone 88 3630 4078 etiq_le_parking
+image facade_20 1 4078 -176 1.000 0 1.00
+image drapeau_muscu 1 4080 92 1.000 0 1.00
+zone 91 4078 4204 etiq_la_salle
+image facade_21 1 4414 -154 1.000 0 1.00
+image facade_22 1 4750 -176 1.000 0 1.00
+image facade_23 1 5002 -176 1.000 0 1.00
+image sol 1 -64 180 1.000 0 1.00
+image sol 1 0 180 1.000 0 1.00
+image sol 1 64 180 1.000 0 1.00
+image sol 1 128 180 1.000 0 1.00
+image sol 1 192 180 1.000 0 1.00
+image sol 1 256 180 1.000 0 1.00
+image sol 1 320 180 1.000 0 1.00
+image sol 1 384 180 1.000 0 1.00
+image sol 1 448 180 1.000 0 1.00
+image sol 1 512 180 1.000 0 1.00
+image sol 1 576 180 1.000 0 1.00
+image sol 1 640 180 1.000 0 1.00
+image sol 1 704 180 1.000 0 1.00
+image sol 1 768 180 1.000 0 1.00
+image sol 1 832 180 1.000 0 1.00
+image sol 1 896 180 1.000 0 1.00
+image sol 1 960 180 1.000 0 1.00
+image sol 1 1024 180 1.000 0 1.00
+image sol 1 1088 180 1.000 0 1.00
+image sol 1 1152 180 1.000 0 1.00
+image sol 1 1216 180 1.000 0 1.00
+image sol 1 1280 180 1.000 0 1.00
+image sol 1 1344 180 1.000 0 1.00
+image sol 1 1408 180 1.000 0 1.00
+image sol 1 1472 180 1.000 0 1.00
+image sol 1 1536 180 1.000 0 1.00
+image sol 1 1600 180 1.000 0 1.00
+image sol 1 1664 180 1.000 0 1.00
+image sol 1 1728 180 1.000 0 1.00
+image sol 1 1792 180 1.000 0 1.00
+image sol 1 1856 180 1.000 0 1.00
+image sol 1 1920 180 1.000 0 1.00
+image sol 1 1984 180 1.000 0 1.00
+image sol 1 2048 180 1.000 0 1.00
+image sol 1 2112 180 1.000 0 1.00
+image sol 1 2176 180 1.000 0 1.00
+image sol 1 2240 180 1.000 0 1.00
+image sol 1 2304 180 1.000 0 1.00
+image sol 1 2368 180 1.000 0 1.00
+image sol 1 2432 180 1.000 0 1.00
+image sol 1 2496 180 1.000 0 1.00
+image sol 1 2560 180 1.000 0 1.00
+image sol 1 2624 180 1.000 0 1.00
+image sol 1 2688 180 1.000 0 1.00
+image sol 1 2752 180 1.000 0 1.00
+image sol 1 2816 180 1.000 0 1.00
+image sol 1 2880 180 1.000 0 1.00
+image sol 1 2944 180 1.000 0 1.00
+image sol 1 3008 180 1.000 0 1.00
+image sol 1 3072 180 1.000 0 1.00
+image sol 1 3136 180 1.000 0 1.00
+image sol 1 3200 180 1.000 0 1.00
+image sol 1 3264 180 1.000 0 1.00
+image sol 1 3328 180 1.000 0 1.00
+image sol 1 3392 180 1.000 0 1.00
+image sol 1 3456 180 1.000 0 1.00
+image sol 1 3520 180 1.000 0 1.00
+image sol 1 3584 180 1.000 0 1.00
+image sol 1 3648 180 1.000 0 1.00
+image sol 1 3712 180 1.000 0 1.00
+image sol 1 3776 180 1.000 0 1.00
+image sol 1 3840 180 1.000 0 1.00
+image sol 1 3904 180 1.000 0 1.00
+image sol 1 3968 180 1.000 0 1.00
+image sol 1 4032 180 1.000 0 1.00
+image sol 1 4096 180 1.000 0 1.00
+image sol 1 4160 180 1.000 0 1.00
+image sol 1 4224 180 1.000 0 1.00
+image sol 1 4288 180 1.000 0 1.00
+image sol 1 4352 180 1.000 0 1.00
+image sol 1 4416 180 1.000 0 1.00
+image sol 1 4480 180 1.000 0 1.00
+image sol 1 4544 180 1.000 0 1.00
+image sol 1 4608 180 1.000 0 1.00
+image sol 1 4672 180 1.000 0 1.00
+image sol 1 4736 180 1.000 0 1.00
+image sol 1 4800 180 1.000 0 1.00
+image sol 1 4864 180 1.000 0 1.00
+image sol 1 4928 180 1.000 0 1.00
+image sol 1 4992 180 1.000 0 1.00
+image sol 1 5056 180 1.000 0 1.00
+image sol 1 5120 180 1.000 0 1.00
+image sol 1 5184 180 1.000 0 1.00
+image sol 1 5248 180 1.000 0 1.00
+image sol 1 5312 180 1.000 0 1.00
+image tiret 1 40 238 1.000 0 1.00
+image tiret 1 190 238 1.000 0 1.00
+image tiret 1 340 238 1.000 0 1.00
+image tiret 1 490 238 1.000 0 1.00
+image tiret 1 640 238 1.000 0 1.00
+image tiret 1 790 238 1.000 0 1.00
+image tiret 1 940 238 1.000 0 1.00
+image tiret 1 1090 238 1.000 0 1.00
+image tiret 1 1240 238 1.000 0 1.00
+image tiret 1 1390 238 1.000 0 1.00
+image tiret 1 1540 238 1.000 0 1.00
+image tiret 1 1690 238 1.000 0 1.00
+image tiret 1 1840 238 1.000 0 1.00
+image tiret 1 1990 238 1.000 0 1.00
+image tiret 1 2140 238 1.000 0 1.00
+image tiret 1 2290 238 1.000 0 1.00
+image tiret 1 2440 238 1.000 0 1.00
+image tiret 1 2590 238 1.000 0 1.00
+image tiret 1 2740 238 1.000 0 1.00
+image tiret 1 2890 238 1.000 0 1.00
+image tiret 1 3040 238 1.000 0 1.00
+image tiret 1 3190 238 1.000 0 1.00
+image tiret 1 3340 238 1.000 0 1.00
+image tiret 1 3490 238 1.000 0 1.00
+image tiret 1 3640 238 1.000 0 1.00
+image tiret 1 3790 238 1.000 0 1.00
+image tiret 1 3940 238 1.000 0 1.00
+image tiret 1 4090 238 1.000 0 1.00
+image tiret 1 4240 238 1.000 0 1.00
+image tiret 1 4390 238 1.000 0 1.00
+image tiret 1 4540 238 1.000 0 1.00
+image tiret 1 4690 238 1.000 0 1.00
+image tiret 1 4840 238 1.000 0 1.00
+image tiret 1 4990 238 1.000 0 1.00
+image tiret 1 5140 238 1.000 0 1.00
+image tour_loin_2 0 340 15 0.030 0 1.00
+image halo_orange 0 298 -37 0.030 1 0.30
+image lointain 0 0 90 0.500 0 0.80
+image lointain 0 256 90 0.500 0 0.80
+image lointain 0 512 90 0.500 0 0.80
+image lointain 0 768 90 0.500 0 0.80
+image lointain 0 1024 90 0.500 0 0.80
+image lointain 0 1280 90 0.500 0 0.80
+image lointain 0 1536 90 0.500 0 0.80
+image lointain 0 1792 90 0.500 0 0.80
+image lointain 0 2048 90 0.500 0 0.80
+image lointain 0 2304 90 0.500 0 0.80
+image lointain 0 2560 90 0.500 0 0.80
+image lointain 0 2816 90 0.500 0 0.80
+image lointain 0 3072 90 0.500 0 0.80
+image devant_poteau 3 1500 0 1.500 0 1.00
+image devant_poteau 3 3000 0 1.500 0 1.00
+image devant_poteau 3 4500 0 1.500 0 1.00
+image devant_poteau 3 6000 0 1.500 0 1.00
+image devant_poteau 3 7500 0 1.500 0 1.00
+image lampadaire 2 150 75 1.000 0 1.00
+solide 152 201 160 209
+image halo_chaud 4 158 55 1.000 1 0.90
+image flaque 4 111 205 1.000 1 0.40
+image lampadaire 2 450 75 1.000 0 1.00
+solide 452 201 460 209
+image halo_chaud 4 458 55 1.000 1 0.90
+image flaque 4 411 205 1.000 1 0.40
+image lampadaire 2 750 75 1.000 0 1.00
+solide 752 201 760 209
+image halo_chaud 4 758 55 1.000 1 0.90
+image flaque 4 711 205 1.000 1 0.40
+image lampadaire 2 1050 75 1.000 0 1.00
+solide 1052 201 1060 209
+image halo_chaud 4 1058 55 1.000 1 0.90
+image flaque 4 1011 205 1.000 1 0.40
+image lampadaire 2 1350 75 1.000 0 1.00
+solide 1352 201 1360 209
+image halo_chaud 4 1358 55 1.000 1 0.90
+image flaque 4 1311 205 1.000 1 0.40
+image lampadaire 2 1650 75 1.000 0 1.00
+solide 1652 201 1660 209
+image halo_chaud 4 1658 55 1.000 1 0.90
+image flaque 4 1611 205 1.000 1 0.40
+image lampadaire 2 1950 75 1.000 0 1.00
+solide 1952 201 1960 209
+image halo_chaud 4 1958 55 1.000 1 0.90
+image flaque 4 1911 205 1.000 1 0.40
+image lampadaire 2 2250 75 1.000 0 1.00
+solide 2252 201 2260 209
+image halo_chaud 4 2258 55 1.000 1 0.90
+image flaque 4 2211 205 1.000 1 0.40
+image lampadaire 2 2550 75 1.000 0 1.00
+solide 2552 201 2560 209
+image halo_chaud 4 2558 55 1.000 1 0.90
+image flaque 4 2511 205 1.000 1 0.40
+image lampadaire 2 2850 75 1.000 0 1.00
+solide 2852 201 2860 209
+image halo_chaud 4 2858 55 1.000 1 0.90
+image flaque 4 2811 205 1.000 1 0.40
+image lampadaire 2 3150 75 1.000 0 1.00
+solide 3152 201 3160 209
+image halo_chaud 4 3158 55 1.000 1 0.90
+image flaque 4 3111 205 1.000 1 0.40
+image lampadaire 2 3450 75 1.000 0 1.00
+solide 3452 201 3460 209
+image halo_chaud 4 3458 55 1.000 1 0.90
+image flaque 4 3411 205 1.000 1 0.40
+image lampadaire 2 3750 75 1.000 0 1.00
+solide 3752 201 3760 209
+image halo_chaud 4 3758 55 1.000 1 0.90
+image flaque 4 3711 205 1.000 1 0.40
+image lampadaire 2 4050 75 1.000 0 1.00
+solide 4052 201 4060 209
+image halo_chaud 4 4058 55 1.000 1 0.90
+image flaque 4 4011 205 1.000 1 0.40
+image lampadaire 2 4350 75 1.000 0 1.00
+solide 4352 201 4360 209
+image halo_chaud 4 4358 55 1.000 1 0.90
+image flaque 4 4311 205 1.000 1 0.40
+image lampadaire 2 4650 75 1.000 0 1.00
+solide 4652 201 4660 209
+image halo_chaud 4 4658 55 1.000 1 0.90
+image flaque 4 4611 205 1.000 1 0.40
+image lampadaire 2 4950 75 1.000 0 1.00
+solide 4952 201 4960 209
+image halo_chaud 4 4958 55 1.000 1 0.90
+image flaque 4 4911 205 1.000 1 0.40
+image platane_1 2 310 75 1.000 0 0.85
+solide 350 200 360 208
+image platane_2 2 610 75 1.000 0 0.85
+solide 650 200 660 208
+image platane_3 2 910 75 1.000 0 0.85
+solide 950 200 960 208
+image platane_4 2 1210 75 1.000 0 0.85
+solide 1250 200 1260 208
+image platane_5 2 1510 75 1.000 0 0.85
+solide 1550 200 1560 208
+image platane_6 2 1810 75 1.000 0 0.85
+solide 1850 200 1860 208
+image platane_7 2 2110 75 1.000 0 0.85
+solide 2150 200 2160 208
+image platane_1 2 2710 75 1.000 0 0.85
+solide 2750 200 2760 208
+image platane_2 2 3010 75 1.000 0 0.85
+solide 3050 200 3060 208
+image platane_3 2 3310 75 1.000 0 0.85
+solide 3350 200 3360 208
+image platane_6 2 4210 75 1.000 0 0.85
+solide 4250 200 4260 208
+image platane_7 2 4510 75 1.000 0 0.85
+solide 4550 200 4560 208
+image platane_0 2 4810 75 1.000 0 0.85
+solide 4850 200 4860 208
+image potelet 2 762 171 1.000 0 1.00
+image potelet 2 788 171 1.000 0 1.00
+image potelet 2 814 171 1.000 0 1.00
+image potelet 2 840 171 1.000 0 1.00
+image potelet 2 866 171 1.000 0 1.00
+image passage 1 793 212 1.000 0 1.00
+image potelet 2 3636 171 1.000 0 1.00
+image potelet 2 3662 171 1.000 0 1.00
+image potelet 2 3688 171 1.000 0 1.00
+image potelet 2 3714 171 1.000 0 1.00
+image potelet 2 3740 171 1.000 0 1.00
+image potelet 2 3766 171 1.000 0 1.00
+image potelet 2 3792 171 1.000 0 1.00
+image potelet 2 3818 171 1.000 0 1.00
+image potelet 2 3844 171 1.000 0 1.00
+image potelet 2 3870 171 1.000 0 1.00
+image potelet 2 3896 171 1.000 0 1.00
+image potelet 2 3922 171 1.000 0 1.00
+image potelet 2 3948 171 1.000 0 1.00
+image potelet 2 3974 171 1.000 0 1.00
+image potelet 2 4000 171 1.000 0 1.00
+image potelet 2 4026 171 1.000 0 1.00
+image potelet 2 4052 171 1.000 0 1.00
+image passage 1 3831 212 1.000 0 1.00
+image auto_1 2 249 208 1.000 0 1.00
+solide 251 240 367 253
+image auto_2 2 529 208 1.000 0 1.00
+solide 531 240 647 253
+image auto_2 2 1121 208 1.000 0 1.00
+solide 1123 240 1239 253
+image auto_1 2 1419 208 1.000 8 1.00
+solide 1421 240 1537 253
+image auto_0 2 1771 208 1.000 0 1.00
+solide 1773 240 1889 253
+image auto_0 2 2164 208 1.000 8 1.00
+solide 2166 240 2282 253
+image auto_2 2 2821 208 1.000 0 1.00
+solide 2823 240 2939 253
+image auto_1 2 3053 208 1.000 0 1.00
+solide 3055 240 3171 253
+image auto_2 2 3386 208 1.000 0 1.00
+solide 3388 240 3504 253
+image auto_0 2 4178 208 1.000 0 1.00
+solide 4180 240 4296 253
+image auto_0 2 4405 208 1.000 0 1.00
+solide 4407 240 4523 253
+image auto_0 2 4635 208 1.000 8 1.00
+solide 4637 240 4753 253
+image auto_2 2 4986 208 1.000 0 1.00
+solide 4988 240 5104 253
+image poubelle 2 2575 166 1.000 0 1.00
+image dechets 2 3579 168 1.000 0 1.00
+image poubelle 2 1134 166 1.000 0 1.00
+image poubelle 2 3502 166 1.000 0 1.00
+image poubelle 2 3189 166 1.000 0 1.00
+image dechets 2 3548 168 1.000 0 1.00
+image poubelle 2 1898 166 1.000 0 1.00
+image dechets 2 1602 168 1.000 0 1.00
+image poubelle 2 332 166 1.000 0 1.00
+image poubelle 2 4534 166 1.000 0 1.00
+image velo 2 414 183 1.000 0 1.00
+image velo 2 1314 183 1.000 8 1.00
+image velo 2 2214 183 1.000 0 1.00
+image velo 2 3114 183 1.000 8 1.00
+image velo 2 4914 183 1.000 8 1.00
+image boite_lettres 2 1751 159 1.000 0 1.00
+image buisson 1 760 164 1.000 0 0.90
+image buisson 1 798 164 1.000 0 0.90
+image buisson 1 836 164 1.000 0 0.90
+limites 12 5242 185 267
+porte 0 32 270 avenue_bas 4212 210 1 -
+depart 46 210
+porte 5222 5254 270 avenue_haut 46 210 1 -
+repere abri 3288 192
+repere cafe 3098 192
+repere epicerie 1478 192
+repere garage 2529 192
+repere hall29 3189 192
+repere labo 1165 192
+repere laverie 1259 192
+repere parking 3852 192
+repere salle 4141 192
+repere sisyphe 951 192

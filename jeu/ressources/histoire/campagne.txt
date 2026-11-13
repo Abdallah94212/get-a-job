@@ -1,0 +1,981 @@
+# GET A JOB : la campagne. Le jeu lit ce fichier au lancement (histoire.LecteurCampagne).
+# La logique de l'histoire, personnage par personnage et mission par mission, est expliquee dans jeu/NARRATION.md.
+# Une instruction par ligne : "mot arguments | texte | texte". Une ligne qui commence par # est ignoree.
+#
+# LE QUARTIER
+#   depart <carte> <x> <y>                                   ou commence une nouvelle partie
+#   verrou <carte> | <NOM> | <phrase>                        lieu ferme, son nom, et ce qu'on lit devant la porte
+#   voix <id> | <NOM> | <buste>                              quelqu'un qui parle sans etre pose dans le decor
+#   timbre <id> <hauteur>                                    la hauteur de sa voix (1 = moyenne)
+#   figurant <id> | <carte> <repere> <dx> <y> | <image> | <NOM> | <de> <a>
+#       condition +drapeau -drapeau                          il n'est la que si les drapeaux le permettent
+#       bavarde [+drapeau -drapeau] | <phrase>               ce qu'il dit quand l'histoire n'attend rien de lui
+#       patrouille <distance> <vitesse>   garde <distance> <vitesse>   tourne (regarde a gauche)
+#   point <id> | <carte> <repere> <dx> <y> | <image[:hauteur]> | <INVITE>
+#   Un lieu se donne par rapport a un repere du decor ; "-" garde la hauteur du repere.
+#   <de> <a> : premiere et derniere mission ou le personnage est la ; "fin" = une fois l'histoire jouee.
+#
+# L'HISTOIRE
+#   chapitre <id> | <TITRE> | <SOUS-TITRE> | <accroche>
+#   mission <id> | <TITRE> | <lieu> | <personnages>
+#       resume | <description>      ouvre <carte> ...      debut <scene>      fin <scene>
+#       meteo pluie|sec      musique <theme>      chrono <secondes>      furtive      repli <carte> <repere> <dx> <y>
+#       objectif <parler|agir|aller|atteindre> <cible> [pression] [si +d -d] [musique:<theme>] [-> scene] | <TEXTE>
+#       option   ... (meme forme)                            objectif secondaire, faisable a tout moment de la mission
+#
+# LES SCENES
+#   cinematique <id>, puis des plans : carte, noir, recit, dit, choix, etiquette, saut, si, drapeau, acteur, pose,
+#   regarde, retire, marche, camera, attend, effet, son, musique, ambiance, meteo, gros_plan, sms, annonce, titre,
+#   carton, joueur. Sans plan "carte" ni "noir", la scene se joue sur place, avec les personnages presents.
+#   Une position x peut citer un repere : @banc+20.
+
+depart appartement 205 214
+
+verrou metro | LE MÉTRO | PAS DE TICKET EN POCHE, ET RIEN À FAIRE À PARIS CE SOIR.
+verrou garage | LE GARAGE D'OMAR | LE RIDEAU EST À MOITIÉ BAISSÉ. ON N'ENTRE PAS CHEZ OMAR SANS RAISON.
+verrou labo | LE LABO | UNE PORTE BLINDÉE, SANS NOM. ON N'Y ENTRE PAS SANS Y ÊTRE ATTENDU.
+verrou namek | NAMEK | LA RS6 DORT SOUS SA BÂCHE. ELLE N'EST PAS À TOI.
+verrou epicerie | NOTRE ÉPICERIE | « À CÉDER », DIT LA PANCARTE SUR LA VITRINE. LE PROPRIÉTAIRE N'OUVRE PLUS.
+verrou bureaux | LES BUREAUX KROUSTY | BADGE KROUSTY EXIGÉ. LA PORTE NE S'OUVRE PAS POUR TOI.
+verrou hall_tour | LA TOUR | LA TOUR KROUSTY CORP. DEUX VIGILES DEVANT LES PORTES VITRÉES. PAS ENCORE.
+
+voix toi | TOI | buste_toi
+voix toi_jeune | TOI, QUATRE ANS PLUS TÔT | buste_toi_jeune
+voix soul | SOUL | buste_soul
+voix soul_jeune | SOUL | buste_soul_jeune
+voix geto_tel | OLD GETO, AU TÉLÉPHONE | buste_geto
+voix douanier | LE DOUANIER | buste_douanier
+voix gars_geto | UN GARS DE GETO | buste_gars_geto
+
+timbre toi 0.9
+timbre toi_jeune 1.0
+timbre geto 0.7
+timbre geto_tel 0.7
+timbre youngssef 1.35
+timbre diallo 1.15
+timbre omar 0.95
+timbre mecano 0.9
+timbre mounir 0.75
+timbre femme 1.2
+timbre femme_assise 1.2
+timbre frotteur 0.85
+timbre vieux 0.75
+timbre ecouteurs 1.3
+timbre gero 0.85
+timbre soul 0.95
+timbre soul_jeune 1.05
+timbre sdf 0.65
+timbre rayan 1.4
+timbre moussa 1.3
+timbre haddad 0.75
+timbre douanier 0.8
+timbre gars_geto 0.85
+
+# ------------------------------------------------------------------ le bas de l'avenue
+figurant geto | maitre_poulet comptoir 0 204 | geto | OLD GETO | 1.1 fin
+bavarde -parti_de_chez_geto | Les commandes se livrent pas toutes seules, petit.
+bavarde +parti_de_chez_geto | Tiens. Le livreur. Tu as faim, ou tu as réfléchi ?
+figurant sdf | avenue_bas sdf 0 184 | sdf | LE SDF | 0.1 fin
+bavarde -beeper | ...
+bavarde +beeper | Appuie pas dessus.
+figurant diallo | avenue_bas n9 -22 190 | p_diallo | TATA LILI | 1.1 fin
+bavarde | Youngssef me livre tous les vendredis. Il me monte même les courses, ce petit.
+bavarde +pourboire | Merci pour l'autre soir. Dis à Youngssef que la glace, ça marche.
+figurant youngssef | avenue_bas banc -2 197 | p_youngssef_banc | YOUNGSSEF | 1.1 2.4
+condition -recrue_youngssef
+bavarde | Ma cheville, c'est rien. Une semaine, et je remonte sur le scooter.
+bavarde +parti_de_chez_geto | Tu montes un truc, je suis là. Je te l'ai dit.
+figurant scooter_y | avenue_bas scooter 0 198 | scooter_gare | LE SCOOTER DE YOUNGSSEF | 0.1 2.4
+condition -scooter
+figurant passant_bas | avenue_bas affiche -40 192 | p_cliente | UNE PASSANTE | 0.1 fin
+bavarde | Encore un rideau baissé à côté de la presse. C'était un tabac. Maintenant, « Bientôt ici : Krousty ».
+patrouille 30 12
+
+# ------------------------------------------------------------------ le milieu de l'avenue
+figurant passant_cafe | avenue_milieu cafe -34 190 | p_voyageur | UN HABITUÉ DU CAFÉ | 0.1 fin
+bavarde | Tu vois la tour, tout en haut ? Elle rachète l'avenue commerce par commerce.
+bavarde | Le café tiendra. Le patron a refusé deux fois leur chèque.
+patrouille 26 14
+figurant rayan | avenue_milieu laverie 30 194 | p_rayan | SAVON | 1.1 2.4
+condition -recrue_rayan
+bavarde | T'es le nouveau livreur du Poulet ? Youngssef, il est où ?
+bavarde +sachets | On t'a vu passer trois fois ce soir. Tu livres pas que du poulet, toi.
+figurant moussa | avenue_milieu parking -70 196 | p_moussa | TICKET | 1.1 2.4
+condition -recrue_moussa
+bavarde | Le parking, c'est chez nous. Tu passes, tu dis bonjour.
+bavarde +parti_de_chez_geto | Youngssef dit que t'as lâché Geto. Respect.
+figurant omar | garage omar 0 - | p_omar | OMAR | 1.1 2.1
+tourne
+bavarde | Le poulet, c'est payé. On est quittes, hein ?
+figurant mecano | garage mecano 0 - | p_mecano | UN MÉCANO | 1.1 2.1
+bavarde | Le patron veut pas qu'on parle aux livreurs.
+figurant gero | labo gero 0 - | p_gero | GERO | 1.3 fin
+bavarde | Ne touche pas aux cuves.
+bavarde +sachets | Trois sachets. Je les ai comptés deux fois.
+figurant police_a | avenue_milieu cafe 110 194 | p_policier | UNE PATROUILLE | 1.3 1.3
+garde 120 34
+figurant police_b | avenue_milieu parking 60 196 | p_policier | UNE PATROUILLE | 1.3 1.3
+garde 150 42
+figurant client_cafe | avenue_milieu cafe -20 196 | p_client | UN CLIENT | 1.3 1.3
+figurant client_parking | avenue_milieu parking 40 200 | p_cliente | UNE CLIENTE | 1.3 1.3
+figurant client_salle | avenue_milieu salle 0 194 | p_sportif | UN HABITUÉ DE LA SALLE | 1.3 1.3
+figurant haddad | epicerie comptoir 0 206 | p_haddad | PAPY BOCAL | 2.4 2.4
+figurant youngssef_boutique | epicerie comptoir -80 208 | p_youngssef | YOUNGSSEF | fin fin
+bavarde | Je fais le guet. Personne passe sans que je le voie.
+figurant rayan_boutique | epicerie rayons 20 208 | p_rayan | SAVON | fin fin
+bavarde | Ça part vite. Gero suit plus.
+figurant moussa_boutique | epicerie frigos 10 206 | p_moussa | TICKET | fin fin
+bavarde | Les gars de Geto sont repassés devant. Ils regardent trop.
+
+# ------------------------------------------------------------------ la ligne 7 et Crimée
+figurant frotteur | metro frotteur 0 - | p_frotteur | UN TYPE | 1.2 1.2
+condition -frotteur_parti
+figurant femme | metro femme 0 - | p_femme | LA FEMME À L'ÉCHARPE ROUGE | 1.2 1.2
+condition -frotteur_parti
+tourne
+figurant femme_assise | metro siege_femme 0 - | p_femme | LA FEMME À L'ÉCHARPE ROUGE | 1.2 1.2
+condition +frotteur_parti -femme_partie
+tourne
+figurant vieux | metro vitre -230 208 | p_vieux | UN VIEIL HOMME | 1.2 fin
+bavarde -frotteur_parti | Hm.
+bavarde +frotteur_parti | J'aurais dû dire quelque chose. J'ai pas osé.
+figurant ecouteurs | metro vitre -60 206 | p_ecouteurs | UNE PASSAGÈRE | 1.2 fin
+bavarde -frotteur_parti | Pardon ? ... Non, rien.
+bavarde +frotteur_parti | Ce type, je le vois tous les soirs. Personne dit jamais rien.
+figurant voyageur | metro fond -40 210 | p_voyageur | UN VOYAGEUR | 1.2 fin
+bavarde | Plus que quatre stations. Je dors debout.
+figurant mounir | boucherie mounir 0 - | p_mounir | BIDOCHE | 1.2 fin
+tourne
+bavarde | Dis à Geto qu'il me doit un café. Depuis 1998.
+
+# ------------------------------------------------------------------ ce sur quoi on agit
+point lettre | appartement livre 16 - | - | E : LIRE LE COURRIER
+point hagakure | appartement livre -10 - | - | E : OUVRIR LE HAGAKURE
+point plan | appartement plan 0 - | - | E : REGARDER LE MUR DU PLAN
+point lit | appartement lit 0 - | - | E : DORMIR
+point scooter | avenue_bas scooter 0 198 | - | E : MONTER SUR LE SCOOTER
+point rs6_regard | garage rs6 0 - | - | E : REGARDER LA VOITURE BÂCHÉE
+point chambre_froide | maitre_poulet arriere 0 - | - | E : RANGER LES CAISSES
+point rame_milieu | metro milieu 0 - | - | -
+point caisses | boucherie caisses 0 - | caisses | E : PRENDRE LES CAISSES
+point poste_labo | labo poste 0 - | - | E : REGARDER LES ÉCRANS
+point casier_labo | labo casier 0 - | - | E : REGARDER LES CASIERS
+point flipper | garage etabli 0 - | flipper:74 | E : PRENDRE LE BOÎTIER ORANGE
+point rs6_bache | garage rs6 0 - | - | E : TIRER LA BÂCHE
+point plant0 | namek plant0 0 - | plant | E : RÉCOLTER
+point plant1 | namek plant1 0 - | plant | E : RÉCOLTER
+point plant2 | namek plant2 0 - | plant | E : RÉCOLTER
+point plant3 | namek plant3 0 - | plant | E : RÉCOLTER
+point plant4 | namek plant4 0 - | plant | E : RÉCOLTER
+point plant5 | namek plant5 0 - | plant | E : RÉCOLTER
+point rs6_namek | namek rs6 0 - | - | E : CHARGER LA RS6 ET PARTIR
+point cuves | labo cuves 0 - | - | E : RÉCUPÉRER LA CELL PERFECT
+point comptoir_epicerie | epicerie comptoir 0 - | sac_vert | E : POSER LA MARCHANDISE
+
+# ================================================================== PROLOGUE
+chapitre prologue | PROLOGUE | VENDREDI SOIR | Un appart, une télé, un courrier. Et quelqu'un qui appelle dans la rue.
+
+mission 0.1 | CE SOIR-LÀ | Chez toi, au 12 | Toi
+resume | Trois mois de loyer en retard. Ce soir, quelque chose à la télé t'a sorti du canapé. Il faut de l'argent, et vite.
+meteo pluie
+debut intro
+objectif agir lettre -> lettre | LIS LE COURRIER POSÉ SUR LA TABLE BASSE
+objectif aller avenue_bas | DESCENDS DANS LA RUE PAR LA PORTE, À GAUCHE
+option agir hagakure -> hagakure | OUVRE LE HAGAKURE, À CÔTÉ DU COURRIER
+option agir plan -> mur_du_plan | REGARDE LE MUR DU PLAN, AU FOND
+
+# ================================================================== ACTE 1
+chapitre acte1 | ACTE 1 | LA RUE | Partir de rien, une livraison après l'autre.
+
+mission 1.1 | LE SCOOTER DE YOUNGSSEF | Le bas et le milieu de l'avenue | Youngssef, Old Geto, Tata Lili, Omar
+resume | Youngssef, le livreur du Maître Poulet, s'est tordu la cheville. Si ses deux commandes ne partent pas ce soir, Geto le remplace. Il te prête son scooter.
+meteo pluie
+ouvre garage
+debut appel
+objectif parler youngssef -> youngssef_service | PARLE AU GAMIN ASSIS SUR LE BANC
+objectif agir scooter -> scooter_pris | MONTE SUR LE SCOOTER DE YOUNGSSEF, GARÉ À CÔTÉ DU BANC
+objectif parler geto -> geto_sacs | VA CHERCHER LES COMMANDES AU MAÎTRE POULET, EN BAS DE L'AVENUE
+objectif parler diallo -> diallo | LIVRE TATA LILI, AU NUMÉRO 9, À GAUCHE DU MAÎTRE POULET
+objectif aller garage -> garage_entree | LIVRE LE GARAGE D'OMAR, AU MILIEU DE L'AVENUE
+objectif parler omar -> omar_paie | DONNE LA COMMANDE À OMAR, AU FOND DU GARAGE
+objectif parler youngssef -> scooter_rendu | RAMÈNE LE SCOOTER À YOUNGSSEF, AU BANC
+option agir rs6_regard -> rs6_regard | REGARDE LA VOITURE SOUS LA BÂCHE
+
+mission 1.2 | LA COURSE DE CRIMÉE | Le Maître Poulet, la ligne 7, Crimée | Old Geto, la femme à l'écharpe rouge, Bidoche
+resume | Le grossiste de Geto ne le livre plus. Il te faut traverser Paris en métro pour rapporter vingt kilos de poulet de chez Bidoche, à Crimée, avant demain midi.
+meteo pluie
+ouvre metro
+objectif parler geto -> geto_viande | VA TE FAIRE PAYER AU MAÎTRE POULET
+objectif aller metro -> rame_depart | REMONTE L'AVENUE À PIED JUSQU'AU MÉTRO, TOUT EN HAUT
+objectif atteindre rame_milieu musique:mus_tension -> rame_tension | DANS LA RAME : TROUVE UNE PLACE, AU MILIEU
+objectif parler frotteur musique:mus_tension -> frotteur | DANS LA RAME : INTERVIENS
+objectif parler femme_assise -> femme | DANS LA RAME : LA FEMME À L'ÉCHARPE ROUGE VEUT TE PARLER
+objectif parler mounir -> mounir | DONNE L'ENVELOPPE DE GETO À BIDOCHE
+objectif agir caisses -> caisses | PRENDS LES CAISSES DE POULET, DEVANT LA CHAMBRE FROIDE
+objectif aller metro -> retour | REPRENDS LA LIGNE 7 VERS LE KREMLIN-BICÊTRE
+objectif parler geto -> geto_caisses | RAPPORTE LA VIANDE À OLD GETO
+objectif agir chambre_froide -> colis | RANGE LES CAISSES DANS L'ARRIÈRE-BOUTIQUE, AU FOND
+option parler youngssef si +part_youngssef -> part_youngssef | DONNE SA PART À YOUNGSSEF, AU BANC
+option parler sdf si +sandwich -> sandwich_sdf | DONNE LE SANDWICH DE BIDOCHE AU SDF, EN BAS DE L'AVENUE
+
+mission 1.3 | LIVREUR DE VERTE | Le labo de Gero, le milieu de l'avenue | Old Geto, Gero, Soul, deux patrouilles
+resume | Geto t'a pris pour livrer autre chose que du poulet. La marchandise est chez Gero, le chimiste du labo. Deux patrouilles tournent sur l'avenue : ne passe pas devant elles.
+meteo sec
+musique mus_filature
+ouvre labo
+furtive
+repli avenue_milieu epicerie 0 230
+debut verte_debut
+objectif parler geto -> geto_verte | VA VOIR OLD GETO AU COMPTOIR
+objectif parler gero -> gero | RÉCUPÈRE LA MARCHANDISE CHEZ GERO, AU LABO À CÔTÉ DE LA LAVERIE
+objectif aller avenue_milieu -> sms_soul | SORS DU LABO PAR LA PORTE, À GAUCHE
+objectif parler client_cafe pression -> client_cafe | LIVRE LE CLIENT DEVANT LE CAFÉ, SANS TE FAIRE VOIR
+objectif parler client_parking pression -> client_parking | LIVRE LA CLIENTE DU PARKING, SANS TE FAIRE VOIR
+objectif parler client_salle pression -> client_salle | LIVRE L'HABITUÉ DE LA SALLE DE SPORT, SANS TE FAIRE VOIR
+objectif parler geto -> verte_fin | RETOURNE AU MAÎTRE POULET, EN BAS DE L'AVENUE
+option agir poste_labo -> poste_labo | REGARDE LE POSTE DE CONTRÔLE DU LABO
+option agir casier_labo -> casier_labo | REGARDE LES CASIERS DU VESTIAIRE
+option parler youngssef si +part_youngssef -> part_youngssef | DONNE SA PART À YOUNGSSEF, AU BANC
+
+mission 1.4 | LE PLAFOND | Le Maître Poulet, le bas de l'avenue | Old Geto, le SDF
+resume | Trois semaines de livraisons. Tu rapportes à Geto dix fois ce qu'il te donne. Ce soir, tu vas lui demander ta vraie part.
+meteo pluie
+fin fin_acte1
+debut plafond_debut
+objectif parler geto -> plafond | VA CHERCHER TA PAIE CHEZ OLD GETO
+objectif aller avenue_bas -> sdf_appel | SORS DU MAÎTRE POULET
+objectif parler sdf -> beeper | VA VOIR LE SDF, À GAUCHE DE LA PORTE
+objectif aller appartement | RENTRE CHEZ TOI, AU 12
+option parler youngssef si +part_youngssef -> part_youngssef | DONNE SA PART À YOUNGSSEF, AU BANC
+
+# ================================================================== ACTE 2
+chapitre acte2 | ACTE 2 | L'ASCENSION | Aller chercher la plante soi-même.
+
+mission 2.1 | LE CHIMISTE | Le labo, le banc | Gero, Youngssef
+resume | Geto vend la plante d'un autre, transformée par le chimiste d'un autre. Tu vas proposer à Gero de travailler pour toi.
+meteo sec
+debut acte2_debut
+objectif parler gero -> gero_marche | PROPOSE UN MARCHÉ À GERO, AU LABO
+objectif aller avenue_milieu -> sms_youngssef | SORS DU LABO
+objectif parler youngssef -> youngssef_vire | VA VOIR YOUNGSSEF AU BANC, EN BAS DE L'AVENUE
+
+mission 2.2 | LA RS6 | Le garage d'Omar | Personne : Omar dort
+resume | Il te faut une voiture qui passe partout. Omar en cache une sous une bâche, et la petite porte du fond de son garage ne ferme plus.
+meteo pluie
+musique mus_nuit
+debut rs6_debut
+objectif aller garage | ENTRE DANS LE GARAGE D'OMAR
+objectif agir flipper | PRENDS LE BOÎTIER ORANGE QUE LE MÉCANO UTILISAIT, SUR L'ÉTABLI
+objectif agir rs6_bache -> confusion | APPROCHE-TOI DE LA RS6
+
+mission 2.3 | CAP SUR NAMEK | Namek, la douane | Un douanier, Soul
+resume | Six heures de route jusqu'à l'endroit qu'on appelle Namek. Récolte la Piccolo avant que le soleil soit trop haut, puis passe la douane.
+meteo sec
+ouvre namek
+chrono 50
+debut cap_namek
+objectif agir plant0 pression musique:mus_tension | RÉCOLTE LA PICCOLO : PLANT 1 SUR 6
+objectif agir plant1 pression musique:mus_tension | RÉCOLTE LA PICCOLO : PLANT 2 SUR 6
+objectif agir plant2 pression musique:mus_tension | RÉCOLTE LA PICCOLO : PLANT 3 SUR 6
+objectif agir plant3 pression musique:mus_tension | RÉCOLTE LA PICCOLO : PLANT 4 SUR 6
+objectif agir plant4 pression musique:mus_tension | RÉCOLTE LA PICCOLO : PLANT 5 SUR 6
+objectif agir plant5 pression musique:mus_tension | RÉCOLTE LA PICCOLO : PLANT 6 SUR 6
+objectif agir rs6_namek -> douane | CHARGE LA RS6 ET REPRENDS LA ROUTE
+
+mission 2.4 | NOTRE ÉPICERIE | Le labo, le banc, l'épicerie à céder | Gero, Youngssef, Savon, Ticket, Papy Bocal
+resume | La plante est là. Gero la transforme, et il te faut de quoi la vendre : une boutique, et des gens de confiance.
+meteo pluie
+ouvre epicerie
+fin etincelle
+objectif parler gero -> gero_piccolo | APPORTE LA PICCOLO À GERO, AU LABO
+objectif agir lit -> trois_jours | RENTRE DORMIR CHEZ TOI
+objectif agir cuves -> cell_prete | RETOURNE AU LABO : RÉCUPÈRE LA CELL PERFECT AUX CUVES
+objectif parler youngssef -> recrue_youngssef | VA CHERCHER YOUNGSSEF AU BANC
+objectif parler rayan -> recrue_rayan | PARLE À SAVON, DEVANT LA LAVERIE
+objectif parler moussa -> recrue_moussa | PARLE À TICKET, AU PARKING
+objectif aller epicerie | ENTRE DANS L'ÉPICERIE À CÉDER, À CÔTÉ DE LA LAVERIE
+objectif parler haddad -> haddad | PARLE À PAPY BOCAL, LE PROPRIÉTAIRE
+objectif agir comptoir_epicerie -> ouverture | POSE LA MARCHANDISE SUR LE COMPTOIR
+
+# ================================================================== LES SCENES DU PROLOGUE
+cinematique intro
+# Aucune parole, aucun texte : la nuit, la pluie, l'avenue, puis lui devant sa tele. On ne montre jamais ce qu'il regarde.
+meteo pluie
+musique silence
+carte avenue_haut @tour-420
+son tonnerre 0.5
+camera @tour-60 6
+attend 6
+carte avenue_bas @poulet
+camera @appart 6
+attend 6.4
+carte appartement 240
+musique mus_souvenir
+acteur toi heros_assis 172 172
+son tele 0.6
+attend 3
+gros_plan gp_affiche 3.5
+gros_plan gp_yeux 3.5
+gros_plan gp_main 3
+son tonnerre 0.7
+effet eclair
+gros_plan gp_choc 3.5
+gros_plan gp_lache 3.5
+musique silence
+pose toi heros
+attend 1.2
+marche toi 214 214 1.8
+attend 2
+titre
+joueur appartement 214 214
+
+cinematique lettre
+son papier
+gros_plan gp_lettre
+dit toi | Trois mois.
+
+cinematique hagakure
+son papier
+recit | LE HAGAKURE. UN VIEUX LIVRE DE SAMOURAÏ, CORNÉ À FORCE D'ÊTRE LU. TU NE TE RAPPELLES PLUS QUI TE L'A DONNÉ.
+recit | UNE PAGE MARQUÉE : « AGIS SANS ATTENDRE QUE LES CHOSES TE SOIENT DONNÉES. »
+
+cinematique mur_du_plan
+recit | DES PHOTOS DE L'AVENUE, PRISES DEPUIS TA FENÊTRE. CHAQUE RIDEAU BAISSÉ EST BARRÉ D'UN TRAIT ROUGE.
+recit | LES FILS ROUGES MÈNENT TOUS AU MÊME ENDROIT : LA TOUR, TOUT EN HAUT DE L'AVENUE.
+
+# ================================================================== LES SCENES DE L'ACTE 1
+cinematique appel
+dit youngssef | Eh ! Le grand du 12 ! Viens deux secondes !
+
+cinematique youngssef_service
+dit youngssef | T'es du 12, toi, non ? Deuxième étage ?
+choix | Oui. -> oui | Pourquoi ? -> pourquoi
+etiquette oui
+dit youngssef | Je le savais. Moi je suis au 14, juste là.
+saut probleme
+etiquette pourquoi
+dit youngssef | Parce que t'es le seul dehors, regarde la rue. Moi je suis au 14, juste là.
+etiquette probleme
+dit youngssef | Je livre pour le Maître Poulet. Je me suis tordu la cheville en descendant mes escaliers. J'arrive même plus à poser le pied.
+dit youngssef | Si les deux commandes partent pas ce soir, Geto prend quelqu'un d'autre demain. Il attend que ça.
+dit youngssef | Fais-les à ma place. Je te donne la moitié de ce qu'il paie.
+choix | D'accord. -> accord | La moitié de combien ? -> combien | Et ton scooter ? -> scooter
+etiquette combien
+dit youngssef | Vingt-quatre, à deux. Douze pour toi, pour vingt minutes. C'est pas le Pérou.
+saut accord
+etiquette scooter
+dit youngssef | Justement. Tu prends le mien.
+etiquette accord
+dit youngssef | Le scooter, à côté du banc, c'est le mien. Je l'ai payé avec trois mois de livraisons, et j'ai même pas fini.
+dit youngssef | Tu le rayes, je te retrouve. Les clés sont dessus.
+dit youngssef | Les commandes, tu les prends au comptoir du Maître Poulet. Tu dis que tu viens pour moi.
+
+cinematique scooter_pris
+son cles
+son scooter_demarre
+drapeau +scooter
+recit | EN SCOOTER, TU VAS PLUS VITE. MAJ POUR ACCÉLÉRER. DANS LES BOUTIQUES, TU LE LAISSES DEVANT.
+
+cinematique geto_sacs
+dit geto | T'es qui, toi ?
+dit toi | Je viens pour Youngssef.
+dit geto | Le petit m'envoie un remplaçant, maintenant. Il apprend vite.
+dit geto | Le sac blanc, c'est pour Tata Lili, au 9, juste à gauche en sortant. Le gros, c'est le garage d'Omar, au milieu de l'avenue.
+dit geto | Omar paie toujours « demain ». Toi, tu repars pas sans l'argent.
+
+cinematique diallo
+dit diallo | Ah, enfin. ... C'est pas Youngssef ?
+choix | Il s'est tordu la cheville. -> blesse | Il est occupé. -> occupe
+etiquette blesse
+dit diallo | La cheville ? Il court partout, ce petit. Dis-lui de passer demain, je lui mettrai de la glace.
+saut paye
+etiquette occupe
+dit diallo | Occupé. À seize ans. Bon.
+etiquette paye
+son objet
+dit diallo | Tiens. Douze euros. Et ça, c'est pour toi.
+drapeau +pourboire
+
+cinematique garage_entree
+dit mecano | Regarde, patron. Je l'approche du rideau, j'appuie, et...
+son rideau_fer
+dit omar | Arrête de jouer avec ça ! Range-le sur l'établi !
+dit mecano | C'est bon, c'est bon.
+regarde omar gauche
+dit omar | Ah, le poulet ! Viens, apporte ça au fond.
+
+cinematique omar_paie
+dit omar | Vingt-quatre, c'est ça ? Écoute, je passe chez Geto demain, je règle tout d'un coup.
+choix | Geto a dit : pas sans l'argent. -> insiste | D'accord, demain. -> cede | (Rester planté là, sans un mot.) -> silence
+etiquette insiste
+dit omar | Geto, Geto... T'es pire que lui, toi.
+saut paye
+etiquette silence
+dit omar | Quoi ? Tu vas rester là toute la nuit ? ... Bon. Tiens.
+etiquette paye
+son objet
+drapeau +omar_paye
+saut suite
+etiquette cede
+dit omar | T'es un bon, toi. Dis à Geto que je passe demain. Sans faute.
+drapeau +omar_doit
+etiquette suite
+dit omar | Et ressors par devant. La petite porte du fond ferme plus depuis deux ans, elle claque avec le vent.
+
+cinematique rs6_regard
+recit | UNE VOITURE SOUS UNE BÂCHE GRISE. UN BREAK, À LA FORME. LES PNEUS SONT NEUFS.
+dit omar | Touche pas. Elle est pas à vendre.
+
+cinematique scooter_rendu
+son scooter_demarre 0.6
+drapeau -scooter
+dit youngssef | Alors ? ... Pas une rayure. T'es sérieux, toi.
+dit youngssef | Et Omar ? Il t'a payé ?
+si +omar_paye paye
+dit toi | Demain, il a dit.
+dit youngssef | Comme toujours. Geto va le noter sur ton compte, pas sur le sien.
+saut fin
+etiquette paye
+dit toi | Oui.
+dit youngssef | Sérieux ? Moi, il me paie jamais du premier coup.
+etiquette fin
+dit youngssef | Va te faire payer chez Geto, il paie le soir même. Et ma moitié, tu me la ramènes ?
+choix | Oui. -> oui | Si Geto paie. -> si
+etiquette si
+dit youngssef | Il paie. Il râle, mais il paie.
+etiquette oui
+dit youngssef | Je bouge pas de ce banc. De toute façon, je peux pas.
+
+cinematique geto_viande
+dit geto | Deux livraisons en vingt minutes. Youngssef en met quarante.
+si +omar_doit omar
+dit geto | Et Omar a payé du premier coup. Je note.
+saut paie
+etiquette omar
+dit geto | Omar t'a fait le coup du « demain ». Tout le monde y a droit une fois. Une seule.
+etiquette paie
+son objet
+dit geto | Tiens. Ta part, et celle du petit.
+drapeau +part_youngssef
+son vibreur 0.7
+dit geto | Allô. ... Comment ça, plus de livraison ? Vingt ans que je travaille avec vous.
+dit geto | ... Krousty. Évidemment.
+dit geto | Mon grossiste. Il ne livre plus que la Krousty, maintenant. Demain c'est samedi, et j'ai plus de poulet pour midi.
+dit geto | Toi. Tu fais quoi, cette nuit ?
+choix | Ça dépend combien. -> combien | Rien. -> rien
+etiquette combien
+dit geto | Cinquante. Pour une heure de métro.
+saut mounir
+etiquette rien
+dit geto | Alors tu vas me rendre un service. Cinquante euros.
+etiquette mounir
+dit geto | Un boucher à Crimée. Tout le monde l'appelle Bidoche. Je le connais depuis trente ans. Je l'ai appelé, il me met vingt kilos de côté.
+choix | Pourquoi t'y vas pas ? -> pourquoi | J'y vais en scooter. -> scooter | D'accord. -> ligne
+etiquette pourquoi
+dit geto | Parce que je suis seul au comptoir jusqu'à deux heures. Un poulet, ça se surveille.
+saut ligne
+etiquette scooter
+dit geto | Vingt kilos sur un 50, jusqu'à Paris ? Tu te fais arrêter à la Porte d'Italie.
+etiquette ligne
+dit geto | Prends la 7. Kremlin-Bicêtre, Crimée : direct. La station est tout en haut de l'avenue.
+son papier
+dit geto | L'argent de Bidoche est dans l'enveloppe. Tu ne la comptes pas.
+
+cinematique part_youngssef
+dit youngssef | Il a payé ? Sans râler ?
+dit toi | Douze. Tiens.
+son objet
+dit youngssef | T'es réglo, toi. Ça se fait plus, ici.
+drapeau -part_youngssef +youngssef_paye
+
+cinematique rame_depart
+son metro_signal 0.7
+son metro_portes
+annonce | LIGNE 7. DIRECTION LA COURNEUVE.
+recit | PRESQUE PERSONNE À CETTE HEURE-CI. CRIMÉE, C'EST À VINGT STATIONS.
+
+cinematique rame_tension
+marche frotteur 734 213 1.6
+attend 1.6
+recit | AU FOND DE LA RAME, UN TYPE SE COLLE À UNE FEMME. ELLE SE DÉCALE. IL SUIT.
+marche femme 790 214 1.0
+attend 1.0
+marche frotteur 774 213 1.0
+attend 1.2
+dit femme | Arrêtez.
+dit frotteur | Quoi ? Y a de la place pour tout le monde.
+recit | LE VIEIL HOMME REGARDE SES CHAUSSURES. LA FILLE AUX ÉCOUTEURS MONTE LE SON. PERSONNE NE BOUGE.
+
+cinematique frotteur
+dit frotteur | Qu'est-ce que tu veux, toi ?
+choix | Recule. -> recule | Elle t'a dit d'arrêter. -> arreter | (Te mettre entre eux, sans un mot.) -> entre
+etiquette recule
+dit frotteur | Tu te prends pour qui ? C'est le métro, ici, pas chez toi.
+dit toi | Recule.
+saut station
+etiquette arreter
+dit frotteur | On discutait, c'est tout. Pas vrai, mademoiselle ?
+dit femme | Non.
+saut station
+etiquette entre
+marche toi 782 216 0.8
+attend 0.9
+dit frotteur | ... T'es qui, toi ?
+dit toi | Personne.
+etiquette station
+son metro_freins
+annonce | PLACE D'ITALIE.
+son metro_portes
+dit frotteur | Bande de malades.
+marche frotteur 960 214 1.4
+attend 1.2
+retire frotteur
+son metro_signal 0.7
+drapeau +frotteur_parti
+dit vieux | ...J'aurais dû dire quelque chose.
+marche femme 580 214 2.4
+attend 2.4
+
+cinematique femme
+dit femme | Merci.
+choix | Ça va ? -> ca_va | Il te suivait depuis longtemps ? -> longtemps | (Hocher la tête.) -> tete
+etiquette ca_va
+dit femme | Ça va. J'ai l'habitude. C'est ça, le pire.
+saut suite
+etiquette longtemps
+dit femme | Depuis Kremlin-Bicêtre. Il prend cette rame presque tous les soirs. Il change juste de cible.
+saut suite
+etiquette tete
+dit femme | Tu parles pas beaucoup, toi.
+etiquette suite
+dit femme | Tu vas où, à cette heure-là ?
+choix | Chercher de la viande. -> viande | Je travaille. -> travail
+etiquette viande
+dit femme | De la viande. À minuit. ... On a tous des boulots bizarres.
+drapeau +viande_dite
+saut boulot
+etiquette travail
+dit femme | Moi aussi.
+etiquette boulot
+dit femme | Je fais le ménage dans des bureaux. La nuit, quand tout le monde est parti.
+son metro_freins
+annonce | STALINGRAD.
+dit femme | C'est moi.
+dit femme | Tout à l'heure, tout le monde regardait ses chaussures. Pas toi.
+choix | J'aime pas ces types-là. -> types | Je sais pas. -> sais | (Ne rien dire.) -> rien
+etiquette types
+dit femme | Moi non plus. Mais d'habitude, ça suffit pas pour se lever.
+saut part
+etiquette sais
+dit femme | Si. Tu sais.
+saut part
+etiquette rien
+recit | ELLE HOCHE LA TÊTE, COMME SI C'ÉTAIT UNE RÉPONSE.
+etiquette part
+son metro_portes
+si +viande_dite nuit_viande
+dit femme | Fais attention à toi.
+saut descend
+etiquette nuit_viande
+dit femme | Bonne nuit, le livreur de viande.
+etiquette descend
+marche femme_assise 960 214 1.4
+attend 1.2
+retire femme_assise
+son metro_signal 0.7
+drapeau +femme_partie
+recit | PAR LA VITRE, UNE ÉCHARPE ROUGE S'ÉLOIGNE SUR LE QUAI.
+annonce | PROCHAINE STATION : CRIMÉE.
+noir | CRIMÉE. MINUIT VINGT. LA BOUCHERIE EST À LA SORTIE DU MÉTRO.
+joueur boucherie 70 240
+
+cinematique mounir
+dit mounir | C'est fermé, mon grand.
+dit toi | Geto m'envoie.
+dit mounir | Geto ! Il a trouvé quelqu'un pour traverser Paris à sa place. Tes vingt kilos sont prêts.
+son papier
+dit mounir | ... Le compte est bon. Comme toujours avec lui.
+dit mounir | Son grossiste l'a lâché, hein ? Le mien a reçu une lettre la semaine dernière. Krousty Corp. Ils rachètent les fournisseurs, un par un.
+choix | Chez nous aussi. La boucherie de l'avenue a fermé. -> avenue | Pourquoi ils font ça ? -> pourquoi
+etiquette avenue
+dit mounir | Je sais. C'est pour ça qu'il m'appelle, ton patron. Bientôt, il appellera plus personne.
+saut fin
+etiquette pourquoi
+dit mounir | Quand tu tiens la viande, tu tiens les restaurants. Et quand tu tiens les restaurants, tu tiens la rue.
+etiquette fin
+dit mounir | Les caisses sont devant la chambre froide. Et prends ça, t'as pas mangé, ça se voit.
+son papier
+drapeau +sandwich
+
+cinematique caisses
+son objet
+drapeau +charge
+recit | VINGT KILOS. TU NE COURRAS PAS AVEC ÇA.
+
+cinematique retour
+meteo pluie
+carte metro 480
+acteur toi heros_charge 480 214
+son metro_portes
+annonce | DIRECTION VILLEJUIF.
+attend 2
+son metro_freins
+recit | À LA STATION SUIVANTE, LA RAME D'EN FACE S'ARRÊTE À CÔTÉ DE LA TIENNE.
+gros_plan gp_vitres 4.5
+dit toi | ...Soul ?
+recit | UN COSTUME, UNE CRAVATE. UNE SECONDE, VOUS VOUS RECONNAISSEZ. PUIS LES DEUX RAMES REPARTENT.
+son metro_signal 0.7
+carton | QUATRE ANS PLUS TÔT | LE BANC
+meteo sec
+musique mus_souvenir
+carte avenue_bas @banc+20
+effet gris
+acteur moi p_toi_jeune @banc-14 198
+acteur soul p_soul_jeune @banc+16 198 miroir
+recit | UN GAMIN DU QUARTIER EST MORT CET APRÈS-MIDI, POUR RIEN. IL AVAIT QUINZE ANS.
+dit soul_jeune | Quinze ans.
+dit soul_jeune | J'ai eu la bourse. L'école de commerce, à Paris. Je pars en septembre.
+dit toi_jeune | Bien.
+dit soul_jeune | Viens avec moi. Y a des prépas, des concours. Pour sortir d'ici, faut jouer leur jeu. Costume, diplôme, tout.
+dit toi_jeune | Leur jeu, il est pas fait pour nous.
+dit soul_jeune | Alors tu fais quoi ? Tu restes sur ce banc toute ta vie ?
+dit toi_jeune | Je ferai le mien.
+dit soul_jeune | ...On en reparle.
+marche soul @banc+240 198 3
+attend 3
+retire soul
+recit | VOUS N'EN AVEZ JAMAIS REPARLÉ.
+effet normal
+meteo pluie
+musique silence
+noir | UNE HEURE DU MATIN. TU REDESCENDS L'AVENUE À PIED, LES CAISSES DANS LES BRAS.
+joueur avenue_bas @poulet+50 200
+
+cinematique geto_caisses
+dit geto | Te voilà. Bidoche t'a pas trop fait parler ?
+dit geto | Mets ça dans la chambre froide, au fond de l'arrière-boutique.
+
+cinematique sandwich_sdf
+recit | TU LUI TENDS LE SANDWICH DE BIDOCHE. IL LE PREND SANS LEVER LES YEUX.
+dit sdf | ...Merci.
+drapeau +sdf_mange
+
+cinematique colis
+son porte_lourde 0.6
+drapeau -charge
+recit | À CÔTÉ DE LA CHAMBRE FROIDE, UN SAC DU MAÎTRE POULET. TROP LOURD POUR DU POULET. IL EST ENTROUVERT.
+son papier
+gros_plan gp_sac
+musique mus_recit
+effet vert
+dit geto | Tu regardes dans les sacs, maintenant.
+choix | C'est quoi ? -> quoi | (Refermer le sac.) -> ferme
+etiquette quoi
+dit geto | De la Cell. Les gens en veulent, je leur en donne. C'est tout.
+saut offre
+etiquette ferme
+dit geto | Trop tard. Tu l'as vu.
+etiquette offre
+dit geto | T'as fait Crimée et retour sans poser une question. C'est rare.
+dit geto | Demain soir, tu livres ça. Trois adresses. Dix fois ce que paient les ailes de poulet.
+choix | D'accord. -> oui | Et si je dis non ? -> non
+etiquette non
+dit geto | Alors tu dis non, et tu oublies ce sac. Demain soir, quelqu'un d'autre le livrera, et il sera payé à ta place.
+dit toi | ...Je serai là.
+saut fin
+etiquette oui
+dit geto | Je le savais.
+etiquette fin
+effet normal
+son objet
+dit geto | Et tes cinquante, pour Bidoche. Rentre dormir.
+
+cinematique verte_debut
+carton | LE LENDEMAIN SOIR | LIVREUR DE VERTE
+noir | SAMEDI, 22 H. LA PLUIE S'EST ARRÊTÉE.
+joueur maitre_poulet 60 236
+
+cinematique geto_verte
+dit geto | Ce soir, la marchandise n'est pas ici. Elle est chez Gero, au labo, à côté de la laverie. Il t'attend.
+dit geto | Trois sachets, trois adresses. Il te dira lesquelles.
+dit geto | La police tourne sur l'avenue depuis deux jours. Si on te voit avec ça, je ne te connais pas.
+
+cinematique gero
+dit gero | Le nouveau de Geto.
+dit toi | Trois sachets.
+dit gero | Trois. Pas un de plus. Je compte tout. Le café, le parking, la salle de sport.
+choix | C'est toi qui la fabriques ? -> fais | (Prendre les sachets et partir.) -> part
+etiquette fais
+dit gero | Je la transforme. La plante arrive de loin. Je la reçois, je la cuis, elle devient ça.
+choix | De loin, d'où ? -> ou | Geto te paie combien ? -> combien
+etiquette ou
+dit gero | Namek. C'est comme ça qu'ils appellent l'endroit. Six heures de route et une douane. Ne me demande pas pourquoi « Namek ».
+saut fin
+etiquette combien
+dit gero | Moins que ce qu'il paie le transport. C'est le transport qui coûte. Pas moi.
+etiquette fin
+dit gero | Maintenant, va. Et ne reviens pas avec des questions.
+etiquette part
+son objet
+drapeau +sachets
+
+cinematique poste_labo
+recit | DES COURBES DE TEMPÉRATURE, DES RELEVÉS. LE PLUS VIEUX DOSSIER EST DATÉ D'IL Y A VINGT-CINQ ANS.
+dit toi | Vingt-cinq ans...
+
+cinematique casier_labo
+recit | TROIS CASIERS. SUR DEUX D'ENTRE EUX, LE NOM A ÉTÉ GRATTÉ. SUR LE TROISIÈME, IL RESTE UNE SEULE LETTRE : B.
+
+cinematique sms_soul
+sms soul | Deux patrouilles sur l'avenue ce soir. Une au café, une au parking. Passe par la chaussée, pas par le trottoir.
+dit toi | ...Soul ?
+dit toi | Comment il a eu mon numéro ?
+recit | UNE PATROUILLE NE VOIT QUE DEVANT ELLE, JUSQU'AU BORD DU TROTTOIR. PASSE DANS SON DOS, OU AU LARGE SUR LA CHAUSSÉE.
+
+cinematique client_cafe
+dit client_cafe | Pas ici. Pose-le sur la chaise, et continue de marcher.
+
+cinematique client_parking
+dit client_parking | T'es le nouveau ? Geto change de livreur tous les mois.
+
+cinematique client_salle
+dit client_salle | Merci. Dis à Geto que la semaine prochaine, j'en prends deux.
+
+cinematique verte_fin
+dit geto | Trois sur trois. Personne ne t'a vu ?
+choix | Personne. -> personne | Quelqu'un m'a prévenu. -> prevenu
+etiquette prevenu
+dit geto | Prévenu ? Par qui ?
+dit toi | Personne.
+etiquette personne
+son objet
+dit geto | Bien. Demain, pareil. Et le jour d'après.
+
+cinematique plafond_debut
+carton | TROIS SEMAINES PLUS TARD | LE PLAFOND
+noir | TOUS LES SOIRS, LES MÊMES RUES. LE LOYER EST PAYÉ. LA RÉGIE NE T'ÉCRIT PLUS.
+joueur maitre_poulet 60 236
+
+cinematique plafond
+recit | GETO COMPTE LES BILLETS. IL EN POSE QUATRE SUR LE COMPTOIR.
+dit toi | Trois semaines. Tous les soirs.
+dit geto | Et je te paie tous les soirs. Ce soir comme les autres.
+choix | Je ramène dix fois ça, chaque nuit. -> dix | Je veux plus. -> plus
+etiquette dix
+dit geto | Tu ramènes ce que je te donne à porter. C'est différent.
+saut plafond
+etiquette plus
+dit geto | Tout le monde veut plus, petit.
+etiquette plafond
+dit geto | Toi, t'es livreur. Tu resteras livreur. Les faibles livrent, les forts encaissent. C'est pas moi qui ai fait le monde comme ça.
+choix | (Poser les clés de l'arrière-boutique sur le comptoir.) -> cles | Alors cherche un autre livreur. -> autre
+etiquette cles
+son cles
+recit | TU PRENDS LES BILLETS. TU POSES LES CLÉS À LEUR PLACE.
+saut sort
+etiquette autre
+dit geto | J'en trouverai un demain. Il y en a toujours un.
+etiquette sort
+dit geto | Tu reviendras. Ils reviennent tous.
+drapeau +parti_de_chez_geto
+
+cinematique sdf_appel
+si +sdf_mange connu
+dit sdf | Toi. Viens là.
+saut fin
+etiquette connu
+dit sdf | Toi. Le sandwich. Viens.
+etiquette fin
+
+cinematique beeper
+si +sdf_mange donne
+recit | TU T'ACCROUPIS À CÔTÉ DE LUI. TU LUI TENDS UNE CIGARETTE. IL LA PREND SANS UN MOT.
+etiquette donne
+recit | IL SORT QUELQUE CHOSE DE SA POCHE.
+gros_plan gp_beeper
+dit sdf | Garde ça. Appuie pas dessus.
+choix | C'est quoi ? -> quoi | (Le prendre.) -> prend
+etiquette quoi
+dit sdf | Appuie pas dessus.
+etiquette prend
+son objet
+drapeau +beeper
+recit | UN BEEPER VERT. TU LE GLISSES DANS TA POCHE.
+
+cinematique fin_acte1
+carte appartement 380
+musique mus_souvenir
+acteur toi heros 417 214
+attend 1.5
+gros_plan gp_mur | LE LABO. LE GARAGE. LA VOITURE SOUS LA BÂCHE. L'ÉPICERIE À CÉDER. LE MAÎTRE POULET, BARRÉ.
+dit toi | La plante vient de Namek. Le chimiste est dans notre rue. La voiture dort chez Omar.
+dit toi | Geto n'a rien qui soit à lui.
+carton | FIN DE L'ACTE 1 | LA RUE
+joueur appartement 380 214
+
+# ================================================================== LES SCENES DE L'ACTE 2
+cinematique acte2_debut
+carton | ACTE 2 | L'ASCENSION
+noir | DEUX JOURS PLUS TARD.
+
+cinematique gero_marche
+dit gero | Geto m'a dit que tu étais parti.
+dit toi | Je pars pas. Je monte.
+dit gero | Avec quoi ?
+dit toi | La plante. Je vais la chercher moi-même, à Namek. Tu la transformes pour moi. Je te paie le double de Geto.
+dit gero | Il te faudra une voiture qui passe partout. Une douane. Et du courage, ou de l'inconscience.
+choix | J'ai une voiture en vue. -> voiture | Laisse-moi m'en occuper. -> occuper
+etiquette voiture
+dit gero | Je ne veux pas savoir laquelle.
+saut fin
+etiquette occuper
+dit gero | Comme tu veux.
+etiquette fin
+dit gero | Ramène-moi vingt kilos de Piccolo. Après, on parlera de Geto.
+
+cinematique sms_youngssef
+sms youngssef | Geto m'a viré. Passe au banc.
+
+cinematique youngssef_vire
+dit youngssef | Il m'a viré. Le lendemain de ton départ. Il a dit que j'avais ramené un traître dans sa boutique.
+choix | Désolé. -> desole | J'aurai bientôt besoin de quelqu'un. -> besoin
+etiquette desole
+dit youngssef | Désolé, ça rembourse pas le scooter.
+etiquette besoin
+dit youngssef | Si tu montes un truc, je veux en être. Je connais deux petits, Savon, qui traîne à la laverie, et Ticket, au parking. Ils cherchent.
+si +youngssef_paye reglo
+dit youngssef | Et ma moitié de l'autre soir, tu me l'as jamais donnée. Je dis rien. Mais je l'oublie pas.
+saut fin
+etiquette reglo
+dit youngssef | T'as été réglo avec moi, l'autre soir. Ça, je l'oublie pas.
+etiquette fin
+
+cinematique rs6_debut
+noir | LA NUIT SUIVANTE. LE GARAGE D'OMAR EST FERMÉ.
+dit toi | La petite porte du fond. Elle ferme plus.
+
+cinematique confusion
+recit | TU SORS LE BOÎTIER DE TA POCHE SANS REGARDER. TU APPUIES.
+effet irise
+son tele 0.8
+recit | C'ÉTAIT LE BEEPER VERT.
+acteur a1 p_alien 560 214
+acteur a2 p_alien 590 236
+acteur a3 p_alien 620 222
+acteur a4 p_alien 650 250
+marche a1 430 214 1.4
+marche a2 452 238 1.2
+marche a3 474 222 1.0
+marche a4 440 252 1.0
+attend 1.4
+recit | LE GARAGE DEVIENT IRISÉ. ILS ARRIVENT EN DANSANT.
+effet eclair
+retire a1
+retire a2
+retire a3
+retire a4
+effet normal
+recit | TU TE RÉVEILLES PAR TERRE. TOUT EST REDEVENU GRIS. PERSONNE N'A RIEN ENTENDU.
+recit | DEUX BOÎTIERS DANS TA MAIN. TU RANGES LE VERT. TU APPUIES SUR L'ORANGE.
+son serrure
+recit | LA RS6 CLIGNOTE. TU TIRES LA BÂCHE.
+
+cinematique cap_namek
+son scooter_demarre 1
+gros_plan gp_gps 4
+noir | TOUTE LA NUIT SUR L'AUTOROUTE. AU MATIN, LE GRIS DEVIENT DORÉ.
+carte namek 240
+acteur toi heros 230 240
+attend 1.2
+recit | LES PLANTS SONT MÛRS. RÉCOLTE LES SIX AVANT QUE LE SOLEIL SOIT TROP HAUT.
+joueur namek 230 240
+
+cinematique douane
+noir
+noir | LA FRONTIÈRE. LA RS6 CHARGÉE, À L'ARRÊT, MOTEUR COUPÉ.
+dit douanier | Bonsoir. Ouvrez le coffre, s'il vous plaît.
+choix | (Ouvrir le coffre.) -> ouvre | Il y a un problème ? -> probleme
+etiquette probleme
+dit douanier | C'est moi qui pose les questions.
+etiquette ouvre
+son vibreur 0.7
+dit douanier | ...Oui ? ... Oui. Compris.
+recit | IL RACCROCHE. IL TE REGARDE LONGTEMPS. LA BARRIÈRE SE LÈVE.
+dit douanier | Bonne route.
+sms soul | Roule.
+dit toi | ...Comment il savait ?
+noir | SIX HEURES DE ROUTE. LE KREMLIN-BICÊTRE AVANT L'AUBE.
+joueur avenue_milieu @labo 200
+
+cinematique gero_piccolo
+dit gero | Tu es revenu. Avec la voiture d'Omar, j'imagine.
+dit gero | ... Elle est bonne. Laisse-moi trois jours.
+dit toi | Trois jours.
+dit gero | Et trouve de quoi la vendre. La plante ne se vend pas toute seule.
+
+cinematique trois_jours
+noir | TROIS JOURS PLUS TARD.
+
+cinematique cell_prete
+effet vert
+recit | LES CUVES SONT PLEINES.
+dit gero | Elle est prête. Tu la vends où ?
+dit toi | L'épicerie à côté. Elle est à céder. Youngssef connaît deux petits.
+dit gero | Alors va les chercher.
+effet normal
+
+cinematique recrue_youngssef
+dit youngssef | Alors ?
+dit toi | J'ai la marchandise. Il me faut une boutique, et des gens.
+dit youngssef | Une boutique ? L'épicerie de Papy Bocal, celle qui est à céder ? ... Je te ramène Savon et Ticket. Parle-leur, ils me connaissent.
+drapeau +recrue_youngssef
+
+cinematique recrue_rayan
+dit rayan | Youngssef dit que tu montes un truc. C'est quoi, le truc ?
+dit toi | Une épicerie. Tu tiens le comptoir, tu vois tout ce qui passe.
+dit rayan | Et Geto ?
+dit toi | Geto n'a rien à dire.
+dit rayan | ...Je viens.
+drapeau +recrue_rayan
+
+cinematique recrue_moussa
+dit moussa | Tu paies combien ?
+dit toi | Mieux que le Poulet. Et personne touche aux miens.
+dit moussa | Ça me va.
+drapeau +recrue_moussa
+
+cinematique haddad
+dit haddad | Trente ans derrière ce comptoir. Mes enfants veulent pas de la boutique.
+dit haddad | Tu paies le premier mois, et tu gardes les frigos allumés. C'est tout ce que je demande.
+choix | Marché conclu. -> ok | Pourquoi moi ? -> pourquoi
+etiquette pourquoi
+dit haddad | Les autres qui sont venus portaient des badges orange. Krousty. Toi, au moins, t'es d'ici.
+etiquette ok
+son cles
+dit haddad | Les clés. Fais-en quelque chose de propre. ... Ou pas. C'est plus mon affaire.
+
+cinematique ouverture
+dit youngssef | Premier jour. On fait quoi ?
+dit toi | On ouvre.
+
+cinematique etincelle
+noir | UNE SEMAINE PLUS TARD.
+musique mus_tension
+carte avenue_milieu @epicerie
+acteur y p_youngssef @epicerie-30 198
+acteur r p_rayan @epicerie-60 200
+acteur g1 p_gars_geto @epicerie+200 198 miroir
+acteur g2 p_gars_geto @epicerie+226 202 miroir
+marche g1 @epicerie+20 198 2.2
+marche g2 @epicerie+44 202 2.4
+attend 2.4
+dit gars_geto | C'est vous, la nouvelle boutique ? Geto vous passe le bonjour.
+dit gars_geto | Il dit que la rue est à lui. Et le chimiste aussi.
+dit youngssef | Geto, il m'a viré comme un chien. Dis-lui ça, de ma part.
+son metal
+effet eclair
+recit | YOUNGSSEF FRAPPE LE PREMIER. PERSONNE NE LE LUI A DEMANDÉ.
+effet rouge
+carton | FIN DE L'ACTE 2 | L'ASCENSION
+noir | À SUIVRE. ACTE 3 : LA VENDETTA.
+joueur epicerie 200 236

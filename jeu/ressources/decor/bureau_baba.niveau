@@ -1,0 +1,33 @@
+# GET A JOB, carte bureau_baba, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture e_bureau_baba_fauteuil_0 e_bureau_baba_fauteuil_0.png
+texture e_bureau_baba_fauteuil_1 e_bureau_baba_fauteuil_1.png
+texture etiq_e___redescendre etiq_e___redescendre.png
+texture etiq_le_bureau_de_baba etiq_le_bureau_de_baba.png
+texture halo_chaud halo_chaud.png
+texture int_bureau_baba int_bureau_baba.png
+texture joueur joueur.png
+texture m_buffet_sombre2 m_buffet_sombre2.png
+texture m_lampadaire_salon_sombre2a m_lampadaire_salon_sombre2a.png
+texture m_lampe_sombre2a m_lampe_sombre2a.png
+texture m_plante_haute_sombre2 m_plante_haute_sombre2.png
+texture m_vieux_telephone_sombre2 m_vieux_telephone_sombre2.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_bureau_baba 1 0 0 1.000 0 1.00
+zone 1 0 600 etiq_le_bureau_de_baba
+porte 0 44 270 etage_anges 860 240 0 etiq_e___redescendre
+limites 10 590 204 266
+depart 50 240
+image m_plante_haute_sombre2 1 38 125 1.000 0 1.00
+image m_lampadaire_salon_sombre2a 1 436 111 1.000 0 1.00
+image halo_chaud 4 421 93 1.000 1 0.40
+image m_buffet_sombre2 1 476 155 1.000 0 1.00
+image m_vieux_telephone_sombre2 1 488 145 1.000 0 1.00
+image m_lampe_sombre2a 1 540 133 1.000 0 1.00
+image halo_chaud 4 526 115 1.000 1 0.30
+image e_bureau_baba_fauteuil_0 2 262 196 1.000 0 1.00
+solide 265 240 319 249
+image e_bureau_baba_fauteuil_1 2 346 196 1.000 0 1.00
+solide 349 240 403 249

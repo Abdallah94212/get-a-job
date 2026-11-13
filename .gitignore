@@ -1,0 +1,12 @@
+# fichiers generes ou propres a une machine
+jeu/build/
+jeu/build-essais/
+__pycache__/
+*.pyc
+.osgrep/
+.DS_Store
+# hors du jeu actuel : un ancien projet et des apercus video
+blockside/
+decor-apercu/
+# sauvegardes de partie
+jeu/*.sav

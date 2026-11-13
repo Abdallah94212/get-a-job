@@ -1,0 +1,72 @@
+# GET A JOB, carte labo, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture bidon bidon.png
+texture chariot chariot.png
+texture e_labo_poste e_labo_poste.png
+texture e_labo_repos e_labo_repos.png
+texture etiq_e___sortir_dans_notre_rue etiq_e___sortir_dans_notre_rue.png
+texture etiq_la_paillasse etiq_la_paillasse.png
+texture etiq_le_poste_de_controle etiq_le_poste_de_controle.png
+texture etiq_le_stock etiq_le_stock.png
+texture etiq_le_vestiaire etiq_le_vestiaire.png
+texture etiq_les_cuves etiq_les_cuves.png
+texture halo_chaud halo_chaud.png
+texture halo_froid halo_froid.png
+texture halo_vert halo_vert.png
+texture int_labo int_labo.png
+texture joueur joueur.png
+texture m_balance_froid2 m_balance_froid2.png
+texture m_cafetiere_froid2 m_cafetiere_froid2.png
+texture m_camera_froid2 m_camera_froid2.png
+texture m_lampe_bureau_froid2 m_lampe_bureau_froid2.png
+texture m_meuble_bas_froid2 m_meuble_bas_froid2.png
+texture m_plante_fine_froid2 m_plante_fine_froid2.png
+texture m_radio_froid2 m_radio_froid2.png
+texture m_serveur_froid2 m_serveur_froid2.png
+texture m_tabouret_haut_froid2 m_tabouret_haut_froid2.png
+texture palette palette.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_labo 1 0 0 1.000 0 1.00
+image halo_vert 4 225 65 1.000 1 0.35
+image halo_vert 4 385 65 1.000 1 0.35
+image halo_vert 4 597 65 1.000 1 0.45
+image halo_vert 4 501 57 1.000 1 0.20
+image halo_froid 4 735 59 1.000 1 0.30
+image halo_chaud 4 122 122 1.000 1 0.25
+zone 7 0 214 etiq_le_vestiaire
+zone 8 214 604 etiq_la_paillasse
+zone 9 604 764 etiq_les_cuves
+zone 10 764 852 etiq_le_poste_de_controle
+zone 11 852 960 etiq_le_stock
+porte 0 44 270 avenue_milieu 1165 192 0 etiq_e___sortir_dans_notre_rue
+limites 10 950 204 266
+depart 50 240
+image m_meuble_bas_froid2 1 120 160 1.000 0 1.00
+image m_cafetiere_froid2 1 126 132 1.000 0 1.00
+image m_radio_froid2 1 150 138 1.000 0 1.00
+image m_plante_fine_froid2 1 196 135 1.000 0 1.00
+image e_labo_repos 2 54 206 1.000 0 1.00
+solide 57 250 171 259
+image m_tabouret_haut_froid2 1 364 150 1.000 0 1.00
+image m_balance_froid2 1 334 112 1.000 0 1.00
+image m_lampe_bureau_froid2 1 440 104 1.000 0 1.00
+image chariot 2 300 210 1.000 0 1.00
+solide 302 242 338 251
+image bidon 1 606 170 1.000 0 1.00
+image bidon 1 742 172 1.000 0 1.00
+image m_serveur_froid2 1 770 158 1.000 0 1.00
+image m_serveur_froid2 1 770 138 1.000 0 1.00
+image m_serveur_froid2 1 770 118 1.000 0 1.00
+image m_camera_froid2 1 700 38 1.000 0 1.00
+image e_labo_poste 2 776 178 1.000 0 1.00
+solide 779 244 891 253
+image palette 2 880 220 1.000 0 1.00
+solide 882 246 924 255
+repere cafe 140 206
+repere casier 82 206
+repere cuves 662 206
+repere gero 312 206
+repere poste 806 240
+repere stock 884 206

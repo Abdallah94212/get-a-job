@@ -1,0 +1,23 @@
+# GET A JOB, carte metro, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture etiq_e___remonter_dans_l_avenue etiq_e___remonter_dans_l_avenue.png
+texture etiq_la_rame etiq_la_rame.png
+texture int_metro int_metro.png
+texture joueur joueur.png
+joueur joueur
+aide aide
+nuit 30 30 42
+image int_metro 1 0 0 1.000 0 1.00
+zone 1 0 960 etiq_la_rame
+porte 0 44 270 avenue_haut 502 204 0 etiq_e___remonter_dans_l_avenue
+limites 10 950 204 266
+depart 50 240
+repere entree 120 236
+repere femme 746 212
+repere fond 900 230
+repere frotteur 716 214
+repere milieu 470 236
+repere porte_rame 430 214
+repere retour 860 236
+repere siege_femme 560 214
+repere vitre 480 212
