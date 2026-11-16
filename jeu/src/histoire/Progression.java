@@ -20,6 +20,7 @@ public final class Progression {
     private final Campagne campagne;
     private final Set<String> facultatifsFaits = new LinkedHashSet<>();
     private final Set<String> drapeaux = new LinkedHashSet<>();
+    private final Etat etat = new Etat();
     private int rang;
     private int etape;
     private boolean debutJoue;
@@ -73,7 +74,67 @@ public final class Progression {
         if (!getoEnnemi()) {
             return id.equals("0.1") || id.equals("1.1") ? 0 : 1;
         }
-        return id.compareTo("2.3") >= 0 ? 3 : 2;
+        return id.compareTo("2.4") >= 0 ? 3 : 2;            // la rue grisit quand la RS6 part a Namek
+    }
+
+    /** La sante, le souffle, l'argent et le scooter du heros. */
+    public Etat etat() {
+        return etat;
+    }
+
+    /**
+     * Des heures ou des jours passent hors de l'ecran (entre deux missions, une nuit) : ce qui devait arriver arrive.
+     * Les operations de l'equipe se terminent et sont payees, les colis arrivent, le corps se repose, et le scooter
+     * emprunte retourne chez Youngssef. Renvoie ce qui s'est passe, en lignes courtes, pour l'ecran du temps qui passe.
+     */
+    public java.util.List<String> laisserPasser(float minutes) {
+        java.util.List<String> pendant = new java.util.ArrayList<>();
+        finiesPendant.clear();
+        if (drapeau("organisation")) {
+            etat.organisation().recruter(this);
+            int net = 0;
+            int finies = 0;
+            for (int i = 0; i < 6 && !etat.organisation().enCours().isEmpty(); i++) {
+                for (Organisation.Bilan b : etat.organisation().avancer(Math.min(minutes * 60f, 4000f), etat)) {
+                    finiesPendant.add(b);
+                    net += b.recette() - b.labo();
+                    finies++;
+                }
+            }
+            if (finies > 0) {
+                pendant.add(finies + (finies > 1 ? " OPÉRATIONS TERMINÉES : + " : " OPÉRATION TERMINÉE : + ") + net + " EUROS");
+            }
+        }
+        int avant = etat.colis().size();
+        etat.livrer(minutes * 60f);
+        if (etat.colis().size() > avant) {
+            pendant.add("UN COLIS T'ATTEND CHEZ TOI");
+        }
+        if (drapeau("scooter") || drapeau("scooter_gare")) {
+            marquer("-scooter -scooter_gare -location_finie");
+            etat.rendreScooter();
+            pendant.add("YOUNGSSEF A RÉCUPÉRÉ SON SCOOTER");
+        }
+        if (minutes >= Calendrier.SAUT) {
+            boolean blesse = etat.sante() < Etat.SANTE_MAX;
+            etat.soigner(Etat.SANTE_MAX);
+            etat.reposer();
+            if (blesse) {
+                pendant.add("TES BLESSURES ONT CICATRISÉ");
+            }
+        }
+        if (etat.loyerDu() > 0) {
+            pendant.add("LOYER : " + etat.loyerDu() + " MOIS À PAYER");
+        }
+        etat.calendrier().passer(minutes);
+        return pendant;
+    }
+
+    private final java.util.List<Organisation.Bilan> finiesPendant = new java.util.ArrayList<>();
+
+    /** Les operations terminees pendant le dernier temps passe hors de l'ecran. */
+    public java.util.List<Organisation.Bilan> finiesPendant() {
+        return finiesPendant;
     }
 
     public boolean drapeau(String nom) {
@@ -145,7 +206,7 @@ public final class Progression {
             return null;
         }
         Objectif principal = mission.etapes().get(etape);
-        if (principal.genre() == genre && principal.cible().equals(cible) && verifie(principal.condition())) {
+        if (principal.genre() == genre && (principal.cible().equals(cible) || principal.cible().equals("*")) && verifie(principal.condition())) {
             return principal;
         }
         for (Objectif facultatif : mission.facultatifs()) {

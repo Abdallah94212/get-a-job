@@ -18,7 +18,7 @@ final class Menus {
         if (choisie) {
             Affichage.flecheCote(rendu, x - 12, y + 1, true, Affichage.ORANGE);
         }
-        affichage.police().ecrire(rendu, texte, x, y, !active ? Affichage.SOMBRE : choisie ? Affichage.ORANGE : Affichage.BLANC, 1);
+        affichage.police().ecrireTitre(rendu, texte, x, y - 1, !active ? Affichage.SOMBRE : choisie ? Affichage.ORANGE : Affichage.BLANC);
     }
 
     private static int paragraphe(Rendu rendu, Affichage affichage, String texte, int x, int y, int largeur, int couleur) {
@@ -68,7 +68,7 @@ final class Menus {
         }
         affichage.police().ecrire(rendu, "OBJECTIF EN COURS (" + (progression.etape() + 1) + " SUR " + total + ")", x, ligne, Affichage.ORANGE, 1);
         Affichage.etat(rendu, x, ligne + 15, EtatMission.DISPONIBLE);
-        ligne = paragraphe(rendu, affichage, progression.objectif().texte(), x + 13, ligne + 12, largeur - 13, Affichage.BLANC) + 4;
+        ligne = paragraphe(rendu, affichage, Casse.phrase(progression.objectif().texte()), x + 13, ligne + 12, largeur - 13, Affichage.BLANC) + 4;
         for (Objectif facultatif : mission.facultatifs()) {
             boolean fait = progression.facultatifsFaits().contains(facultatif.cible());
             if (fait) {
@@ -76,7 +76,7 @@ final class Menus {
             } else {
                 affichage.police().ecrire(rendu, "+", x + 1, ligne, Affichage.GRIS, 1);
             }
-            ligne = paragraphe(rendu, affichage, "SECONDAIRE : " + facultatif.texte(), x + 13, ligne, largeur - 13, Affichage.GRIS);
+            ligne = paragraphe(rendu, affichage, "Secondaire : " + Casse.phrase(facultatif.texte()), x + 13, ligne, largeur - 13, Affichage.GRIS);
         }
     }
 
@@ -85,16 +85,20 @@ final class Menus {
         affichage.police().ecrire(rendu, "COMMANDES", x, y, Affichage.ORANGE, 2);
         String[][] touches = {
             {"FLÈCHES OU ZQSD", "MARCHER"},
-            {"MAJ", "COURIR"},
-            {"E, ENTRÉE, ESPACE", "PARLER, AGIR, ENTRER, SUITE"},
+            {"MAJ", "COURIR (TANT QU'IL RESTE DU SOUFFLE)"},
+            {"F", "GARER LE SCOOTER LÀ OÙ TU ES"},
+            {"P", "LE TÉLÉPHONE"},
+            {"E, ENTRÉE, ESPACE", "PARLER, AGIR, ENTRER, DESCENDRE DU SCOOTER"},
             {"ÉCHAP", "PAUSE ; PASSER UNE CINÉMATIQUE"},
+            {"J / K", "POING (OU L'ARME EN MAIN) / PIED"},
+            {"G", "LÂCHER L'ARME"},
             {"T", "TRAME À L'ANCIENNE, OUI OU NON"},
         };
         for (int i = 0; i < touches.length; i++) {
-            affichage.police().ecrire(rendu, touches[i][0], x, y + 30 + i * 14, Affichage.BLANC, 1);
-            affichage.police().ecrire(rendu, touches[i][1], x + 116, y + 30 + i * 14, Affichage.GRIS, 1);
+            affichage.police().ecrire(rendu, touches[i][0], x, y + 30 + i * 12, Affichage.BLANC, 1);
+            affichage.police().ecrire(rendu, touches[i][1], x + 116, y + 30 + i * 12, Affichage.GRIS, 1);
         }
-        int ligne = y + 110;
+        int ligne = y + 30 + touches.length * 12 + 6;
         Affichage.fleche(rendu, x, ligne + 3, Affichage.ORANGE);
         affichage.police().ecrire(rendu, "L'OBJECTIF EN COURS, OU LA PORTE À PRENDRE", x + 14, ligne, Affichage.GRIS, 1);
         Affichage.fleche(rendu, x, ligne + 17, Affichage.GRIS);

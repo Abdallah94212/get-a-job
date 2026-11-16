@@ -22,12 +22,28 @@ public final class Mission {
     private Lieu repli;
     private String meteo = "sec";
     private String musique;
+    private int jour;
+    private int heure;
 
     public Mission(String id, String titre, String lieu, String personnages) {
         this.id = id;
         this.titre = titre;
         this.lieu = lieu;
         this.personnages = personnages;
+    }
+
+    /** Quand la mission commence : le jour (1 = le premier vendredi) et l'heure en minutes ; jour 0 si non dit. */
+    public int jour() {
+        return jour;
+    }
+
+    public int heure() {
+        return heure;
+    }
+
+    public void dater(int jourDit, int minutes) {
+        jour = jourDit;
+        heure = minutes;
     }
 
     public String id() {

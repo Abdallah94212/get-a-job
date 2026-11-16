@@ -1,6 +1,14 @@
 package decor;
 
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -14,8 +22,76 @@ public final class Rendu {
     public static final int H = 270;
     private static final int[] TRAME = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
 
+    /** Le texte est dessine F fois plus fin que le decor, sur un calque transparent pose par-dessus. */
+    public static final int F = 4;
+
     public final int[] image = new int[L * H];
+    /** Le calque du texte : L x F sur H x F, transparent la ou il n'y a pas de lettre. */
+    public final BufferedImage textes = new BufferedImage(L * F, H * F, BufferedImage.TYPE_INT_ARGB);
+    // on n'ecrit dans le calque qu'a travers Java2D : il reste "gere", la carte graphique peut le garder et l'agrandir
+    private Graphics2D plume = textes.createGraphics();
+    private boolean avecTexte;
+    /** La zone ou du texte a ete ecrit depuis le dernier effacement, dans les pixels du calque : on n'efface qu'elle. */
+    private int saleX0 = Integer.MAX_VALUE;
+    private int saleY0 = Integer.MAX_VALUE;
+    private int saleX1;
+    private int saleY1;
     public boolean tramage = true;
+
+    public Rendu() {
+        regler(plume);
+    }
+
+    private static void regler(Graphics2D plume) {
+        plume.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        plume.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        plume.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        plume.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+    }
+
+    /** Au debut de chaque image : le calque du texte repart vide. */
+    public void effacerTextes() {
+        if (avecTexte) {
+            plume.setComposite(AlphaComposite.Clear);
+            plume.fillRect(saleX0, saleY0, saleX1 - saleX0, saleY1 - saleY0);
+            plume.setComposite(AlphaComposite.SrcOver);
+            avecTexte = false;
+            saleX0 = saleY0 = Integer.MAX_VALUE;
+            saleX1 = saleY1 = 0;
+        }
+    }
+
+    public boolean avecTexte() {
+        return avecTexte;
+    }
+
+    /**
+     * Ecrit du texte net sur le calque : x et la ligne de base en pixels du jeu, la police deja a la taille du calque.
+     * ombre : une ombre douce dessous, pour le texte pose sur le decor.
+     */
+    public void texte(String texte, float x, float base, Font police, int rvb, boolean ombre) {
+        plume.setComposite(AlphaComposite.SrcOver);
+        plume.setFont(police);
+        if (ombre) {
+            plume.setColor(new Color(0, 0, 0, 170));
+            plume.drawString(texte, x * F + 2, base * F + 2);
+            plume.setColor(new Color(0, 0, 0, 90));
+            plume.drawString(texte, x * F + 3, base * F + 4);
+        }
+        plume.setColor(new Color(rvb));
+        plume.drawString(texte, x * F, base * F);
+        avecTexte = true;
+        float taille = police.getSize2D();
+        salir(Math.round(x * F) - 4, Math.round(base * F - taille * 1.2f), Math.round(texte.length() * taille * 0.75f) + 12,
+                Math.round(taille * 1.8f) + 8);
+    }
+
+    private void salir(int x, int y, int largeur, int hauteur) {
+        saleX0 = Math.max(0, Math.min(saleX0, x));
+        saleY0 = Math.max(0, Math.min(saleY0, y));
+        saleX1 = Math.min(L * F, Math.max(saleX1, x + largeur));
+        saleY1 = Math.min(H * F, Math.max(saleY1, y + hauteur));
+    }
     private long temps;
 
     /** Dessine le decor et ses personnages, la camera ayant son bord gauche en camX. */
@@ -150,18 +226,112 @@ public final class Rendu {
 
     // ------------------------------------------------------------------ l'interface, posee par-dessus le decor
 
-    /** Pose une image d'interface, son coin haut gauche en (x, y). */
+    /** Pose une image d'interface, son coin haut gauche en (x, y). Elle passe devant le texte deja ecrit dessous. */
     public void calque(Texture t, int x, int y) {
         coller(t, x, y, false, 256, false);
+        effacerSous(x, y, t.largeur(), t.hauteur());
+    }
+
+    private void effacerSous(int x, int y, int largeur, int hauteur) {
+        if (avecTexte) {
+            plume.setComposite(AlphaComposite.Clear);
+            plume.fillRect(x * F, y * F, largeur * F, hauteur * F);
+            plume.setComposite(AlphaComposite.SrcOver);
+        }
+    }
+
+    /**
+     * Pose une image plein cadre, agrandie de zoom fois autour du point (fx, fy) de l'image : ce point reste a sa place
+     * a l'ecran et le reste s'en ecarte, comme une camera qui avance vers lui. Lissage bilineaire : le mouvement reste
+     * doux au lieu de faire sauter les pixels. dx, dy decalent l'image (une secousse).
+     */
+    public void calqueZoom(Texture t, float zoom, float fx, float fy, int dx, int dy) {
+        int[] src = t.pixels();
+        int lt = t.largeur();
+        int ht = t.hauteur();
+        float ox = (L - lt) / 2f;
+        float oy = (H - ht) / 2f;
+        for (int y = 0; y < H; y++) {
+            float sy = fy + (y - dy - oy - fy) / zoom;
+            int y0 = (int) Math.floor(sy);
+            float ky = sy - y0;
+            if (y0 < 0 || y0 + 1 >= ht) {
+                continue;
+            }
+            for (int x = 0; x < L; x++) {
+                float sx = fx + (x - dx - ox - fx) / zoom;
+                int x0 = (int) Math.floor(sx);
+                if (x0 < 0 || x0 + 1 >= lt) {
+                    continue;
+                }
+                float kx = sx - x0;
+                int a = src[y0 * lt + x0];
+                int b = src[y0 * lt + x0 + 1];
+                int c = src[(y0 + 1) * lt + x0];
+                int d = src[(y0 + 1) * lt + x0 + 1];
+                int r = melange(a >> 16, b >> 16, c >> 16, d >> 16, kx, ky);
+                int v = melange(a >> 8, b >> 8, c >> 8, d >> 8, kx, ky);
+                int bl = melange(a, b, c, d, kx, ky);
+                image[y * L + x] = 0xFF000000 | r << 16 | v << 8 | bl;
+            }
+        }
+    }
+
+    private static int melange(int a, int b, int c, int d, float kx, float ky) {
+        float haut = (a & 255) + ((b & 255) - (a & 255)) * kx;
+        float bas = (c & 255) + ((d & 255) - (c & 255)) * kx;
+        return Math.round(haut + (bas - haut) * ky);
+    }
+
+    /** Pose une image agrandie k fois (pixels nets), son coin haut gauche en (x, y). Elle passe devant le texte dessous. */
+    public void calqueEchelle(Texture t, int x, int y, int k) {
+        int[] src = t.pixels();
+        for (int sy = 0; sy < t.hauteur(); sy++) {
+            for (int sx = 0; sx < t.largeur(); sx++) {
+                int c = src[sy * t.largeur() + sx];
+                if ((c >>> 24) < 128) {
+                    continue;
+                }
+                for (int dy = 0; dy < k; dy++) {
+                    int py = y + sy * k + dy;
+                    if (py < 0 || py >= H) {
+                        continue;
+                    }
+                    for (int dx = 0; dx < k; dx++) {
+                        int px = x + sx * k + dx;
+                        if (px >= 0 && px < L) {
+                            image[py * L + px] = c | 0xFF000000;
+                        }
+                    }
+                }
+            }
+        }
+        effacerSous(x, y, t.largeur() * k, t.hauteur() * k);
+    }
+
+    /** Un trait epais d'un point a un autre (une barre de fer dans une main). */
+    public void ligne(float x0, float y0, float x1, float y1, int epaisseur, int rvb) {
+        int n = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
+        for (int i = 0; i <= n; i++) {
+            float x = x0 + (x1 - x0) * i / n;
+            float y = y0 + (y1 - y0) * i / n;
+            rect(Math.round(x - epaisseur / 2f), Math.round(y - epaisseur / 2f), epaisseur, epaisseur, rvb, 256);
+        }
     }
 
     /** Pose une image d'interface centree en x. */
     public void calqueCentre(Texture t, int centreX, int y) {
-        coller(t, centreX - t.largeur() / 2, y, false, 256, false);
+        calque(t, centreX - t.largeur() / 2, y);
     }
 
     /** Un rectangle plein. opacite va de 0 (invisible) a 256 (opaque). */
     public void rect(int x, int y, int largeur, int hauteur, int rvb, int opacite) {
+        if (avecTexte && opacite > 0) {
+            plume.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, Math.min(1f, opacite / 256f)));
+            plume.setColor(new Color(rvb));
+            plume.fillRect(x * F, y * F, largeur * F, hauteur * F);
+            plume.setComposite(AlphaComposite.SrcOver);
+        }
         int r = (rvb >> 16) & 255;
         int v = (rvb >> 8) & 255;
         int b = rvb & 255;
@@ -172,6 +342,84 @@ public final class Rendu {
                 int nv = ((c >> 8) & 255) + ((v - ((c >> 8) & 255)) * opacite >> 8);
                 int nb = (c & 255) + ((b - (c & 255)) * opacite >> 8);
                 image[py * L + px] = 0xFF000000 | nr << 16 | nv << 8 | nb;
+            }
+        }
+    }
+
+    /** Ajoute de la lumiere a un pixel (melange additif) : les phares, les etincelles, les eclairs. */
+    public void ajouter(int x, int y, int rvb, int force) {
+        if (x < 0 || x >= L || y < 0 || y >= H || force <= 0) {
+            return;
+        }
+        int c = image[y * L + x];
+        int r = Math.min(255, ((c >> 16) & 255) + (((rvb >> 16) & 255) * force >> 8));
+        int v = Math.min(255, ((c >> 8) & 255) + (((rvb >> 8) & 255) * force >> 8));
+        int b = Math.min(255, (c & 255) + ((rvb & 255) * force >> 8));
+        image[y * L + x] = 0xFF000000 | r << 16 | v << 8 | b;
+    }
+
+    /** Un halo de lumiere doux, en ellipse, qui s'ajoute a l'image : force de 0 a 1 au centre, nul au bord. */
+    public void halo(float cx, float cy, float rx, float ry, int rvb, float force) {
+        if (force <= 0 || rx < 1 || ry < 1) {
+            return;
+        }
+        int x0 = Math.max(0, (int) (cx - rx));
+        int x1 = Math.min(L - 1, (int) (cx + rx));
+        int y0 = Math.max(0, (int) (cy - ry));
+        int y1 = Math.min(H - 1, (int) (cy + ry));
+        for (int y = y0; y <= y1; y++) {
+            float dy = (y - cy) / ry;
+            for (int x = x0; x <= x1; x++) {
+                float dx = (x - cx) / rx;
+                float d = 1f - (dx * dx + dy * dy);
+                if (d > 0) {
+                    ajouter(x, y, rvb, Math.round(d * d * force * 256));
+                }
+            }
+        }
+    }
+
+    /** Une tache douce et ronde (vapeur, buee, fumee) : la couleur se fond dans l'image, forte au centre, nulle au bord. */
+    public void tache(float cx, float cy, float rayon, int rvb, int opacite) {
+        if (opacite <= 0 || rayon < 0.5f) {
+            return;
+        }
+        int x0 = Math.max(0, (int) (cx - rayon));
+        int x1 = Math.min(L - 1, (int) (cx + rayon));
+        int y0 = Math.max(0, (int) (cy - rayon));
+        int y1 = Math.min(H - 1, (int) (cy + rayon));
+        for (int y = y0; y <= y1; y++) {
+            for (int x = x0; x <= x1; x++) {
+                float d = 1f - ((x - cx) * (x - cx) + (y - cy) * (y - cy)) / (rayon * rayon);
+                if (d > 0) {
+                    melanger(y * L + x, rvb, Math.round(opacite * d));
+                }
+            }
+        }
+    }
+
+    /** Teinte les bords de l'image (rouge quand on a mal, noir quand on est a bout) : force de 0 a 1. */
+    public void vignette(int rvb, float force) {
+        if (force <= 0) {
+            return;
+        }
+        int r = (rvb >> 16) & 255;
+        int v = (rvb >> 8) & 255;
+        int b = rvb & 255;
+        for (int y = 0; y < H; y++) {
+            float dy = (y - H / 2f) / (H / 2f);
+            for (int x = 0; x < L; x++) {
+                float dx = (x - L / 2f) / (L / 2f);
+                float d = (dx * dx * 0.8f + dy * dy) - 0.45f;
+                if (d <= 0) {
+                    continue;
+                }
+                int k = Math.min(256, Math.round(d * 1.6f * force * 256));
+                int c = image[y * L + x];
+                int nr = ((c >> 16) & 255) + ((r - ((c >> 16) & 255)) * k >> 8);
+                int nv = ((c >> 8) & 255) + ((v - ((c >> 8) & 255)) * k >> 8);
+                int nb = (c & 255) + ((b - (c & 255)) * k >> 8);
+                image[y * L + x] = 0xFF000000 | nr << 16 | nv << 8 | nb;
             }
         }
     }

@@ -72,13 +72,45 @@ ENREGISTREMENTS = {
     "porte_ouvre": ("100-CC0-SFX_0.zip#door_open.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-10)),
     "clochette": ("100-CC0-SFX_0.zip#bell_01.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-10)),
     "rideau_fer": ("sfx_loops.zip#rolling.ogg", "30-cc0-sfx-loops", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-8)),
-    "metal": ("100-CC0-SFX_0.zip#metal_03.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-12)),
-    "outils": ("100-CC0-SFX_0.zip#tools_02.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-12)),
     "objet": ("sfx_100_v2.zip#sfx100v2_items_01.ogg", "100-cc0-sfx-2", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-9)),
     "cles": ("100-CC0-SFX_0.zip#key_open_01.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-9)),
     "papier": ("100-CC0-SFX_0.zip#paper_02.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-8)),
     "serrure": ("sfx_100_v2.zip#sfx100v2_lock_open_01.ogg", "100-cc0-sfx-2", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-9)),
     "ui_deplace": ("sfx_100_v2.zip#sfx100v2_switch_01.ogg", "100-cc0-sfx-2", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-14)),
+    # la vie de la rue, au loin : des bruits qui passent, au hasard
+    "sirene_loin": ("siren_0.mp3", "sirens-and-alarm-noise", "aquinn", "CC0", dict(genre="ponctuel", debut=3, duree=9, bas=1600, niveau=-14)),
+    "chien_loin": ("dog_barking_mono.wav", "dog-barking-mono", "haeldb", "CC0", dict(genre="ponctuel", bas=2400, niveau=-14)),
+    "moto_passe": ("motorcycle_engine_-_start_and_drive_away.mp3", "free-general-ambience-sounds", "Gregor Quendel", "CC-BY-SA 4.0",
+                   dict(genre="ponctuel", debut=7, duree=9, bas=3500, niveau=-12)),
+    "alarme_loin": ("sfx_loops.zip#alarm_02.ogg", "30-cc0-sfx-loops", "rubberduck", "CC0", dict(genre="ponctuel", duree=4, bas=1800, niveau=-20)),
+    "orage_1": ("thunder_-_lightning_-_i_-_without_rain_wind_background_noise.mp3", "free-general-ambience-sounds", "Gregor Quendel", "CC-BY-SA 4.0",
+                dict(genre="ponctuel", duree=12, niveau=-5)),
+    "orage_2": ("thunder_-_lightning_-_ii_-_without_rain_wind_background_noise.mp3", "free-general-ambience-sounds", "Gregor Quendel", "CC-BY-SA 4.0",
+                dict(genre="ponctuel", duree=12, niveau=-5)),
+    "orage_3": ("thunder_-_lightning_-_iii_-_without_rain_wind_background_noise.mp3", "free-general-ambience-sounds", "Gregor Quendel", "CC-BY-SA 4.0",
+                dict(genre="ponctuel", duree=12, niveau=-5)),
+    "amb_periph": ("sfx_100_v2.zip#sfx100v2_loop_highway.ogg", "100-cc0-sfx-2", "rubberduck", "CC0", dict(genre="boucle", bas=700, niveau=-33)),
+    "bouteille": ("rpg_sound_pack.zip#bottle.wav", "rpg-sound-pack", "artisticdude", "CC0", dict(genre="ponctuel", niveau=-16)),
+    "vaisselle": ("100-CC0-SFX_0.zip#dishes_02.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-16)),
+    "micro_ondes": ("100-CC0-SFX_0.zip#microwave_door_open.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-15)),
+    "flaque": ("100-CC0-SFX_0.zip#splash_01.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-15)),
+    # le corps
+    "aie_1": ("01._damage_grunt_male.wav", "damage-sounds-male-audio-pack", "VoiceBosch", "CC-BY-SA 4.0", dict(genre="ponctuel", niveau=-8)),
+    "aie_2": ("02._damage_grunt_male.wav", "damage-sounds-male-audio-pack", "VoiceBosch", "CC-BY-SA 4.0", dict(genre="ponctuel", niveau=-8)),
+    "aie_3": ("05._damage_grunt_male.wav", "damage-sounds-male-audio-pack", "VoiceBosch", "CC-BY-SA 4.0", dict(genre="ponctuel", niveau=-8)),
+    "effort": ("03._effort_grunt_male.wav", "effort-sounds-male-audio-pack", "VoiceBosch", "CC-BY-SA 4.0", dict(genre="ponctuel", niveau=-11)),
+    "souffle": ("breathing%20tired.wav", "breathing-tired", "mikeask", "CC0", dict(genre="ponctuel", niveau=-11)),
+    "coeur": ("heartbeat_slow_0.wav", "heartbeat-sounds", "bart", "CC0", dict(genre="ponctuel", niveau=-7)),
+    "coeur_vite": ("heartbeat_fast_0.wav", "heartbeat-sounds", "bart", "CC0", dict(genre="ponctuel", niveau=-7)),
+    "coup": ("100-CC0-SFX_0.zip#hit_02.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-8)),
+    "choc": ("100-CC0-SFX_0.zip#slam_03.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-6)),
+    # l'argent, le telephone, les objets
+    "argent": ("Coins%20sounds%20%5BOGG%5D.zip#1_Coins.ogg", "coins-sounds", "Jalastram", "CC-BY 3.0", dict(genre="ponctuel", niveau=-11)),
+    "piece": ("rpg_sound_pack.zip#coin2.wav", "rpg-sound-pack", "artisticdude", "CC0", dict(genre="ponctuel", niveau=-13)),
+    "notif": ("chirptone.wav", "modern-ringtone-chirptone", "Zane Little Music", "CC0", dict(genre="ponctuel", duree=1.2, niveau=-15)),
+    "colis": ("100-CC0-SFX_0.zip#wooded_box_open.ogg", "100-cc0-sfx", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-10)),
+    "clic": ("rpg_sound_pack.zip#metal-small1.wav", "rpg-sound-pack", "artisticdude", "CC0", dict(genre="ponctuel", niveau=-14)),
+    "souffle_air": ("sfx_100_v2.zip#sfx100v2_air_02.ogg", "100-cc0-sfx-2", "rubberduck", "CC0", dict(genre="ponctuel", niveau=-11)),
     # les musiques
     "mus_menu": ("lights_at_night.flac", "lights-at-night", "Tsorthan Grove", "CC0", dict(genre="musique", duree=150, niveau=-21)),
     "mus_rue": ("chilllofir-loop.ogg", "chill-lofi-inspired-loop-edit", "omfgdude (boucle : qubodup)", "CC0",
@@ -91,6 +123,79 @@ ENREGISTREMENTS = {
     "mus_nuit": ("EmptyCity.ogg", "emptycity-background-music", "yd", "CC0", dict(genre="musique", niveau=-23)),
 }
 
+# ---------------------------------------------------------------- la bibliotheque elargie (direction sonore)
+KENNEY_RPG = ("RPGsounds_Kenney.zip", "50-rpg-sound-effects", "Kenney", "CC0")
+KENNEY_UI = ("kenney_interfaceSounds.zip", "interface-sounds", "Kenney", "CC0")
+PAS = ("footsteps_0.zip", "footsteps-on-different-surfaces", "congusbongus", "CC-BY 3.0")
+MAISON = ("sounds_8.zip", "various-sound-effects", "laleksic", "CC0")
+FOLEY = ("foley_pack.zip", "super-foley-pack", "dklon", "CC-BY 3.0")
+RD1 = ("100-CC0-SFX_0.zip", "100-cc0-sfx", "rubberduck", "CC0")
+RD2 = ("sfx_100_v2.zip", "100-cc0-sfx-2", "rubberduck", "CC0")
+RDB = ("sfx_loops.zip", "30-cc0-sfx-loops", "rubberduck", "CC0")
+
+
+def depuis(pack, dedans, **t):
+    archive, page, auteur, licence = pack
+    return (archive + "#" + dedans, page, auteur, licence, dict(genre="ponctuel", niveau=-10) | t)
+
+
+ENREGISTREMENTS.update({
+    # les pas, sol par sol : six prises par sol, pour ne jamais entendre deux fois le meme pas
+    **{f"pas_carrelage_{k + 1}": depuis(PAS, f"tile/{k}.ogg", niveau=-11) for k in range(6)},
+    **{f"pas_beton_{k + 1}": depuis(PAS, f"boots/{k}.ogg", niveau=-11) for k in range(6)},
+    **{f"pas_metal_{k + 1}": depuis(PAS, f"metal/{k}.ogg", niveau=-13, bas=5000) for k in range(5)},
+    **{f"pas_gravier_{k + 1}": depuis(PAS, f"gravel/{k}.ogg", niveau=-12) for k in range(5)},
+    **{f"pas_flaque_{k + 1}": depuis(PAS, f"water/{k}.ogg", niveau=-12) for k in range(4)},
+    **{f"feuillage_{k + 1}": depuis(PAS, f"grass/{k}.ogg", niveau=-11) for k in range(3)},
+    **{f"parquet_{k + 1}": depuis(MAISON, f"floor_creak{k + 1}.wav", niveau=-15) for k in range(3)},
+    # les gestes
+    "poignee": depuis(KENNEY_RPG, "metalLatch.ogg", niveau=-12),
+    "declic": depuis(KENNEY_RPG, "metalClick.ogg", niveau=-14),
+    "livre_ouvre": depuis(KENNEY_RPG, "bookOpen.ogg", niveau=-11),
+    "livre_ferme": depuis(KENNEY_RPG, "bookClose.ogg", niveau=-11),
+    **{f"livre_page_{k}": depuis(KENNEY_RPG, f"bookFlip{k}.ogg", niveau=-13) for k in (1, 2, 3)},
+    **{f"pose_{k}": depuis(KENNEY_RPG, f"bookPlace{k}.ogg", niveau=-12) for k in (1, 2, 3)},
+    "sac_pose": depuis(KENNEY_RPG, "dropLeather.ogg", niveau=-10),
+    **{f"vetement_{k}": depuis(KENNEY_RPG, f"cloth{k}.ogg", niveau=-14) for k in (1, 2, 3, 4)},
+    **{f"grince_{k}": depuis(KENNEY_RPG, f"creak{k}.ogg", niveau=-15) for k in (1, 2, 3)},
+    "couteau": depuis(KENNEY_RPG, "knifeSlice.ogg", niveau=-13),
+    "hachoir": depuis(KENNEY_RPG, "chop.ogg", niveau=-11),
+    "monnaie": depuis(KENNEY_RPG, "handleCoins.ogg", niveau=-12),
+    "porte_ouvre_bois": depuis(KENNEY_RPG, "doorOpen_1.ogg", niveau=-10),
+    **{f"porte_ferme_{k}": depuis(KENNEY_RPG, f"doorClose_{k}.ogg", niveau=-9) for k in (1, 2, 3)},
+    "tiroir_ouvre": depuis(MAISON, "drawer_open.wav", niveau=-12),
+    "tiroir_ferme": depuis(MAISON, "drawer_close.wav", niveau=-12),
+    "interrupteur": depuis(MAISON, "switch_on.wav", niveau=-13),
+    "robinet": depuis(MAISON, "tap_water.wav", niveau=-14, duree=3, bas=1800),
+    "plaque_egout": depuis(MAISON, "manhole_open.wav", niveau=-10),
+    "porte_grince": depuis(MAISON, "door_creak_open.wav", niveau=-12),
+    "cles_main": depuis(MAISON, "pickup_keys.wav", niveau=-12),
+    "chaise": depuis(FOLEY, "chair_push.wav", niveau=-12, duree=1.4),
+    "corps_chute": depuis(FOLEY, "body_hit_on_ground.wav", niveau=-8, duree=1.2),
+    "froissement": depuis(FOLEY, "leather_rustling.wav", niveau=-15, duree=1.0),
+    **{f"vaisselle_{k}": depuis(RD1, f"dishes_0{k}.ogg", niveau=-16) for k in (1, 3, 4)},
+    **{f"tinte_{k}": depuis(RD1, f"glass_0{k}.ogg", niveau=-17) for k in (1, 3, 4, 5)},
+    **{f"ferraille_{k}": depuis(RD1, f"metal_{k:02d}.ogg", niveau=-13) for k in (1, 2, 5, 7, 9)},
+    **{f"outil_{k}": depuis(RD1, f"tools_0{k}.ogg", niveau=-13) for k in (1, 3, 4, 5)},
+    "casserole": depuis(RD1, "pot_01.ogg", niveau=-14),
+    "clochette_2": depuis(RD1, "bell_02.ogg", niveau=-11),
+    "bequille": depuis(RD2, "sfx100v2_metal_hit_01.ogg", niveau=-11),
+    "caisse_pose": depuis(RD2, "sfx100v2_wood_hit_02.ogg", niveau=-9),
+    **{f"cailloux_{k}": depuis(RD2, f"sfx100v2_stones_0{k}.ogg", niveau=-15) for k in (1, 2, 3)},
+    "amb_ruissellement": ("sfx_loops.zip#water_flowing.ogg", "30-cc0-sfx-loops", "rubberduck", "CC0",
+                          dict(genre="boucle", bas=2600, haut=180, niveau=-30)),
+    "amb_compresseur": ("sfx_loops.zip#pump_01.ogg", "30-cc0-sfx-loops", "rubberduck", "CC0",
+                        dict(genre="boucle", bas=1400, niveau=-31)),
+    # le telephone et les menus : une seule famille de sons, douce, vitree
+    "tel_tic": depuis(KENNEY_UI, "glass_002.ogg", niveau=-17),
+    "tel_ouvre": depuis(KENNEY_UI, "maximize_002.ogg", niveau=-15),
+    "tel_ferme": depuis(KENNEY_UI, "minimize_002.ogg", niveau=-15),
+    "tel_achat": depuis(KENNEY_UI, "confirmation_001.ogg", niveau=-13),
+    "tel_erreur": depuis(KENNEY_UI, "error_006.ogg", niveau=-15),
+    "ui_deplace": depuis(KENNEY_UI, "click_002.ogg", niveau=-16),
+    "ui_retour": depuis(KENNEY_UI, "back_002.ogg", niveau=-15),
+})
+
 
 def telecharger(fichier):
     """Le fichier d'origine, depuis le cache ou depuis OpenGameArt. archive#nom extrait un fichier d'une archive."""
@@ -102,7 +207,7 @@ def telecharger(fichier):
         local.write_bytes(urllib.request.urlopen(demande, timeout=120).read())
     if not dedans:
         return local
-    extrait = CACHE / ("z_" + dedans)
+    extrait = CACHE / ("z_" + archive.split(".")[0] + "_" + dedans.replace("/", "_"))
     if not extrait.exists():
         with zipfile.ZipFile(local) as z:
             nom = next(n for n in z.namelist() if n.endswith("/" + dedans) or n == dedans)
@@ -148,16 +253,38 @@ def nettoyer(x):
     if len(actif):
         x = x[max(0, actif[0] - 40): actif[-1] + int(0.06 * SR)]
     x = x.copy()
-    a, b = int(0.002 * SR), int(0.02 * SR)
+    a, b = int(0.002 * SR), min(int(0.02 * SR), len(x) // 3)
     x[:a] *= np.linspace(0, 1, a)
     x[-b:] *= np.linspace(1, 0, b)
     return x
 
 
+CATEGORIES = [  # le rangement de la bibliotheque : (dossier, debuts de nom)
+    ("musique", ("mus_",)),
+    ("ambiances", ("amb_",)),
+    ("pas", ("pas_", "parquet_")),
+    ("interface", ("ui_", "tel_", "objectif", "mission", "nouvelle_mission", "notif", "vibreur", "chapitre")),
+    ("vehicules", ("scooter", "voiture_", "moto_", "bus_", "klaxon_", "bequille")),
+    ("metro", ("metro_",)),
+    ("cinema", ("tele", "acouphene", "montee", "coup_sourd", "cigarette_")),
+    ("ville", ("sirene_", "chien_", "alarme_", "orage_", "tonnerre", "rafale_", "bouteille", "flaque", "gresillement",
+               "plaque_egout", "sonnerie_", "ascenseur", "clavier", "voisins_", "bip_", "robinet")),
+    ("corps", ("aie_", "effort", "souffle", "coeur", "coup", "choc", "corps_")),
+]
+
+
+def dossier(nom):
+    for categorie, debuts in CATEGORIES:
+        if nom.startswith(debuts):
+            return SORTIE / categorie
+    return SORTIE / "objets"
+
+
 def ecrire(nom, x, long):
     """En WAV 16 bits pour un son court, en AU mu-law pour un long. Le format est choisi par ffmpeg."""
     x = np.clip(x, -1, 1).astype(np.float32)
-    sortie = SORTIE / (nom + (".au" if long else ".wav"))
+    dossier(nom).mkdir(parents=True, exist_ok=True)
+    sortie = dossier(nom) / (nom + (".au" if long else ".wav"))
     codec = ["-c:a", "pcm_mulaw", "-f", "au"] if long else ["-c:a", "pcm_s16le"]
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", "-", *codec, str(sortie)],
                    input=x.tobytes(), check=True)
@@ -225,17 +352,28 @@ def fabriquer():
     sons = {}
     # l'interface
     sons["ui_valide"] = (niveau_crete(note(880, 0.25, declin=14) + 0.6 * np.pad(note(1320, 0.22, declin=14), (int(0.05 * SR), 0))[: int(0.25 * SR)], -10), False)
-    sons["ui_retour"] = (niveau_crete(note(523, 0.2, declin=16), -12), False)
     sons["ui_refus"] = (niveau_crete(note(196, 0.3, declin=9) + note(147, 0.3, declin=9) * 0.8, -9), False)
     sons["objectif"] = (niveau_crete(echo(suite([659, 784, 988], 0.09)), -9), False)
     sons["mission"] = (niveau_crete(echo(suite([523, 659, 784, 988, 1319], 0.12), 0.16, 0.4, 5), -8), False)
     sons["nouvelle_mission"] = (niveau_crete(echo(suite([392, 587], 0.16), 0.18, 0.35, 4), -10), False)
-    t = temps(0.045)                                                    # le tic des dialogues : une voix, accordee en jeu
-    sons["voix"] = (niveau_crete(signal.sawtooth(2 * np.pi * 220 * t, 0.5) * np.exp(-t * 60) * np.minimum(1, t / 0.003), -16), False)
     t = temps(1.0)                                                      # le telephone qui vibre, deux fois
     vib = np.sin(2 * np.pi * 170 * t) * (np.sin(2 * np.pi * 31 * t) > -0.2) * (((t % 0.5) < 0.32))
     sons["vibreur"] = (niveau_crete(filtre(vib, bas=900), -12), False)
     n = rng.standard_normal(int(1.4 * SR))                              # la neige de la tele
+    # une voiture qui passe sur la chaussee mouillee : le chuintement des pneus, qui monte, passe et s'eloigne
+    t = temps(3.2)
+    enveloppe = np.exp(-((t - 1.5) / 0.55) ** 2)
+    pneus = filtre(rng.standard_normal(len(t)), bas=2600, haut=300) * enveloppe
+    grave = filtre(bruit_brun(len(t)), bas=220) * enveloppe * 2.5
+    hauteur = 70 * (1.12 - 0.24 / (1 + np.exp(-(t - 1.5) * 4)))          # l'effet Doppler, a peine
+    moteur = np.sin(2 * np.pi * np.cumsum(hauteur) / SR) * enveloppe * 0.4
+    sons["voiture_passe"] = (niveau_crete(pneus + grave + moteur, -12), False)
+    # le gresillement d'une enseigne : de petits craquements secs
+    g = np.zeros(int(0.7 * SR))
+    for k in range(9):
+        i = rng.integers(0, len(g) - 400)
+        g[i:i + 300] += rng.standard_normal(300) * np.exp(-np.arange(300) / 60) * rng.uniform(0.4, 1)
+    sons["gresillement"] = (niveau_crete(filtre(g, haut=1500), -16), False)
     sons["tele"] = (niveau_crete(filtre(n, bas=6000, haut=400) * np.linspace(1, 0.6, len(n)), -16), False)
     # le scooter : un deux-temps de 50 cm3, une explosion par tour, environ 95 par seconde
     periode = 232
@@ -284,6 +422,11 @@ def fabriquer():
     neon = sum(np.sin(2 * np.pi * 100 * h * t) / h for h in (1, 2, 3, 5, 7))
     neon += 0.05 * filtre(rng.standard_normal(len(t)), haut=4000)
     sons["amb_neon"] = (niveau_rms(neon, -34), False)
+    # la direction sonore : la tele, le choc, la rue, les interieurs, le telephone (sons/bruitages.py)
+    import bruitages
+    syllabes = {g: [lire(f) for f in sorted((SORTIE / "voix" / g).glob(f"v_{g}_[0-9]*.au"))] for g in ("homme", "femme_passante")}
+    source_radio = lire(telecharger("chilllofir-loop.ogg"))
+    sons.update(bruitages.fabriquer(syllabes["homme"], syllabes["femme_passante"], source_radio))
     for nom, (x, long) in sons.items():
         ecrire(nom, x, long)
     return sorted(sons)
@@ -312,6 +455,20 @@ Aucun enregistrement libre ne convenait pour ceux-ci : ils sont calculés par `p
 oscillateurs, enveloppes). Ils n'ont pas d'auteur extérieur et suivent la licence du jeu.
 
 {fabriques}
+
+## Les voix des personnages
+
+Les dossiers `voix/<personnage>` contiennent les syllabes et les réactions (rire, soupir, « hm », « hein », surprise,
+grognement, inspiration) de chaque personnage, et `voix/tele_emission` le présentateur de la télé. Elles sont
+calculées par `designs/sons/voix.py` (synthèse source-filtre : une corde vocale, trois formants, des consonnes) :
+aucune voix humaine enregistrée, aucun doublage généré. Elles suivent la licence du jeu.
+
+## Rangement
+
+`musique/`, `ambiances/` (boucles), `ville/` (bruits de la rue et du dehors), `vehicules/`, `metro/`, `pas/`
+(un sol par famille de prises), `objets/` (les gestes), `corps/`, `cinema/` (ce qui sert aux cinématiques),
+`interface/` (menus et téléphone), `voix/`. Un nom terminé par `_1`, `_2`... est une prise d'une famille :
+le jeu en joue une au hasard, jamais deux fois la même de suite.
 """
 
 
@@ -326,17 +483,20 @@ def credits(fabriques):
 
 def main():
     SORTIE.mkdir(parents=True, exist_ok=True)
-    for f in SORTIE.glob("*"):
-        if f.suffix in (".wav", ".au") and f.stem not in ENREGISTREMENTS:
+    for f in SORTIE.glob("*.*"):                                       # l'ancien rangement, tout a plat
+        if f.suffix in (".wav", ".au"):
+            f.unlink()
+    for f in SORTIE.glob("*/*"):
+        if f.parent.name != "voix" and f.suffix in (".wav", ".au") and f.stem not in ENREGISTREMENTS:
             f.unlink()
     for nom, (fichier, page, auteur, licence, t) in ENREGISTREMENTS.items():
-        sortie = preparer(nom, fichier, t) if not any((SORTIE / (nom + e)).exists() for e in (".wav", ".au")) or "-tout" in sys.argv \
-            else next(SORTIE / (nom + e) for e in (".wav", ".au") if (SORTIE / (nom + e)).exists())
+        deja = [dossier(nom) / (nom + e) for e in (".wav", ".au") if (dossier(nom) / (nom + e)).exists()]
+        sortie = preparer(nom, fichier, t) if not deja or "-tout" in sys.argv else deja[0]
         print(f"{nom:22s} {sortie.stat().st_size // 1024:6d} ko  ({auteur}, {licence})")
     fabriques = fabriquer()
     print("fabriques :", ", ".join(fabriques))
     credits(fabriques)
-    total = sum(f.stat().st_size for f in SORTIE.iterdir())
+    total = sum(f.stat().st_size for f in SORTIE.rglob("*") if f.is_file())
     print(f"total : {total / 1e6:.1f} Mo")
 
 

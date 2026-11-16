@@ -41,6 +41,7 @@ class Carte:
         self.nom, self.exterieur = nom, exterieur
         self.lignes, self.trouees, self.degages, self.utilisees = [], [], [], set()
         self.x, self.reperes = 0, {}
+        self.portes_x = []
         CARTES[nom] = self
 
 
@@ -83,6 +84,7 @@ def zone(texte, x0, x1):
 
 
 def porte(x0, x1, cible, ax, ay, texte=None, y_max=SOL + 22):
+    C.portes_x.append((x0 + x1) / 2)
     """Un passage vers une autre carte. Sans texte, il se declenche tout seul (les bouts de l'avenue)."""
     C.lignes.append(f"porte {x0:.0f} {x1:.0f} {y_max if texte else BAS} {cible} {ax:.0f} {ay:.0f} "
                     f"{0 if texte else 1} {etiquette(texte) if texte else '-'}")
@@ -208,7 +210,7 @@ def textures():
     for nom, texte, style in (("laverie", "LAVERIE", "froid"), ("epicerie", "EPICERIE", "sombre"), ("cafe", "CAFE", "sombre"),
                               ("muscu", "MUSCU", "clair"), ("krousty", "KROUSTY", "orange")):
         tex("drapeau_" + nom, F.drapeau(texte, style, 3))
-    aide = "FLECHES : MARCHER   MAJ : COURIR   E : ENTRER"
+    aide = "FLECHES : MARCHER   MAJ : COURIR   E : AGIR   F : QUITTER LE SCOOTER   P : TELEPHONE"
     t = Toile(largeur_texte(aide, 3) + 10, 11)
     t.rect(0, 0, t.l, 11, ENCRE)
     t.texte(5, 3, aide, (170, 170, 176), 3)
@@ -259,7 +261,7 @@ def textures():
         x, y = r.randrange(0, 136), r.randrange(0, 40)
         t.ellipse(x, y, x + r.randrange(20, 44), y + r.randrange(12, 26), (12, 14, 18))
     tex("devant_feuilles", t.img)
-    for nom in ("labo", "epicerie", "garage", "bureaux", "hall_tour", "metro", "namek", "etage_anges", "bureau_baba", "boucherie"):
+    for nom in ("labo", "epicerie", "garage", "cour", "bureaux", "hall_tour", "metro", "namek", "etage_anges", "bureau_baba", "boucherie"):
         tex("int_" + nom, getattr(I, nom)())
     tex("ange", Image.open(RACINE / "designs" / "outputs" / "ange_sprite.png").convert("RGBA"))
     tex("int_poulet", I.maitre_poulet())
@@ -372,6 +374,13 @@ def finir_exterieur(tour_loin, tour_x, fin_marche=None):
             solide(x + 2, 240, x + 118, 253)
     for _ in range(fin // 500):
         pose(rng.choice(("dechets", "poubelle", "poubelle")), rng.randrange(100, fin_marche - 100), SOL + 4)
+    # deux grands conteneurs par carte, contre les facades : ceux-la, on peut les fouiller (E)
+    for k, part in enumerate((0.31, 0.74)):
+        x = int(fin_marche * part)
+        while dans(C.trouees, x + 13, 40) or dans(C.degages, x + 13, 40) or any(abs(x + 13 - p) < 50 for p in C.portes_x):
+            x += 37
+        pose("conteneur", x, SOL + 2)
+        C.reperes[f"fouille{k}"] = (x + 13, SOL + 14)
     # un velo attache a un lampadaire sur trois, une boite aux lettres, des buissons au fond des trouees
     for x in range(450, fin_marche - 100, 900):
         if not dans(C.trouees, x, 40) and not dans(C.degages, x):
@@ -503,6 +512,7 @@ def avenue_milieu():
     zone("LE CAFE", x + 84, x + 210)
     C.reperes["cafe"] = x + 140
     C.reperes["hall29"] = x + 231
+    porte(x + 219, x + 243, "cour", 60, 240, "E : PASSER PAR LE HALL DU 29")
     C.reperes["abri"] = x + 330
     quelconque(4)
     x = trouee(448, "sol_cour", muret=True)
@@ -707,7 +717,8 @@ def lieux_de_mission():
     for k, sx in enumerate((104, 250)):
         ensemble(f"presentoir_{k}", sx, 242, "chaud", [("meuble_bas", 0, 0), ("balance" if k else "jardiniere", 4, 24),
                                                        ("jardiniere" if k else "petite_plante", 30, 24)])
-    interieur("garage", [("L'ATELIER", 0, 270), ("LA RS6", 270, 520), ("LE PONT", 520, 680), ("LE BUREAU D'OMAR", 680, 760)],
+    interieur("garage", [("L'ATELIER", 0, 270), ("LA RS6", 270, 520), ("LE PONT", 520, 680), ("LE BUREAU D'OMAR", 680, 760),
+                         ("LA PETITE PORTE", 760, 840)],
               ("avenue_milieu", milieu["garage"], sol, "E : SORTIR DU GARAGE"), "GARAGE OMAR - ACTES 2 ET 4",
               ["2.1 LA RS6 : PRENDS LE FLIPPER ORANGE SUR L'ETABLI", "4.2 L'ATELIER : ENTRE PAR L'ARRIERE, BATS OMAR",
                "4.4 LES AVEUX D'OMAR : TOI AUSSI, TU LES AS VUS ?"],
@@ -719,6 +730,19 @@ def lieux_de_mission():
     ensemble("coin_omar", 618, 252, "froid", [("classeur", 0, 0), ("bureau_tiroirs", 30, 0), ("ecran", 38, 38),
                                                ("siege_bureau_2", 92, 0)])
     porte(300, 490, "namek", 60, 240, "E : PRENDRE LA RS6, CAP SUR NAMEK", 232)
+    porte(772, 812, "cour", 496, 238, "E : SORTIR PAR LA PETITE PORTE", BAS)
+    # la cour du 29, derriere le garage : le porche a gauche, la petite porte du garage a droite
+    interieur("cour", [("LA COUR DU 29", 0, 440), ("L'ARRIERE DU GARAGE", 440, 600)],
+              ("avenue_milieu", milieu["hall29"], sol, "E : RESSORTIR PAR LE HALL DU 29"), "LA COUR DU 29 - ACTE 2",
+              ["2.3 LA RS6 : ENTRE PAR LA PETITE PORTE"], [("halo_chaud", 54, 100, 0.4), ("halo_froid", 548, 140, 0.35)],
+              nuit=(26, 26, 40))
+    porte(516, 556, "garage", 760, 240, "E : POUSSER LA PETITE PORTE", BAS)
+    pose("conteneur", 196, 206)
+    pose("conteneur", 236, 210)
+    pose("conteneur", 470, 204)
+    solide(196, 200, 262, 208)
+    CARTES["cour"].reperes.update(fouille_a=(208, 222), fouille_arme=(250, 224), fouille_c=(483, 220), guetteur=(380, 232),
+                                  porche=(60, 240), porte_garage=(536, 238))
     CARTES["garage"].reperes.update(etabli=(152, 206), rs6=(396, 208), bureau=(700, 208), omar=(620, 214), mecano=(170, 212),
                                     entree=(60, 240))
     CARTES["epicerie"].reperes.update(comptoir=(520, 206), rayons=(200, 206), frigos=(380, 206))
@@ -812,7 +836,7 @@ def construire():
         planche.save(INTERFACE / f"police{police}.png")
         (INTERFACE / f"police{police}.txt").write_text(lettres, encoding="utf-8")
     for nom in sorted(TEX):
-        if nom in HISTOIRE or nom in ("geto", "sdf", "flipper", "ange"):
+        if nom in HISTOIRE or nom in ("geto", "sdf", "flipper", "ange", "beeper", "eclat", "armes", "conteneur", "scooter_gare"):
             TEX[nom].save(INTERFACE / f"{nom}.png")                    # les gens gardent leurs couleurs : c'est la rue qui s'eteint
     for nom in sorted(set().union(*(c.utilisees for c in CARTES.values())) | {"ciel", "joueur", "aide"}):
         PAL.appliquer(TEX[nom], nom).save(SORTIE / f"{nom}.png")

@@ -566,6 +566,19 @@ GENS = {
 }
 
 
+def colis():
+    """Un colis pose devant la porte : un carton, son ruban, une etiquette."""
+    t = Toile(22, 16)
+    t.rect(1, 3, 21, 16, (176, 138, 92))
+    t.rect(1, 3, 21, 6, (204, 168, 118))
+    t.rect(17, 6, 21, 16, (140, 106, 70))
+    t.rect(9, 3, 13, 16, (226, 214, 184))
+    t.rect(3, 9, 8, 13, (240, 238, 230))
+    t.rect(4, 10, 7, 11, (60, 60, 70))
+    t.rect(1, 15, 21, 16, (110, 82, 54))
+    return t.img
+
+
 def tous(racine):
     """Toutes les images des personnages et des objets de l'histoire, par nom."""
     out = {}
@@ -578,6 +591,7 @@ def tous(racine):
     import heros
     out["buste_toi"] = heros.buste()
     out["heros_assis"] = heros.assis()
+    out["colis"] = colis()
     import geto
     patron, ennemi = geto.sprites(racine)                              # le patron en couleurs, l'ennemi en gris
     out["geto"], out["geto_gris"] = patron, ennemi
@@ -590,6 +604,9 @@ def tous(racine):
     out["heros"] = heros_profil()
     out["heros_2"] = heros_profil(pas=True)
     out["heros_charge"] = heros_profil(charge=True)
+    import heros
+    for geste in ("garde", "poing", "pied", "frappe", "touche"):         # le combat
+        out["heros_" + geste] = heros.combat(geste)
     out["heros_charge_2"] = heros_profil(pas=True, charge=True)
     out["heros_scooter"] = scooter_profil(rideur=True)
     out["heros_scooter_2"] = scooter_profil(rideur=True, pas=True)

@@ -8,4 +8,11 @@ interface Ecran {
     void maj(float dt, Touches touches);
 
     void dessiner(Rendu rendu);
+
+    /**
+     * Une erreur vient d'interrompre une image : l'ecran ferme ce qui etait ouvert (scene, encart, telephone...) et rend
+     * la main au joueur, sans perdre la partie.
+     */
+    default void secourir() {
+    }
 }

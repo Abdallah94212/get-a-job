@@ -10,3 +10,4 @@ blockside/
 decor-apercu/
 # sauvegardes de partie
 jeu/*.sav
+.osgrep

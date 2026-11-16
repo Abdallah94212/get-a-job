@@ -510,6 +510,43 @@ def divers():
     t.rect(20, 7, 30, 16, (124, 108, 88))
     t.ligne([(20, 11), (29, 11)], (90, 78, 64))
     d["dechets"] = t.img
+    # le grand conteneur a roulettes, couvercle entrouvert : celui qu'on peut fouiller
+    t = Toile(26, 30)
+    t.poly([(2, 7), (24, 7), (22, 27), (4, 27)], (38, 78, 52))           # la cuve verte
+    t.poly([(2, 7), (6, 7), (6, 27), (4, 27)], (28, 58, 40))
+    t.rect(1, 3, 25, 7, (30, 64, 42))                                  # le couvercle, souleve d'un cote
+    t.poly([(1, 3), (25, 0), (25, 3), (1, 6)], (46, 92, 62))
+    t.rect(4, 8, 22, 9, (22, 44, 30))                                  # la levre, et ce qui depasse
+    t.rect(8, 5, 14, 8, (30, 30, 36))
+    t.rect(15, 5, 19, 8, (124, 108, 88))
+    for x in (5, 21):                                                  # les roues
+        t.ellipse(x - 2, 26, x + 2, 30, (20, 20, 24))
+    t.rect(8, 14, 18, 16, (60, 110, 76))                               # le numero peint
+    d["conteneur"] = t.img
+    # le beeper vert du SDF, en petit (pour les poches, les encarts)
+    t = Toile(12, 8)
+    t.rect(0, 0, 12, 8, (54, 120, 78))
+    t.rect(1, 1, 8, 4, (164, 214, 150))
+    t.rect(3, 5, 6, 7, (30, 70, 44))
+    t.rect(10, 0, 12, 8, (30, 78, 52))
+    d["beeper"] = t.img
+    # un eclat irise : ce qui reste d'eux
+    t = Toile(9, 11)
+    t.poly([(4, 0), (8, 4), (6, 10), (1, 8), (0, 3)], (150, 120, 220))
+    t.poly([(4, 0), (8, 4), (5, 5)], (190, 250, 220))
+    t.poly([(1, 8), (5, 5), (6, 10)], (110, 200, 240))
+    t.point(3, 3, (255, 255, 255))
+    d["eclat"] = t.img
+    # les armes improvisees, posees ensemble (l'encart des armes)
+    t = Toile(28, 22)
+    t.ligne([(2, 20), (26, 2)], (138, 142, 152), 2)                     # la barre de fer
+    t.ligne([(3, 19), (25, 3)], (180, 184, 192))
+    t.ligne([(4, 8), (18, 20)], (156, 116, 72), 3)                      # la planche cloutee
+    t.point(9, 12, (200, 200, 210)), t.point(13, 16, (200, 200, 210))
+    t.rect(20, 12, 23, 21, (62, 122, 82))                              # la bouteille
+    t.rect(21, 9, 22, 12, (62, 122, 82))
+    t.point(21, 14, (150, 220, 170))
+    d["armes"] = t.img
     # vieille camionnette du parking, vue de face
     t = Toile(60, 58)
     t.poly([(6, 6), (54, 6), (58, 26), (58, 48), (2, 48), (2, 26)], (150, 150, 152))

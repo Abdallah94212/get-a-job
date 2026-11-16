@@ -13,6 +13,10 @@ public record Objectif(Genre genre, String cible, String texte, boolean facultat
      * ATTEINDRE un point du decor (il suffit de s'en approcher : c'est ainsi qu'une scene se declenche en chemin).
      */
     public enum Genre {
-        PARLER, AGIR, ALLER, ATTEINDRE
+        PARLER, AGIR, ALLER, ATTEINDRE,
+        /** DELEGUER une operation (cible : son identifiant, ou * pour n'importe laquelle) depuis le telephone. */
+        DELEGUER,
+        /** ENCAISSER le resultat d'une operation : il suffit qu'elle se termine (* : n'importe laquelle). */
+        ENCAISSER
     }
 }

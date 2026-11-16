@@ -6,6 +6,7 @@ texture auto_2 auto_2.png
 texture boite_lettres boite_lettres.png
 texture buisson buisson.png
 texture ciel ciel.png
+texture conteneur conteneur.png
 texture dechets dechets.png
 texture devant_poteau devant_poteau.png
 texture drapeau_krousty drapeau_krousty.png
@@ -336,6 +337,8 @@ image poubelle 2 2497 166 1.000 0 1.00
 image poubelle 2 438 166 1.000 0 1.00
 image dechets 2 3290 168 1.000 0 1.00
 image dechets 2 3411 168 1.000 0 1.00
+image conteneur 2 1239 152 1.000 0 1.00
+image conteneur 2 2871 152 1.000 0 1.00
 image velo 2 414 183 1.000 0 1.00
 image velo 2 1314 183 1.000 8 1.00
 image velo 2 2214 183 1.000 0 1.00
@@ -353,5 +356,7 @@ porte 0 32 270 avenue_milieu 5204 210 1 -
 depart 46 210
 repere bureaux 1864 192
 repere fatou 294 192
+repere fouille0 1252 194
+repere fouille1 2884 194
 repere metro 502 192
 repere tour 3840 192

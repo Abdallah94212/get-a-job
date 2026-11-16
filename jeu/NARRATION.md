@@ -39,10 +39,15 @@ La version précédente comptait dix missions. Voici ce qui n'allait pas, missio
 | Samedi, 2 h | En rangeant les caisses, le héros découvre la Cell Perfect. Geto lui propose de la livrer. | 1.2 |
 | Samedi, 22 h | La marchandise est chez Gero. Gero parle de Namek. Soul envoie un SMS sur les patrouilles. Trois livraisons. | 1.3 |
 | Trois semaines plus tard | Geto refuse d'augmenter le héros. Le héros part. Le SDF lui donne un beeper. Le plan prend forme sur le mur. | 1.4 |
-| Deux jours plus tard | Gero accepte de travailler pour le héros. Youngssef a été viré par Geto à cause de lui. | 2.1 |
-| La nuit suivante | Vol de la RS6 par la petite porte, confusion des boîtiers, aliens. | 2.2 |
-| Le lendemain | Namek, la récolte, la douane. Soul fait lever la barrière. | 2.3 |
-| Trois jours plus tard, puis une semaine | Gero livre la Cell. Youngssef, Savon et Ticket sont recrutés, Papy Bocal cède l'épicerie. Les gars de Geto viennent : Youngssef frappe le premier. | 2.4 |
+| Deux jours plus tard | Gero pose ses conditions : vingt kilos de Piccolo de Namek. Il dit comment Geto la fait monter (la RS6 d'Omar, que la douane n'ouvre pas). Youngssef, viré à cause du héros, accepte de prendre le boîtier du mécano. | 2.1 |
+| Le lendemain soir | Youngssef remet le boîtier orange. Il dit que le rideau est cadenassé le vendredi, et que la cour du 29 donne sur la petite porte. | 2.2 |
+| Trois nuits | Le boîtier reste dans la poche du héros, à côté du beeper vert. | 2.2 |
+| Vendredi, 2 h | Le hall du 29, la cour, un guetteur de Geto (combat). La petite porte, la RS6, les deux boîtiers, le mauvais. Les aliens (combat). L'orange. | 2.3 |
+| Le lendemain | Namek, la récolte, la douane. Soul fait lever la barrière. | 2.4 |
+| Trois jours plus tard | Gero livre la Cell et prend son tiers. Youngssef propose l'épicerie de Papy Bocal et amène Savon et Ticket. | 2.5 |
+| Le premier jour | L'épicerie ouvre. Le héros confie ses premières opérations depuis son téléphone. Gero accepte de cuire une cuve par course de Namek. | 2.6 |
+| Un mois | L'organisation tourne : livraisons, comptoir, ardoise d'Omar, courses de Namek, loyers, paies, ventes décevantes. Environ 10 000 euros sur le compte, gagnés opération par opération. | 2.6 |
+| Un mois plus tard | Ticket prévient : des gars tournent devant l'épicerie. Geto a compris. Youngssef frappe le premier. | 2.7 |
 
 ## 3. Les personnages
 
@@ -76,8 +81,13 @@ bureaux. Elle connaît le harceleur de vue. Elle ne sait rien du héros : elle l
 s'être levé, et ses répliques ne reprennent que ce qu'il vient de lui dire. Un cordon orange dépasse de son
 manteau ; personne n'en parle. Plus tard (acte 7), c'est elle qui sort le héros de l'autre dimension dans la tour.
 
-**Gero.** Chimiste, la cinquantaine, précis, sec. Au début il transforme la plante pour Geto. Il est le premier à
-prononcer le mot « Namek », et à dire que le transport coûte plus que lui : c'est l'idée que le héros reprend.
+**Gero.** Chimiste, la cinquantaine, précis, sec. Il travaille pour qui le paie : d'abord Geto, ensuite le héros,
+au même tarif (le tiers de ce qui sort des cuves), sans crédit. Il ne conseille personne et ne s'intéresse pas à la
+réussite du héros : il parle matière, quantités, délais, risques. Il est le premier à prononcer le mot « Namek ».
+Quand on lui montre l'éclat irisé, il refuse d'y toucher : ce n'est pas une matière qu'il connaît.
+
+**Le guetteur.** Un des gars de Geto, posté dans la cour du 29 parce que la RS6 transporte la marchandise de Geto.
+Il reconnaît le héros (« le livreur »). S'il est battu, les gars de Geto s'en souviennent à la fin de l'acte 2.
 
 **Soul.** Ami d'enfance, perdu de vue depuis quatre ans. Le joueur le voit d'abord à travers deux vitres de métro,
 puis dans le souvenir du banc. Ensuite, il n'apparaît que par SMS, et le héros réagit chaque fois à ce qu'il ne
@@ -101,10 +111,13 @@ qu'aux acheteurs de la Krousty.
 | 1.2 La viande de Bidoche | Geto le paie et reçoit un appel | Geto paie le soir même ; la Krousty rachète l'avenue | Aller chercher 20 kg à Crimée par la 7 : Geto ne peut pas quitter le comptoir, le scooter ne passe pas à Paris | La femme, Bidoche et les fournisseurs rachetés, Soul, la Cell Perfect | Le métro s'ouvre. Geto lui propose de livrer la Cell |
 | 1.3 Livreur de Verte | Le lendemain soir | Geto vend de la Cell ; Soul existe | Prendre la marchandise chez Gero et livrer sans se faire voir | Gero, Namek, le prix du transport, Soul qui veille sur lui | Le labo s'ouvre. Trois semaines passent |
 | 1.4 Le plafond | Jour de paie | Il rapporte gros à Geto | Réclamer sa part, partir | Geto ne le paiera jamais mieux ; le beeper | Fin de l'acte 1 : le plan sur le mur |
-| 2.1 Le chimiste | Deux jours plus tard | Gero, Namek, la voiture d'Omar | Proposer à Gero de travailler pour lui | Youngssef a été viré à cause de lui | Gero dit oui si le héros ramène la plante |
-| 2.2 La RS6 | La nuit suivante | La petite porte, le boîtier, la voiture | Voler la RS6 | Le beeper déclenche quelque chose d'inexpliqué | La route de Namek |
-| 2.3 Cap sur Namek | Départ | Namek, six heures, une douane (Gero) | Récolter, passer la douane | Soul fait lever la barrière | Retour au Kremlin-Bicêtre |
-| 2.4 Notre épicerie | Retour | Gero transforme, il faut vendre | Recruter, reprendre l'épicerie | Haddad refuse de vendre à la Krousty | Les gars de Geto viennent : la guerre commence |
+| 2.1 Le chimiste | Deux jours plus tard | Gero (acte 1), le boîtier du mécano (acte 1) | Savoir ce que veut Gero ; demander le boîtier à Youngssef | La plante, Namek, la RS6 d'Omar ; Youngssef viré | Youngssef ira chercher le boîtier |
+| 2.2 Le boîtier du mécano | SMS de Youngssef | Youngssef s'en charge | Récupérer le boîtier (encart), dormir jusqu'à vendredi ; facultatif : repérer la cour | Le rideau cadenassé, la cour du 29 | Trois nuits passent, le boîtier en poche |
+| 2.3 La RS6 | Vendredi, 2 h | La cour, la petite porte, les deux boîtiers | Passer par la cour, battre (ou subir) le guetteur, entrer par derrière, ouvrir la voiture | Le mauvais boîtier ; les aliens (combat) | L'éclat irisé si on gagne ; la route de Namek |
+| 2.4 Cap sur Namek | Départ | Namek, six heures, une douane (Gero) | Récolter, passer la douane | Soul fait lever la barrière | Retour au Kremlin-Bicêtre |
+| 2.5 Notre épicerie | Retour | Gero prend son tiers | Recruter, reprendre l'épicerie | Haddad refuse de vendre à la Krousty | L'épicerie est à eux |
+| 2.6 L'affaire | La caisse du premier jour | Savon, Ticket, Youngssef travaillent pour lui | Confier une opération, encaisser, obtenir la cadence de Gero, lancer Namek, dormir | Chaque petit a sa fiabilité, sa confiance, son prix | Un mois passe : le bilan, euro par euro |
+| 2.7 La visite | SMS de Ticket | Un mois que les clients de Geto achètent ici | Retourner devant l'épicerie | Geto sait compter | Les gars de Geto viennent : la guerre commence |
 
 La scène du métro est un événement à l'intérieur de la mission 1.2, pas une mission à part : l'objectif affiché
 garde le titre « La viande de Bidoche » et précise « Dans la rame : interviens ». Après la scène, l'objectif revient
@@ -141,3 +154,56 @@ la fin de l'acte 1, récit sur les écrans de fin de mission. Les intérieurs sa
 Les pas changent selon le sol (trottoir mouillé, carrelage, parquet). Chaque personnage a une hauteur de voix pour
 le petit son des répliques. Les volumes de la musique, des ambiances et des effets se règlent séparément.
 Sources et licences : `ressources/sons/CREDITS.md`.
+
+## 7. La refonte de l'acte 2 (direction narrative)
+
+**Ce qui n'allait pas.**
+
+| Où | Problème | Correction |
+|---|---|---|
+| 2.1 | « Je pars pas. Je monte. » ; « Je vais la chercher moi-même, à Namek. » : le héros annonçait son plan. | Il répond, choisit, se tait. C'est Gero qui dit ce qu'il lui faut, et pourquoi. |
+| 2.1 | Gero conseillait le héros (« du courage, ou de l'inconscience »). | Gero parle tarif, quantités, risque. Ce que fait le héros « ne le regarde pas ». |
+| 2.2 (ancienne) | Le boîtier orange était pris sur l'établi juste avant d'ouvrir la voiture : impossible de l'oublier. | Youngssef le subtilise en 2.1-2.2 ; il reste trois nuits dans la poche du héros, à côté du beeper vert. |
+| 2.2 (ancienne) | On demandait d'entrer par la petite porte du fond, mais on entrait par le rideau habituel. | La cour du 29 et la petite porte existent ; le rideau est cadenassé cette nuit-là. |
+| Fin de l'acte 1 | « La plante vient de Namek. Le chimiste est dans notre rue… » : le héros récitait le mur. | Le mur suffit. |
+| 2.5 | « L'épicerie à côté. Youngssef connaît deux petits. » : le héros savait des choses sans raison. | C'est Youngssef qui connaît l'épicerie à céder et les petits : c'est son quartier. |
+| Aliens | Une séquence regardée. | Un combat, avec ses conséquences (l'éclat irisé). |
+
+**Ce que chacun sait, et veut.** Gero sait ce que Geto lui apporte et comment ça monte ; il veut être payé.
+Youngssef sait qui ferme quoi dans le quartier ; il veut un patron qui le respecte (ou vingt euros). Le guetteur sait
+que la voiture est à Geto ; il veut qu'on ne la touche pas. Le héros sait ce qu'il a vu à l'acte 1 (le mécano et son
+boîtier, la voiture bâchée, la petite porte dont parlait Omar).
+
+**Les mécaniques, expliquées au moment où on les découvre** (encarts, une seule fois chacun) : le scooter (1.1), le
+beeper vert (1.4), le boîtier orange (2.2), les conteneurs et les armes (première fouille), le combat (premier
+combat), l'éclat irisé (victoire contre les aliens).
+
+
+## 8. L'organisation (missions 2.6 et 2.7)
+
+Le combat contre les gars de Geto ne suit plus immédiatement la reprise de l'épicerie : il faut d'abord que Geto
+ait une raison de venir. Entre les deux, le héros devient patron, et l'on voit l'argent arriver.
+
+- **Les petits** : Youngssef (la route, fiable, le meilleur), Savon (le comptoir, bavard, distrait, se sert quand il
+  est mal payé), Ticket (le guet, patient, méfiant au départ, ne travaille bien que bien payé). Chacun a une jauge de
+  fiabilité (elle monte avec l'expérience, jusqu'à 92) et une jauge de confiance (elle suit la paie et les résultats).
+  La confiance de départ de Youngssef dépend de ce que le héros lui a donné et promis à l'acte 1.
+- **Les opérations** se lancent depuis le téléphone. Frais et paie sortent au départ ; la recette entre à la fin.
+  Une opération peut réussir, rapporter moins que prévu, rater, ou prendre du retard. La course de Namek coûte cher
+  (essence, péage, plants, 200 de paie, 900 pour la cuve de Gero) et rapporte gros quand elle passe.
+- **Le mois** n'invente rien : chaque jour, les petits partent vraiment, les opérations se règlent avec le même moteur
+  que dans le jeu, le loyer de l'épicerie et celui de l'appartement tombent, les frais de la semaine aussi. Le solde
+  final est la somme des lignes de la banque, et le bilan dit d'où vient chaque euro.
+
+## 9. Le temps, les présentations, le quartier
+
+Chaque mission a désormais un jour et une heure (`quand`), tirés de la chronologie de la section 2 : la 1.3 est le
+samedi à 22 h, la 1.4 trois semaines plus tard (jour 22), la 2.1 deux jours après, et ainsi de suite jusqu'à la 2.7,
+le matin qui suit le mois d'affaires (jour 62). Quand plus de six heures séparent deux missions, le héros se réveille
+chez lui ; les scènes d'ouverture ne le téléportent plus au comptoir de Geto (1.3, 1.4) ni dans l'épicerie après le
+mois : c'est à lui d'y aller, ce que disent déjà les objectifs. Les cartons qui répétaient « le lendemain soir »
+ou « deux jours plus tard » ont été retirés : l'écran du temps qui passe le dit.
+
+Les fiches de présentation ne disent que ce que le héros sait au moment où il rencontre la personne (section 3) :
+Youngssef et Geto « de vue », Tata Lili qui ne le connaît pas, Omar jamais vu, Gero et Bidoche chez qui Geto l'envoie.
+Rien sur le guetteur, la femme à l'écharpe rouge ou Soul, dont le mystère compte.

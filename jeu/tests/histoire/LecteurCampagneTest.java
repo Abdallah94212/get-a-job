@@ -120,7 +120,7 @@ class LecteurCampagneTest {
         Campagne campagne = LecteurCampagne.lire(Path.of("ressources", "histoire", "campagne.txt"));
         assertTrue(campagne.defauts().isEmpty());
         assertEquals(3, campagne.chapitres().size());
-        assertEquals(9, campagne.missions().size());
+        assertEquals(12, campagne.missions().size());
         for (Mission mission : campagne.missions()) {
             assertFalse(mission.titre().isBlank(), mission.id());
             assertFalse(mission.description().isBlank(), mission.id() + " n'a pas de description");

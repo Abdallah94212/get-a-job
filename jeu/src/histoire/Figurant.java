@@ -17,10 +17,63 @@ public final class Figurant {
     private final String a;
     private final List<Replique> repliques = new ArrayList<>();
     private String condition = "";
+    private String service;
     private float amplitude;
     private float vitesse;
     private boolean garde;
     private boolean miroir;
+    private String routine = "poste";
+    private float rayon;
+    private String membre;
+    private String caractere;
+
+    /**
+     * Ce qu'il fait quand personne ne lui parle : "poste" (il reste la, regarde autour de lui), "flane" (il va et vient
+     * autour de sa place, s'arrete, repart), "assis" (il ne bouge pas, il suit des yeux qui passe), "comptoir" (derriere
+     * un comptoir : quelques pas, pas plus).
+     */
+    public String routine() {
+        return routine;
+    }
+
+    public float rayon() {
+        return rayon;
+    }
+
+    public void habituer(String genre, float distance) {
+        routine = genre;
+        rayon = distance;
+    }
+
+    /** Le petit de l'equipe qu'il represente : absent du decor tant qu'il est parti sur une operation. */
+    public String membre() {
+        return membre;
+    }
+
+    public void rattacher(String id) {
+        membre = id;
+    }
+
+    /**
+     * Comment il reagit si on le bouscule ou le frappe : "fragile" (il fuit, il crie), "costaud" (il riposte),
+     * "police" (elle intervient), "proche" (quelqu'un de l'histoire : il encaisse mal, il s'en souviendra). Par defaut,
+     * deduit de son dessin.
+     */
+    public String caractere() {
+        if (caractere != null) {
+            return caractere;
+        }
+        return switch (image) {
+            case "p_policier" -> "police";
+            case "p_sportif", "p_mecano", "p_gars_geto", "p_frotteur", "p_client" -> "costaud";
+            case "p_cliente", "p_vieux", "p_ecouteurs", "p_femme", "p_voyageur", "p_diallo", "p_haddad" -> "fragile";
+            default -> "proche";
+        };
+    }
+
+    public void temperer(String genre) {
+        caractere = genre;
+    }
 
     public Figurant(String id, Lieu lieu, String image, String nom, String de, String a) {
         this.id = id;
@@ -29,6 +82,15 @@ public final class Figurant {
         this.nom = nom;
         this.de = de;
         this.a = a;
+    }
+
+    /** La scene qu'il joue quand on lui parle sans que l'histoire l'attende : il vend, il loue, il soigne. */
+    public String service() {
+        return service;
+    }
+
+    public void proposer(String scene) {
+        service = scene;
     }
 
     public String id() {

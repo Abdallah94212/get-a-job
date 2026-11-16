@@ -72,16 +72,15 @@ final class Affichage {
         rendu.rect(10, BOITE, 1, 66, SOMBRE, 256);
         rendu.rect(Rendu.L - 11, BOITE, 1, 66, SOMBRE, 256);
         if (nom != null) {
-            int largeur = police.largeur(nom, 1) + 16;
+            int largeur = police.largeurTitre(nom) + 16;
             int x = nomAGauche ? 18 : Rendu.L - 18 - largeur;
-            rendu.rect(x, BOITE - 12, largeur, 13, ORANGE, 256);
-            rendu.rect(x + 2, BOITE - 10, largeur - 4, 1, 0xFFB070, 256);
-            police.ecrire(rendu, nom, x + 8, BOITE - 10, ENCRE, 1);
+            rendu.rect(x, BOITE - 13, largeur, 14, ORANGE, 256);
+            police.ecrireTitre(rendu, nom, x + 8, BOITE - 10, ENCRE);
         }
-        int y = BOITE + 9;
-        for (String ligne : debut(police.couper(police.propre(entier), Rendu.L - 56), lettres)) {
-            police.ecrire(rendu, ligne, 26, y, nom == null ? GRIS : BLANC, 1);
-            y += 12;
+        int y = BOITE + 10;
+        for (String ligne : debut(police.couper(police.propre(Casse.phrase(entier)), Rendu.L - 60), lettres)) {
+            police.ecrire(rendu, ligne, 28, y, nom == null ? GRIS : BLANC, 1);
+            y += 14;                                                   // un interligne large : on lit sans effort
         }
         if (complet && tempsMs / 400 % 2 == 0) {
             fleche(rendu, Rendu.L - 30, BOITE + 54, BLANC);
@@ -110,12 +109,12 @@ final class Affichage {
 
     /** Un texte centre sur fond noir : les cartons de recit. */
     void carton(Rendu rendu, String entier, int lettres, int y, int couleur) {
-        List<String> lignes = police.couper(police.propre(entier), 360);
-        int depart = y - lignes.size() * 6;
+        List<String> lignes = police.couper(police.propre(Casse.phrase(entier)), 360);
+        int depart = y - lignes.size() * 7;
         List<String> visibles = debut(lignes, lettres);
         for (int i = 0; i < visibles.size(); i++) {
             int gauche = (Rendu.L - police.largeur(lignes.get(i), 1)) / 2;
-            police.ecrire(rendu, visibles.get(i), gauche, depart + i * 13, couleur, 1);
+            police.ecrire(rendu, visibles.get(i), gauche, depart + i * 15, couleur, 1);
         }
     }
 

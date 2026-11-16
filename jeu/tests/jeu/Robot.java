@@ -31,7 +31,14 @@ final class Robot {
     int compteur;
 
     Robot(Path sauvegarde, Path captures) throws IOException {
-        this.jeu = new Jeu(Path.of("ressources"), new Sauvegarde(sauvegarde), new Reglages(null), true);
+        this(sauvegarde, captures, null);
+    }
+
+    /** Avec un mixeur hors ligne : le son est vraiment calcule, image par image, et on peut le mesurer. */
+    Robot(Path sauvegarde, Path captures, Reglages reglages) throws IOException {
+        Reglages r = reglages == null ? new Reglages(null) : reglages;
+        this.jeu = reglages == null ? new Jeu(Path.of("ressources"), new Sauvegarde(sauvegarde), r, true)
+                : new Jeu(Path.of("ressources"), new Sauvegarde(sauvegarde), r, Audio.horsLigne(Path.of("ressources", "sons"), r));
         this.captures = captures;
     }
 
@@ -63,7 +70,7 @@ final class Robot {
         }
         Files.createDirectories(captures);
         jeu.dessiner(rendu);
-        Capture.enregistrer(rendu.image, captures.resolve(String.format("%02d_%s.png", ++numero, nom)), 2);
+        Capture.enregistrer(rendu, captures.resolve(String.format("%02d_%s.png", ++numero, nom)), 2);
     }
 
     EcranPartie partie() {
@@ -72,9 +79,41 @@ final class Robot {
 
     /** Regarde les cinematiques et les ecrans de fin de mission jusqu'a rendre la main au joueur. */
     void laisserPasser() {
-        for (int i = 0; i < 4000 && partie() != null && (partie().enScene() || partie().auBilan()); i++) {
-            frapper(KeyEvent.VK_E);
+        for (int i = 0; i < 6000 && partie() != null && (partie().enScene() || partie().auBilan() || partie().auCalendrier() || partie().encartOuvert()
+                || partie().combat().actif()); i++) {
+            if (partie().combat().actif() && !partie().encartOuvert() && !partie().enScene()) {
+                combattre();
+            } else {
+                frapper(KeyEvent.VK_E);
+            }
         }
+    }
+
+    /** Un pas de combat : se placer face a l'ennemi le plus proche, a portee de poing, et frapper. */
+    void combattre() {
+        Monde monde = partie().monde();
+        Combat.Ennemi cible = null;
+        for (Combat.Ennemi e : partie().combat().ennemis()) {
+            if (e.vivant() && (cible == null || Math.abs(e.acteur.x - monde.joueur.x) < Math.abs(cible.acteur.x - monde.joueur.x))) {
+                cible = e;
+            }
+        }
+        if (cible == null) {
+            image();
+            return;
+        }
+        float cote = cible.acteur.x >= monde.joueur.x ? 1 : -1;
+        for (float essai : new float[] {cote * 18, -cote * 18, cote * 10, -cote * 10}) {     // un cote libre, contre lui
+            if (!monde.scene().bloque(cible.acteur.x - essai, cible.acteur.y, decor.Joueur.RAYON)) {
+                monde.joueur.x = cible.acteur.x - essai;
+                monde.joueur.y = cible.acteur.y;
+                cote = Math.signum(essai);
+                break;
+            }
+        }
+        monde.joueur.versDroite = cote > 0;
+        frapper(compteur % 3 == 0 ? KeyEvent.VK_K : KeyEvent.VK_J);
+        images(8);
     }
 
     /** La premiere porte a prendre depuis la carte courante pour aller vers une autre, ou null. */
@@ -90,7 +129,10 @@ final class Robot {
                 return depart.get(ici);
             }
             for (Porte porte : jeu.res.carte(ici).portes) {
-                if (!depart.containsKey(porte.cible()) && jeu.res.carteExiste(porte.cible())) {
+                String de = ici;
+                boolean ferme = jeu.res.campagne.fermetures().stream().anyMatch(f -> f.depuis().equals(de)
+                        && f.vers().equals(porte.cible()) && partie().progression().verifie(f.condition()));
+                if (!ferme && !depart.containsKey(porte.cible()) && jeu.res.carteExiste(porte.cible())) {
                     depart.put(porte.cible(), ici.equals(monde.carte()) ? porte : depart.get(ici));
                     file.add(porte.cible());
                 }
@@ -218,6 +260,9 @@ final class Robot {
         Progression progression = partie().progression();
         Monde monde = partie().monde();
         Objectif objectif = progression.objectif();
+        if (objectif.genre() == Objectif.Genre.DELEGUER || objectif.genre() == Objectif.Genre.ENCAISSER) {
+            return avancerVersObjectif();                              // ca se fait au telephone, pas a pied
+        }
         String but = jeu.res.campagne.carteDe(objectif);
         int etape = progression.etape();
         int rang = progression.rang();
@@ -259,9 +304,14 @@ final class Robot {
             return true;
         }
         if (!arrive) {
+            System.out.println("  DBG pas arrive pres de " + cible[0] + "," + cible[1] + " : " + monde.joueur.x + "," + monde.joueur.y
+                    + " scene " + partie().positionScene());
             return false;
         }
         frapper(KeyEvent.VK_E);
+        if (progression.etape() == etape && progression.rang() == rang) {
+            System.out.println("  DBG E sans effet en " + monde.joueur.x + "," + monde.joueur.y + " cible " + monde.cible() + " vise " + cible[0]);
+        }
         return progression.etape() != etape || progression.rang() != rang;
     }
 
@@ -273,6 +323,32 @@ final class Robot {
         Progression progression = partie().progression();
         Monde monde = partie().monde();
         Objectif objectif = progression.objectif();
+        if (objectif.genre() == Objectif.Genre.DELEGUER) {
+            if (deleguer(objectif.cible(), false)) {
+                return true;
+            }
+            // personne ne lui fait assez confiance : on gagne celle de Youngssef, des livraisons payees avec une prime
+            histoire.Organisation orga = progression.etat().organisation();
+            for (int tour = 0; tour < 10; tour++) {
+                histoire.Organisation.Membre y = orga.membre("youngssef");
+                deleguer("livraisons", true);
+                for (int i = 0; i < 30 * 900 && !y.libre(); i++) {
+                    image();
+                }
+                if (deleguer(objectif.cible(), false)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (objectif.genre() == Objectif.Genre.ENCAISSER) {               // on attend que l'operation se termine
+            int etape = progression.etape();
+            int rang = progression.rang();
+            for (int i = 0; i < 30 * 900 && progression.etape() == etape && progression.rang() == rang; i++) {
+                image();
+            }
+            return progression.etape() != etape || progression.rang() != rang;
+        }
         String but = jeu.res.campagne.carteDe(objectif);
         if (!monde.carte().equals(but)) {
             Porte porte = porteVers(but);
@@ -303,6 +379,39 @@ final class Robot {
             image();
         } else {
             frapper(KeyEvent.VK_E);
+        }
+        return progression.etape() != etape || progression.rang() != rang;
+    }
+
+    /**
+     * Confie une operation depuis le telephone, touche par touche, comme un joueur : P, OPERATIONS, l'operation, puis
+     * E sur le petit que le telephone propose (le mieux place). * : la premiere operation de la liste.
+     */
+    boolean deleguer(String operation, boolean prime) {
+        Progression progression = partie().progression();
+        int etape = progression.etape();
+        int rang = progression.rang();
+        frapper(KeyEvent.VK_P);
+        frapper(KeyEvent.VK_RIGHT);                                    // la grille des applis : la troisieme
+        frapper(KeyEvent.VK_RIGHT);
+        frapper(KeyEvent.VK_E);                                        // OPERATIONS
+        java.util.List<histoire.Organisation.Operation> ops = progression.etat().organisation().disponibles(progression);
+        int k = 0;
+        for (int i = 0; i < ops.size(); i++) {
+            if (ops.get(i).id().equals(operation)) {
+                k = i;
+            }
+        }
+        for (int i = 0; i < k; i++) {
+            frapper(KeyEvent.VK_DOWN);
+        }
+        frapper(KeyEvent.VK_E);                                        // l'operation
+        if (prime) {
+            frapper(KeyEvent.VK_RIGHT);                                // la paie : avec une prime
+        }
+        frapper(KeyEvent.VK_E);                                        // le petit propose : on lance
+        if (partie().auTelephone()) {
+            frapper(KeyEvent.VK_P);
         }
         return progression.etape() != etape || progression.rang() != rang;
     }

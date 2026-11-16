@@ -7,6 +7,7 @@ texture banc banc.png
 texture boite_lettres boite_lettres.png
 texture buisson buisson.png
 texture ciel ciel.png
+texture conteneur conteneur.png
 texture dechets dechets.png
 texture devant_poteau devant_poteau.png
 texture direction direction.png
@@ -348,6 +349,8 @@ image poubelle 2 2049 166 1.000 0 1.00
 image poubelle 2 2896 166 1.000 0 1.00
 image poubelle 2 1943 166 1.000 0 1.00
 image poubelle 2 3843 166 1.000 0 1.00
+image conteneur 2 1543 152 1.000 0 1.00
+image conteneur 2 3153 152 1.000 0 1.00
 image velo 2 2214 183 1.000 0 1.00
 image velo 2 3114 183 1.000 8 1.00
 image velo 2 4014 183 1.000 0 1.00
@@ -366,6 +369,8 @@ repere affiche 1589 192
 repere appart 1197 192
 repere banc 1420 192
 repere brasserie 1110 192
+repere fouille0 1556 194
+repere fouille1 3166 194
 repere n9 357 192
 repere poulet 575 192
 repere presse 1260 192

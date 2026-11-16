@@ -29,6 +29,20 @@ public final class Capture {
         }
     }
 
+    /** L'image telle que le joueur la voit : le decor agrandi en pixels nets, le texte lisse par-dessus. */
+    public static void enregistrer(Rendu rendu, Path fichier, int zoom) throws IOException {
+        BufferedImage image = new BufferedImage(Rendu.L * zoom, Rendu.H * zoom, BufferedImage.TYPE_INT_RGB);
+        java.awt.Graphics2D g = image.createGraphics();
+        BufferedImage decor = new BufferedImage(Rendu.L, Rendu.H, BufferedImage.TYPE_INT_RGB);
+        decor.setRGB(0, 0, Rendu.L, Rendu.H, rendu.image, 0, Rendu.L);
+        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.drawImage(decor, 0, 0, Rendu.L * zoom, Rendu.H * zoom, null);
+        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(rendu.textes, 0, 0, Rendu.L * zoom, Rendu.H * zoom, null);
+        g.dispose();
+        ImageIO.write(image, "png", fichier.toFile());
+    }
+
     /** Ecrit une image du jeu dans un fichier PNG, agrandie zoom fois. */
     public static void enregistrer(int[] pixels, Path fichier, int zoom) throws IOException {
         BufferedImage image = new BufferedImage(Rendu.L * zoom, Rendu.H * zoom, BufferedImage.TYPE_INT_RGB);

@@ -37,10 +37,13 @@ La partie s'enregistre toute seule à chaque objectif, à chaque porte et quand 
 | 1.2 La viande de Bidoche | Maître Poulet, ligne 7, Crimée | La course de Geto, la scène de la rame, Bidoche, Soul, la Cell Perfect | Le métro |
 | 1.3 Livreur de Verte | Labo, milieu de l'avenue | La marchandise chez Gero, trois livraisons sans se faire voir | Le labo |
 | 1.4 Le plafond | Maître Poulet | Réclamer sa part, quitter Geto, le beeper du SDF | |
-| 2.1 Le chimiste | Labo, banc | Proposer un marché à Gero, revoir Youngssef | |
-| 2.2 La RS6 | Garage d'Omar | Voler la voiture par la petite porte | |
-| 2.3 Cap sur Namek | Namek | Récolter six plants au chrono, la douane | Namek |
-| 2.4 Notre épicerie | Notre rue | Recruter, reprendre l'épicerie de Papy Bocal | L'épicerie |
+| 2.1 Le chimiste | Labo, banc | Savoir ce que veut Gero, demander le boîtier du mécano à Youngssef | |
+| 2.2 Le boîtier du mécano | Banc, cour du 29 | Récupérer le boîtier, attendre vendredi | La cour du 29 |
+| 2.3 La RS6 | Cour du 29, garage | Passer par la cour, battre le guetteur, la petite porte, les deux boîtiers, les aliens | |
+| 2.4 Cap sur Namek | Namek | Récolter six plants au chrono, la douane | Namek |
+| 2.5 Notre épicerie | Notre rue | Recruter, reprendre l'épicerie de Papy Bocal | L'épicerie |
+| 2.6 L'affaire | L'épicerie, le téléphone | Confier les premières opérations, lancer Namek, laisser passer un mois | |
+| 2.7 La visite | Notre rue | Les gars de Geto devant l'épicerie | |
 
 Une mission n'est disponible que quand la précédente est terminée. Un lieu fermé refuse réellement l'entrée et dit
 pourquoi ; les bureaux et la tour restent fermés, ils appartiennent aux actes 3 à 7, qui ne sont pas encore écrits.
@@ -62,13 +65,19 @@ lancement une campagne qu'on ne pourrait pas finir (cible inconnue, lieu jamais 
 - `Monde` met l'histoire dans le décor : personnages présents, objets sur lesquels agir, patrouilles, camera.
 - `Scenographe` joue les scènes avec les éléments du jeu : décor, personnages qui marchent, caméra, gros plans, SMS,
   annonces du métro, dialogues avec bustes et réponses à choisir.
-- `Audio` est un petit mixeur logiciel : musique, ambiances en boucle et effets, chacun avec son volume, en fondu.
-  `Sonorisation` décide de ce qu'on entend selon le lieu, la météo, la position du joueur et le sol sous ses pieds.
+- `Audio` est le mixeur central : six bus (musique, ambiances, monde extérieur, effets, voix, interface), chacun avec
+  son volume, son filtre et sa réverbération ; des états de mixage pour les cinématiques (un choc étouffe le monde) ;
+  des priorités, un anti-répétition, un limiteur. `Sonorisation` décide de ce qu'on entend selon le lieu, la météo,
+  la position du joueur et le sol sous ses pieds. `Parole` fait parler les personnages en syllabes, au rythme du texte.
+  La direction sonore complète (identité, carte des lieux, cinématiques, voix) est décrite dans `SON.md`.
 - `EcranPartie` relie le tout : il transmet à `Progression` ce que fait le joueur et affiche ce qui en résulte.
 - `Jeu` tourne sans fenêtre, ce qui permet aux tests de jouer la vraie campagne.
 
-Les tests (`tests/`, JUnit 5, 42 tests) couvrent la progression, les drapeaux, la sauvegarde, la lecture de la
-campagne, et le parcours complet : un joueur automatique termine les neuf missions en tenant les touches, vérifie
+Les tests (`tests/`, JUnit 5, 137 tests) couvrent la stabilité (chaque scène passée avec Échap et jouée avec E,
+une partie tapée au hasard qui rend toujours la main, aucune erreur rattrapée), le temps et la continuité entre les
+missions, le quartier vivant, le combat, la progression, les drapeaux, la sauvegarde, la lecture de la
+campagne, l'organisation et le mois d'affaires, et le parcours complet : un joueur automatique termine les douze
+missions en tenant les touches (combats et délégations compris), vérifie
 que les lieux fermés le restent, que la partie se reprend au même endroit après chaque objectif, que les réponses
 changent la suite, que chaque scène va jusqu'au bout, que chaque son demandé existe et que l'ambiance suit le lieu.
 
@@ -122,6 +131,71 @@ du décor : aucun pack trouvé n'allait avec le style de l'avenue.
 Packs écartés après essai : « Street Sprites » (CC0, trait de dessin animé), « City Pixel Tileset » (CC0, palmiers et
 bouche d'incendie américaine, trop petit), et le « RPG Urban Pack » de Kenney (vu de dessus, trop rond et coloré).
 
+## La santé, le souffle, l'argent, le scooter
+
+Quatre mécaniques qui se tiennent (`histoire/Etat.java`, sauvegardées avec la partie) :
+
+| Mécanique | Ce qui la fait baisser | Ce qui la remonte | Conséquence |
+|---|---|---|---|
+| Souffle | Courir (18 par seconde), porter des caisses | Marcher, s'arrêter, manger, dormir | À zéro, on ne court plus avant d'avoir repris 30 ; chargé, on se traîne |
+| Santé | Se faire repérer en mission furtive (30), heurter un obstacle en scooter (6, jamais mortel) | Un menu chez Old Geto (45), dormir chez soi (tout) | Sous 35 : on marche moins vite et le souffle est plafonné à 60. À zéro : réveil chez soi, un tiers de l'argent perdu |
+| Argent | Louer le scooter (5), manger (8, puis 12 quand Geto est devenu l'ennemi), tomber K.-O. | Les livraisons et les paies de l'histoire | Sans argent : ni scooter ni repas |
+| Scooter | La location dure 3 minutes | Louer à Youngssef, au banc | Il ne coûte pas de souffle et va plus vite ; F pour en descendre, E pour y remonter là où on l'a laissé |
+
+Dans la campagne : `service <scène>` sous un figurant (ce qu'il propose quand on lui parle sans que l'histoire
+l'attende), et dans une scène `argent +12`, `paie 5 <étiquette si l'argent manque>`, `soin 45`, `loue 180`.
+
+## Le téléphone (touche P)
+
+Tout ce qu'on y fait a une suite dans le monde (`jeu/Telephone.java` pour l'écran, `histoire/Etat.java` pour les données).
+L'accueil est celui d'un vrai téléphone : l'heure et le jour du quartier, le solde, une grille d'icônes (flèches pour
+se déplacer, E pour ouvrir) avec leurs pastilles (messages non lus, loyer dû, colis, opérations en cours), et les deux
+dernières notifications. Chaque appli a sa couleur et glisse en place ; les listes montrent les visages (vignettes
+des portraits), les montants en couleur, les jauges en barres. L'équipe : une carte par petit, E mène à ses opérations.
+
+| Écran | Ce qu'on y fait | La suite dans le jeu |
+|---|---|---|
+| Messages | Lire, répondre par une des réponses proposées | Une réponse lève un drapeau de l'histoire : un objectif secondaire s'ouvre (les courses de Tata Lili) |
+| Banque | Solde, derniers mouvements, payer un mois de loyer (40) | Un mois de loyer tombe à chaque mission terminée ; à deux mois de retard, plus de courant : on ne dort plus chez soi |
+| Annonces | Acheter un commerce (kiosque 120, laverie 260 après avoir quitté Geto) | Sa recette tombe à chaque mission terminée |
+| Commandes | Casque 35, baskets 45, gilet 80, bombe lacrymogène 60 | On paie, le colis arrive chez soi après une minute de jeu, il faut rentrer l'ouvrir pour avoir l'objet |
+| Contacts | Appeler Youngssef | Il fait porter le scooter là où l'on est : 8 euros au lieu de 5 au banc |
+| Opérations (dès 2.6) | Choisir une opération, le petit qui s'en charge et sa paie (radin, juste, avec prime) ; voir ses chances, les frais, la recette espérée | Frais et paie sortent tout de suite ; à la fin, la recette entre et le petit écrit |
+| Équipe (dès 2.6) | Les jauges de fiabilité et de confiance, ce que chacun fait, ses réussites et ses échecs | Mal payé ou sans confiance, un petit refuse ou se sert sur la recette |
+
+Dans la campagne : `sms` (affiché dans la scène, gardé par le téléphone) et
+`message <qui> | <texte> | <réponse> -> +drapeau | <réponse> -> -` (arrive sans arrêter la scène).
+
+## La typographie
+
+Le décor reste en pixels ; le texte, lui, est net. Il est dessiné quatre fois plus fin que le décor sur un calque
+transparent (`Rendu.texte`), posé par-dessus l'image agrandie : à l'écran comme dans les captures (`Capture`).
+Deux polices libres (SIL Open Font License, dans `ressources/polices`) :
+- **Atkinson Hyperlegible** (Braille Institute) pour tout ce qu'on lit : dialogues, objectifs, téléphone,
+  notifications. Elle a été dessinée pour être lue sans fatigue ; ses accents français sont complets.
+- **Barlow Condensed** (Jeremy Tribby) pour ce qu'on repère d'un coup d'œil : titres, noms des personnages, menus,
+  étiquettes, chiffres.
+
+Les textes écrits en capitales dans la campagne (objectifs, récits, notifications) sont affichés en casse de phrase,
+noms propres compris (`jeu/Casse.java`) ; les titres et les noms gardent leurs capitales.
+
+## L'ambiance : les effets et les sons
+
+`jeu/Effets.java` fait vivre l'image et le son autour du joueur, sans rien changer aux règles :
+- **Dehors :** la pluie gicle sous les pas (des flaques quand on court), la buée du souffle dans le froid, la fumée
+  du scooter, la vapeur des bouches d'égout, des voitures qui passent (phares, feux arrière et leur reflet sur la
+  chaussée mouillée), des étincelles sur l'enseigne du Maître Poulet, l'orage (l'éclair, puis le tonnerre).
+- **Dedans :** la poussière dans la lumière de la télé ; l'éclair vu par la fenêtre, le tonnerre étouffé.
+- **Le corps :** un coup fait trembler l'image et la rougit ; blessé, le bord de l'écran bat au rythme du cœur qu'on
+  entend ; à bout de souffle, on l'entend respirer et l'image s'assombrit sur les bords.
+- **Les bruits au loin (`Sonorisation`) :** le périph en fond, et au hasard une sirène, un chien, une moto, une
+  alarme, une bouteille ; au Maître Poulet la vaisselle et le micro-ondes ; chez soi, la ville étouffée par la vitre.
+- **L'interface :** l'argent qui rentre (pièces et éclats dorés), le téléphone qu'on sort et qu'on range, la
+  notification d'un message, le colis qu'on ouvre, le repas.
+
+Les sons viennent de packs libres d'OpenGameArt (détail : `ressources/sons/CREDITS.md`, produit par
+`designs/sons/preparer.py`). Un test (`SonsTest`) vérifie que chaque son appelé par le code existe.
+
 ## La rue qui s'éteint
 
 Le décor est enregistré dans la palette Endesga 32 (par ENDESGA, lospec.com/palette-list/endesga-32). Au début du jeu,
@@ -131,8 +205,8 @@ le quartier est en couleurs vives. Plus le héros monte, plus la rue devient gri
 |---|---|---|
 | 1 | Missions 0.1 et 1.1 | Endesga pure : le quartier vivant |
 | 2 | Missions 1.2, 1.3 et le début de 1.4 | Les mêmes teintes, ternies |
-| 3 | Dès que le héros quitte Old Geto (drapeau `parti_de_chez_geto`), jusqu'à 2.2 | Presque gris, tiré vers le gris-bleu |
-| 4 | Missions 2.3 et 2.4 | Gris ; seules les fenêtres et les enseignes gardent un peu de lumière |
+| 3 | Dès que le héros quitte Old Geto (drapeau `parti_de_chez_geto`), jusqu'à 2.3 | Presque gris, tiré vers le gris-bleu |
+| 4 | Missions 2.4 et 2.5 | Gris ; seules les fenêtres et les enseignes gardent un peu de lumière |
 
 Rien n'est redessiné : `Scene.teinter` remplace les 32 couleurs par celles de l'étape (`decor/Palette.java`, fichier
 généré par `designs/decor/palette.py`). L'étape vient de `Progression.etapeDeLaRue`. Les personnages gardent leurs
@@ -181,3 +255,91 @@ si c'est un intérieur), puis y relier une porte avec `porte(...)`.
 - **Les sons** : 45 enregistrements et musiques sous licence libre (CC0 surtout, quatre en CC-BY-SA 4.0), et
   18 sons fabriqués par `designs/sons/preparer.py` quand aucun enregistrement libre ne convenait (le métro, le
   scooter, l'interface, le vent). Sources, auteurs et licences : `ressources/sons/CREDITS.md`.
+
+## Fluidité
+
+Le jeu tourne dans son propre fil, à 60 images par seconde d'un pas régulier, et pose l'image à l'écran par double
+tampon. Le décor (480 × 270) et le calque du texte sont confiés à la carte graphique, qui les agrandit elle-même :
+le processeur ne recalcule plus chaque pixel de l'écran.
+
+| Mesure, sur un MacBook | Avant | Après |
+|---|---|---|
+| Fenêtre ×2 | 53 images/s, saccades (écarts de 20 ms, pics à 144 ms) | 60 images/s |
+| Plein écran | 13 images/s (72 ms de peinture par image) | 60 images/s (0,3 ms de peinture) |
+
+Pour mesurer soi-même : `java -Dgaj.mesure=true -cp build jeu.Fenetre ressources` écrit toutes les deux secondes le
+nombre d'images par seconde et le temps de chaque étape. Avec `-Dgaj.demo=true` (et `-Dgaj.taille=3` pour le plein
+écran), un pilote automatique lance une partie et court dans la rue, sur une sauvegarde temporaire.
+
+## Le scooter
+
+E le fait monter, et, à l'arrêt, le fait descendre : le scooter reste garé là où on l'a laissé, le héros pose le pied
+à côté (jamais dans un mur). Arrivé devant un commerce, E fait entrer : le scooter attend devant la porte. F le gare
+tout de suite, où qu'on soit. La location ne s'écoule que pendant qu'on roule ; quand elle finit, le scooter reste
+garé sur place, et on peut le reprendre pour 5 euros.
+
+## Le combat, les poubelles, les encarts
+
+- **Le combat** : J donne un coup de poing (rapide, courte portée), K un coup de pied (lent, porte plus loin,
+  repousse). Un ennemi qui prépare son coup affiche un signe rouge ; le toucher avant l'interrompt. Deux ennemis au
+  plus attaquent à la fois. Perdre un combat ne tue pas : l'histoire continue avec sa scène de défaite.
+- **Les poubelles** : deux grands conteneurs par carte de l'avenue, trois dans la cour du 29. E pour fouiller, une
+  fois par mission : souvent rien, parfois quelques pièces, parfois une arme (bouteille, planche, tuyau, barre).
+- **Les armes** : une seule en main (J frappe avec), G pour la lâcher. Elles s'usent, sauf la barre de fer.
+  Pause, « Tes poches » : les objets de l'histoire et l'arme en main.
+- **Les encarts** expliquent un objet ou une mécanique au moment où on la découvre, une seule fois. Ils se déclarent
+  dans `campagne.txt` (`encart id GENRE | TITRE | image | ligne | ligne`) et se montrent depuis une scène (`encart id`)
+  ou depuis le jeu. Une scène peut lancer un combat (`combat alien 4 scene_victoire scene_defaite`) et une porte peut
+  être fermée à un moment de l'histoire (`ferme depuis vers +drapeau | phrase`).
+
+- **Le combat, refait** (`jeu/Combat.java`) : J enchaîne trois coups si l'on rappuie pendant le geste (direct, second
+  direct, crochet qui fait tomber) ; chaque coup coûte du souffle, à bout on frappe plus lentement. L'image se fige un
+  instant à l'impact. Touché, le héros recule ; trois coups de suite ou un coup lourd quand il est faible, il tombe, reste
+  au sol, se relève (intouchable le temps de se remettre). Les ennemis enchaînent deux coups, et une fois touchés ils
+  apprennent : garde (un trait bleu devant eux, le pied la casse) ou esquive en arrière. Interrompus une fois, ils
+  arment le coup suivant sans se laisser couper : on ne les enferme plus dans une rafale. Trois coups de suite, ils
+  tombent et se relèvent en colère. Les aliens bondissent de loin. Les poses (armer, frapper, encaisser, au sol, se
+  relever, à bout de souffle) sont tirées des dessins existants (`decor/Poses.java`), sans rien redessiner.
+
+## Le quartier vivant (`jeu/Vie.java`)
+
+- Chaque personnage a sa routine (`routine poste|flane|assis|comptoir [rayon]` dans la campagne) : Savon va et vient
+  devant la laverie, Ticket reste au parking et regarde autour de lui, Youngssef reste assis sur son banc, Geto tient
+  son comptoir, Gero tourne entre ses cuves. Tous suivent des yeux le héros qui passe. Celui que l'histoire attend
+  reste à sa place.
+- Dans l'avenue, des passants sortent des immeubles ou arrivent par le bord de l'écran, traversent, s'arrêtent à deux
+  pour discuter, repartent : plus nombreux l'après-midi que la nuit, moins sous la pluie. E près d'eux : une phrase.
+- Bousculé, on s'écarte et on le dit. Frappé, on réagit selon son caractère (`caractere fragile|costaud|police|proche`,
+  déduit du dessin sinon) : fuir en criant, riposter (une bagarre de rue), intervenir (la police : une amende si elle
+  gagne), ou s'en souvenir (un petit de l'équipe perd de la confiance). Les témoins crient, s'éloignent, s'en mêlent.
+- Les petits de l'équipe partis sur une opération ne sont pas à la boutique, et le scooter de Youngssef n'est pas
+  devant l'épicerie quand il roule (`membre <id>`).
+- Les personnages importants se présentent la première fois qu'ils parlent : une fiche avec leur portrait manga,
+  leur rôle, ce que le héros sait d'eux à ce moment-là, et où ils en sont tous les deux (`encart presente_<id>
+  PERSONNAGE | ...`).
+
+## Le temps, les journées, la continuité
+
+- Chaque mission dit quand elle se passe (`quand <jour> <hh:mm>`, le jour 1 étant le premier vendredi). L'horloge
+  avance d'une minute par seconde de jeu ; une scène peut faire une ellipse (`temps <jour> <hh:mm>`).
+- Plus de six heures entre deux missions : l'écran du temps qui passe montre les jours qui défilent et ce qui est
+  vraiment arrivé entre-temps (opérations terminées et payées, colis livrés, scooter rendu, loyer dû), et le héros se
+  réveille chez lui. Une nuit de sommeil fait de même, en plus court.
+- Le scooter emprunté retourne chez Youngssef après une nuit ; tombé à scooter, on le retrouve là où on est tombé.
+  Une arme posée (G) reste par terre, même après une sauvegarde, et se ramasse avec E.
+- La stabilité : une erreur ne fige plus la fenêtre (elle est écrite dans `~/.get-a-job/incidents.log`, la partie
+  ferme ce qui était ouvert et rend la main ; trois de suite, retour au menu, partie enregistrée). Un encart ouvert
+  par une scène se voit (c'était la cause des images figées pendant les dialogues). Les touches tenues sont oubliées
+  quand la fenêtre perd le clavier. Une scène qui tourne en rond est abandonnée au lieu de bloquer le jeu.
+
+## L'organisation et le mois d'affaires
+
+- `histoire/Organisation.java` : les petits, leurs jauges, les opérations (livraisons, comptoir, ardoise d'Omar, course
+  de Namek), le lancement, l'avancement, le règlement. Tout l'argent passe par la banque du héros (`Etat.payer` et
+  `Etat.gagner`, avec un libellé) : une opération n'est payée qu'une fois, au départ. Les opérations en cours sont
+  sauvegardées et continuent sur toutes les cartes ; une nuit de sommeil les fait avancer.
+- `histoire/Mois.java` : trente jours d'activité calculés d'un coup, avec les vraies opérations, les loyers et les
+  frais, puis sauvegardés. `jeu/Timelapse.java` les rejoue jour après jour : calendrier, solde, courbe, totaux par
+  poste, notifications et messages des petits, puis le bilan. E accélère, Échap passe (le mois est déjà compté).
+- `tests/histoire/OrganisationTest.java` vérifie les réussites, les ventes décevantes et les échecs, les jauges, les
+  refus, l'absence de double paiement, la sauvegarde des opérations en cours, et qu'un mois se relit euro par euro.

@@ -19,6 +19,16 @@ public final class Touches {
         tenues.remove(code);
     }
 
+    /**
+     * La fenetre a perdu le clavier (Cmd+Tab, une boite du systeme...) : les touches relachees pendant ce temps ne nous
+     * arrivent jamais. On les oublie toutes, sinon une touche restee "tenue" ne pourrait plus etre frappee (E et Echap
+     * ne repondraient plus).
+     */
+    public void toutLacher() {
+        tenues.clear();
+        frappees.clear();
+    }
+
     /** A appeler a la fin de chaque image : une frappe ne compte qu'une fois. */
     public void finImage() {
         frappees.clear();
@@ -58,6 +68,16 @@ public final class Touches {
         return frappee(KeyEvent.VK_E, KeyEvent.VK_ENTER, KeyEvent.VK_SPACE);
     }
 
+    /** P ou Tab : sortir ou ranger le telephone. */
+    boolean telephone() {
+        return frappee(KeyEvent.VK_P, KeyEvent.VK_TAB);
+    }
+
+    /** F : descendre du scooter. */
+    boolean scooter() {
+        return frappee(KeyEvent.VK_F);
+    }
+
     /** Echap : pause, retour, passer une cinematique. */
     boolean retour() {
         return frappee(KeyEvent.VK_ESCAPE);
@@ -77,5 +97,20 @@ public final class Touches {
 
     boolean droite() {
         return frappee(KeyEvent.VK_RIGHT, KeyEvent.VK_D);
+    }
+
+    /** J : un coup de poing (ou un coup avec l'arme en main). */
+    boolean poing() {
+        return frappee(KeyEvent.VK_J);
+    }
+
+    /** K : un coup de pied. */
+    boolean pied() {
+        return frappee(KeyEvent.VK_K);
+    }
+
+    /** G : lacher l'arme qu'on tient. */
+    boolean lacher() {
+        return frappee(KeyEvent.VK_G);
     }
 }

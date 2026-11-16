@@ -8,7 +8,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
-/** Les options du joueur : le son, l'affichage, la vitesse du texte. Gardees d'une partie a l'autre. */
+/**
+ * Les options du joueur : le son (un volume general, puis musique, ambiances, effets, voix et interface, chacun a part),
+ * l'affichage, la vitesse du texte. Gardees d'une partie a l'autre.
+ */
 public final class Reglages {
     static final String[] TAILLES = {"FENÊTRE X2", "FENÊTRE X3", "FENÊTRE X4", "PLEIN ÉCRAN"};
     static final String[] VITESSES = {"LENTE", "NORMALE", "RAPIDE"};
@@ -17,6 +20,9 @@ public final class Reglages {
     int musique = 6;
     int ambiance = 7;
     int effets = 8;
+    int voix = 8;
+    int interfaceSon = 7;
+    int general = 9;
     boolean trame = true;
     int taille;
     int vitesseTexte = 1;
@@ -34,6 +40,9 @@ public final class Reglages {
             musique = borne(Integer.parseInt(p.getProperty("musique", "6")), 0, 10);
             ambiance = borne(Integer.parseInt(p.getProperty("ambiance", "7")), 0, 10);
             effets = borne(Integer.parseInt(p.getProperty("effets", "8")), 0, 10);
+            voix = borne(Integer.parseInt(p.getProperty("voix", "8")), 0, 10);
+            interfaceSon = borne(Integer.parseInt(p.getProperty("interface", "7")), 0, 10);
+            general = borne(Integer.parseInt(p.getProperty("general", "9")), 0, 10);
             trame = Boolean.parseBoolean(p.getProperty("trame", "true"));
             taille = borne(Integer.parseInt(p.getProperty("taille", "0")), 0, TAILLES.length - 1);
             vitesseTexte = borne(Integer.parseInt(p.getProperty("texte", "1")), 0, VITESSES.length - 1);
@@ -62,6 +71,9 @@ public final class Reglages {
         p.setProperty("musique", Integer.toString(musique));
         p.setProperty("ambiance", Integer.toString(ambiance));
         p.setProperty("effets", Integer.toString(effets));
+        p.setProperty("voix", Integer.toString(voix));
+        p.setProperty("interface", Integer.toString(interfaceSon));
+        p.setProperty("general", Integer.toString(general));
         p.setProperty("trame", Boolean.toString(trame));
         p.setProperty("taille", Integer.toString(taille));
         p.setProperty("texte", Integer.toString(vitesseTexte));
