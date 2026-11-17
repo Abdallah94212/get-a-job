@@ -83,6 +83,22 @@ final class Effets {
         }
     }
 
+    /** De la poussiere qui part au ras du sol, des deux cotes : une chute, une reception lourde, une charge. */
+    void poussiere(float x, float y, int nombre) {
+        for (int i = 0; i < nombre; i++) {
+            float sens = i % 2 == 0 ? 1 : -1;
+            Grain g = grain(x + sens * hasard.nextFloat() * 6, y - 1, sens * (20 + hasard.nextFloat() * 50), -8 - hasard.nextFloat() * 18,
+                    0.35f + hasard.nextFloat() * 0.3f, 1 + hasard.nextInt(2), 0x9A968E, 150);
+            g.gravite = 30;
+        }
+    }
+
+    /** Une douille ejectee : elle saute, brille, retombe. */
+    void douille(float x, float y, float sens) {
+        Grain g = grain(x, y, -sens * (30 + hasard.nextFloat() * 30), -70 - hasard.nextFloat() * 30, 0.45f, 1, 0xE0B050, 255);
+        g.gravite = 420;
+    }
+
     private Grain grain(float x, float y, float vx, float vy, float duree, float taille, int couleur, int opacite) {
         Grain g = new Grain();
         g.x = x;

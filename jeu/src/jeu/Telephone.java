@@ -233,7 +233,10 @@ final class Telephone {
                 choix = 0;
             }
             case FIL -> {
+                boolean geste = !etat().reponses(contact).isEmpty() && etat().reponses(contact).get(Math.min(choix,
+                        etat().reponses(contact).size() - 1)).silencieuse();
                 String drapeaux = etat().repondre(contact, choix);
+                info = geste ? "TU NE RÉPONDS PAS." : "";
                 if (!drapeaux.isEmpty()) {
                     progression.marquer(drapeaux);
                 }
@@ -633,8 +636,10 @@ final class Telephone {
             for (int i = 0; i < reponses.size(); i++) {
                 boolean oui = i == choix;
                 rendu.rect(X + 6, ry, L - 12, 12, oui ? 0x2E6B4A : SURFACE, 256);
-                affichage.police().ecrire(rendu, coupe(affichage.police().propre(reponses.get(i).texte()), 26), X + 10, ry + 2,
-                        oui ? Affichage.BLANC : Affichage.GRIS, 1);
+                boolean geste = reponses.get(i).silencieuse();         // un geste : en gris, sans bulle d'envoi
+                String t = geste ? reponses.get(i).texte().replaceAll("[()]", "").trim() : reponses.get(i).texte();
+                affichage.police().ecrire(rendu, coupe(affichage.police().propre(t), 26), X + 10, ry + 2,
+                        geste ? Affichage.SOMBRE : oui ? Affichage.BLANC : Affichage.GRIS, 1);
                 ry += 14;
             }
         }

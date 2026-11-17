@@ -79,13 +79,52 @@ final class Robot {
 
     /** Regarde les cinematiques et les ecrans de fin de mission jusqu'a rendre la main au joueur. */
     void laisserPasser() {
-        for (int i = 0; i < 6000 && partie() != null && (partie().enScene() || partie().auBilan() || partie().auCalendrier() || partie().encartOuvert()
+        for (int i = 0; i < 6000 && partie() != null && (partie().enScene() || partie().auBilan() || partie().auCalendrier() || partie().auVolant() || partie().encartOuvert()
                 || partie().combat().actif()); i++) {
-            if (partie().combat().actif() && !partie().encartOuvert() && !partie().enScene()) {
+            if (partie().auVolant()) {
+                conduire();
+            } else if (partie().combat().actif() && !partie().encartOuvert() && !partie().enScene()) {
                 combattre();
             } else {
                 frapper(KeyEvent.VK_E);
             }
+        }
+    }
+
+    /**
+     * Une seconde de route, au clavier : on accelere, on vise le milieu de la route un peu plus loin, et on s'ecarte
+     * des obstacles et des camions devant ; on prend les bidons qui sont dans l'axe.
+     */
+    void conduire() {
+        Conduite c = partie().conduite();
+        if (c.etape() == Conduite.Etape.CONSIGNES || c.etape() == Conduite.Etape.ARRIVEE) {
+            images(30);
+            frapper(KeyEvent.VK_E);
+            return;
+        }
+        for (int i = 0; i < 30 && partie().auVolant(); i++) {
+            float vise = c.centre(c.s + 60);
+            for (Conduite.Obstacle o : c.obstacles()) {
+                if (o.pris || o.genre == Conduite.Genre.BIDON || o.s < c.s - 10 || o.s > c.s + 130) {
+                    continue;
+                }
+                float ox = c.centre(o.s) + o.dx;
+                if (Math.abs(ox - vise) < 26) {
+                    float demi = c.largeur(o.s) / 2 - 12;
+                    float gauche = ox - 30;
+                    float droite = ox + 30;
+                    vise = Math.abs(gauche - c.centre(o.s)) < demi && Math.abs(gauche - c.x) < Math.abs(droite - c.x) ? gauche
+                            : Math.abs(droite - c.centre(o.s)) < demi ? droite : gauche;
+                }
+            }
+            float freinage = c.glisse * Math.abs(c.glisse) / 680f;        // la distance qu'il faut pour s'arreter de glisser
+            tenir(KeyEvent.VK_RIGHT, vise - c.x - freinage > 4);
+            tenir(KeyEvent.VK_LEFT, vise - c.x - freinage < -4);
+            tenir(KeyEvent.VK_UP, c.vitesse < (c.largeur(c.s) < 80 ? 260 : 340));
+            image();
+        }
+        for (int code : new int[] {KeyEvent.VK_RIGHT, KeyEvent.VK_LEFT, KeyEvent.VK_UP}) {
+            touches.relacher(code);
         }
     }
 

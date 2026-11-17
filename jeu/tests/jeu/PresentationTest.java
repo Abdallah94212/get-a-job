@@ -32,7 +32,9 @@ class PresentationTest {
         partie = robot.partie();
     }
 
+    /** Il parle, et le heros vient de lui adresser la parole (E) : c'est une rencontre. */
     private void dire(String qui) {
+        partie.scenographe().parlerA(qui);
         Cinematique c = new Cinematique("essai");
         c.plans().add(new Plan(Plan.Genre.DIT, new String[] {qui, ""}, "SALUT."));
         partie.jouerScene(c);

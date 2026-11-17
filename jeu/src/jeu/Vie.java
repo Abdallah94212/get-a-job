@@ -450,7 +450,26 @@ final class Vie {
                 }
             }
             case "bagarre" -> h.sens = h.acteur.miroir ? -1 : 1;    // c'est le combat qui le mene
+            case "ecarte" -> {                                         // il laisse la place a une scene, puis revient
+                marcher(h, h.cibleX, h.cibleY, 34, dt, scene);
+                if (h.reactionReste <= 0) {
+                    revenir(h);
+                }
+            }
             default -> h.reaction = null;
+        }
+    }
+
+    /** Pendant une scene : ceux qu'on a ecartes vont a leur place, les autres ne bougent pas. */
+    void ecarter(float dt) {
+        Scene scene = monde.scene();
+        for (Monde.Habitant h : new ArrayList<>(monde.habitants())) {
+            if ("ecarte".equals(h.reaction)) {
+                if (marcher(h, h.cibleX, h.cibleY, 34, dt, scene)) {
+                    h.acteur.marche = false;
+                    h.sens = monde.joueur.x < h.acteur.x ? -1 : 1;     // arrive, il regarde la scene de loin
+                }
+            }
         }
     }
 

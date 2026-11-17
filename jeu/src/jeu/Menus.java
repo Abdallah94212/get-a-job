@@ -84,21 +84,24 @@ final class Menus {
     static void commandes(Rendu rendu, Affichage affichage, int x, int y) {
         affichage.police().ecrire(rendu, "COMMANDES", x, y, Affichage.ORANGE, 2);
         String[][] touches = {
-            {"FLÈCHES OU ZQSD", "MARCHER"},
-            {"MAJ", "COURIR (TANT QU'IL RESTE DU SOUFFLE)"},
-            {"F", "GARER LE SCOOTER LÀ OÙ TU ES"},
-            {"P", "LE TÉLÉPHONE"},
-            {"E, ENTRÉE, ESPACE", "PARLER, AGIR, ENTRER, DESCENDRE DU SCOOTER"},
+            {"FLÈCHES OU ZQSD", "MARCHER (MAJ : COURIR)"},
+            {"E, ENTRÉE", "PARLER, AGIR, ENTRER, DESCENDRE"},
+            {"A", "ATTAQUER : COUP, ÉLAN OU TIR, SELON LA DISTANCE"},
+            {"ESPACE", "SAUTER ; EN L'AIR, A (BAS + A : PLONGEON)"},
+            {"C / X", "ESQUIVE / GARDE (SIGNE BLANC : CONTRE)"},
+            {"R / V", "RECHARGER / ARME SUIVANTE"},
+            {"J / K", "POING / PIED (MAINTENU : PUISSANT)"},
+            {"L / H / G", "BALAYAGE / LANCER / LÂCHER L'ARME"},
+            {"I / P", "LES POCHES / LE TÉLÉPHONE"},
+            {"F", "GARER LE SCOOTER"},
             {"ÉCHAP", "PAUSE ; PASSER UNE CINÉMATIQUE"},
-            {"J / K", "POING (OU L'ARME EN MAIN) / PIED"},
-            {"G", "LÂCHER L'ARME"},
-            {"T", "TRAME À L'ANCIENNE, OUI OU NON"},
+            {"T", "TRAME À L'ANCIENNE"},
         };
         for (int i = 0; i < touches.length; i++) {
-            affichage.police().ecrire(rendu, touches[i][0], x, y + 30 + i * 12, Affichage.BLANC, 1);
-            affichage.police().ecrire(rendu, touches[i][1], x + 116, y + 30 + i * 12, Affichage.GRIS, 1);
+            affichage.police().ecrire(rendu, touches[i][0], x, y + 28 + i * 11, Affichage.BLANC, 1);
+            affichage.police().ecrire(rendu, touches[i][1], x + 100, y + 28 + i * 11, Affichage.GRIS, 1);
         }
-        int ligne = y + 30 + touches.length * 12 + 6;
+        int ligne = y + 28 + touches.length * 11 + 4;
         Affichage.fleche(rendu, x, ligne + 3, Affichage.ORANGE);
         affichage.police().ecrire(rendu, "L'OBJECTIF EN COURS, OU LA PORTE À PRENDRE", x + 14, ligne, Affichage.GRIS, 1);
         Affichage.fleche(rendu, x, ligne + 17, Affichage.GRIS);

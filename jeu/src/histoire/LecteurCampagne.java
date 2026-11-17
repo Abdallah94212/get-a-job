@@ -117,6 +117,7 @@ public final class LecteurCampagne {
                     exiger(mission, "mission").regler(null, args[0]);
                 }
             }
+            case "ellipse" -> exiger(mission, "mission").ellipser(args[0]);
             case "quand" -> exiger(mission, "mission").dater(Integer.parseInt(args[0]), minutes(args[1]));
             case "furtive" -> exiger(mission, "mission").rendreFurtive();
             case "objectif", "option" -> exiger(mission, "mission").ajouter(objectif(args, texte, mots[0].equals("option")));
@@ -142,6 +143,7 @@ public final class LecteurCampagne {
         boolean pression = false;
         String suite = null;
         String musique = null;
+        String objet = null;
         StringBuilder condition = new StringBuilder();
         for (int i = 2; i < args.length; i++) {
             if (args[i].equals("pression")) {
@@ -155,12 +157,17 @@ public final class LecteurCampagne {
                 }
             } else if (args[i].startsWith("musique:")) {
                 musique = args[i].substring(8);
+            } else if (args[i].startsWith("avec:")) {
+                objet = args[i].substring(5);
+                if (!Inventaire.connu(objet)) {
+                    throw new IllegalArgumentException("objet inconnu " + objet);
+                }
             } else {
                 throw new IllegalArgumentException("option inconnue " + args[i]);
             }
         }
         return new Objectif(Objectif.Genre.valueOf(args[0].toUpperCase()), args[1], texte, facultatif, pression, suite,
-                condition.toString().trim(), musique);
+                condition.toString().trim(), musique, objet);
     }
 
     /** "22:00" ou "22h" : en minutes depuis minuit. */

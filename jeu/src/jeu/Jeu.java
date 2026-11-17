@@ -17,6 +17,7 @@ public final class Jeu {
     final Sauvegarde sauvegarde;
     final Affichage affichage;
     private Ecran ecran;
+    private final AideDev aideDev = new AideDev(this);                 // AideDev : a supprimer a la fin
     private Runnable surQuitter = () -> { };
     private Runnable surReglages = () -> { };
 
@@ -51,6 +52,9 @@ public final class Jeu {
     public void maj(float dt, Touches touches) {
         try {
             audio.tic(dt);
+            if (AideDev.ACTIVE && aideDev.maj(dt, touches)) {          // AideDev : a supprimer a la fin
+                return;
+            }
             ecran.maj(dt, touches);
         } catch (RuntimeException | StackOverflowError erreur) {
             incident("maj", erreur);
@@ -62,6 +66,9 @@ public final class Jeu {
             rendu.tramage = reglages.trame;
             rendu.effacerTextes();
             ecran.dessiner(rendu);
+            if (AideDev.ACTIVE) {                                      // AideDev : a supprimer a la fin
+                aideDev.dessiner(rendu, affichage);
+            }
         } catch (RuntimeException | StackOverflowError erreur) {
             incident("dessin", erreur);
         }

@@ -24,6 +24,16 @@ public final class Mission {
     private String musique;
     private int jour;
     private int heure;
+    private String ellipse;
+
+    /** La scene de ce qui s'est passe hors de l'ecran avant la mission (des semaines de travail, des paiements), ou null. */
+    public String ellipse() {
+        return ellipse;
+    }
+
+    public void ellipser(String scene) {
+        ellipse = scene;
+    }
 
     public Mission(String id, String titre, String lieu, String personnages) {
         this.id = id;

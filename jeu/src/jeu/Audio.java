@@ -398,6 +398,14 @@ public final class Audio {
         journal.add("couper:" + bus.name().toLowerCase());
     }
 
+    /** Fait taire un son precis qui joue encore (la sonnerie quand on decroche). */
+    void coupe(String nom) {
+        synchronized (voix) {
+            voix.stream().filter(v -> !v.boucle && v.nom.startsWith(nom)).forEach(this::effacer);
+        }
+        journal.add("coupe:" + nom);
+    }
+
     /** On change d'ecran : plus d'effets, plus de voix ; les boucles et la musique suivront ce que demande le suivant. */
     void changerDEcran() {
         couper(Bus.EFFETS);

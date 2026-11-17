@@ -27,11 +27,30 @@ import java.util.Map;
  */
 final class EcranPartie implements Ecran {
     private enum Mode {
-        JEU, SCENE, PAUSE, BILAN, TELEPHONE, TEMPS
+        JEU, SCENE, PAUSE, BILAN, TELEPHONE, TEMPS, POCHES, CONDUITE
     }
 
+    private Conduite conduite;
+    private String suiteConduite;
+
+    /** Un objet qui entre ou sort de l'inventaire : on le voit glisser a droite de l'ecran un instant. */
+    private static final class Mouvement {
+        final String id;
+        final int delta;
+        float age;
+
+        Mouvement(String id, int delta) {
+            this.id = id;
+            this.delta = delta;
+        }
+    }
+
+    private final List<Mouvement> mouvements = new ArrayList<>();
+    private final Poches poches;
+
     /** Le temps qui vient de passer entre deux missions : d'ou l'on part, ou l'on arrive, et ce qui s'est passe entre-temps. */
-    private record Saut(int jourAvant, int minutesAvant, int jour, int minutes, String delai, List<String> pendant) {
+    private record Saut(int jourAvant, int minutesAvant, int jour, int minutes, String delai, List<String> pendant,
+                        List<histoire.Etat.Ligne> mouvements, int soldeAvant, int soldeApres) {
     }
 
     private Saut saut;
@@ -107,10 +126,18 @@ final class EcranPartie implements Ecran {
         this.effets = new Effets(monde, jeu.audio);
         this.combat = new Combat(res, jeu.audio, effets);
         this.encarts = new Encarts(res, jeu.audio, affichage);
+        this.poches = new Poches(res, progression, affichage, jeu.audio, monde);
         scenographe.brancher(encarts, combat);
         monde.aller(carte, x, y);
         histoire.Calendrier cal = progression.etat().calendrier();
         Mission mission = progression.courante();
+        for (String d : progression.drapeaux()) {                     // une partie quittee au volant : on reprend la route
+            if (d.startsWith("conduite:")) {
+                String[] c = d.split(":");
+                lancerConduite(c[1], c.length > 2 ? c[2] : "");
+                break;
+            }
+        }
         if (!cal.connu()) {                                            // une partie d'avant le calendrier : il prend l'heure de la mission
             cal.regler(mission != null && mission.jour() > 0 ? mission.jour() : 1, mission != null && mission.jour() > 0 ? mission.heure() : 23 * 60);
         }
@@ -118,6 +145,10 @@ final class EcranPartie implements Ecran {
 
     Monde monde() {
         return monde;
+    }
+
+    Scenographe scenographe() {
+        return scenographe;
     }
 
     Progression progression() {
@@ -165,6 +196,100 @@ final class EcranPartie implements Ecran {
     /** Vrai pendant l'ecran du temps qui passe, entre deux missions. */
     boolean auCalendrier() {
         return mode == Mode.TEMPS;
+    }
+
+    /** Vrai pendant la sequence de conduite. */
+    boolean auVolant() {
+        return mode == Mode.CONDUITE;
+    }
+
+    Conduite conduite() {
+        return conduite;
+    }
+
+    /** On prend le volant : la route se joue, puis la scene de la suite. */
+    private void lancerConduite(String parcours, String suite) {
+        progression.marquer("+conduite:" + parcours + ":" + suite);
+        conduite = new Conduite(res, jeu.audio, affichage);
+        suiteConduite = suite;
+        passer(Mode.CONDUITE);
+    }
+
+    private void finirConduite() {
+        Conduite.Resultat r = conduite.resultat();
+        progression.drapeaux().removeIf(d -> d.startsWith("conduite:"));
+        progression.marquer("+route_namek_faite");
+        if (r.avance() < 0) {
+            progression.marquer("+soleil_leve");                       // en retard : la recolte sera plus courte
+        }
+        if (r.degats() > 60) {
+            progression.marquer("+rs6_abimee");
+        }
+        conduite = null;
+        jeu.audio.ambiances(Map.of());
+        Cinematique suite = res.campagne.cinematique(suiteConduite);
+        sauvegarder();
+        if (suite != null) {
+            aJouer.add(suite);
+            lancerScenes();
+        } else {
+            passer(Mode.JEU);
+        }
+    }
+
+    // ------------------------------------------------------------------ AideDev : a supprimer a la fin
+
+    /** Valide l'objectif en cours comme si on l'avait fait (en donnant l'objet qu'il demande, s'il en faut un). */
+    void devObjectifSuivant() {
+        Objectif o = progression.objectif();
+        if (o == null) {
+            return;
+        }
+        if (o.objet() != null && !progression.etat().inventaire().possede(o.objet())) {
+            progression.etat().inventaire().ajouter(o.objet(), 3);
+        }
+        if (mode != Mode.JEU) {
+            passer(Mode.JEU);
+        }
+        valider(o.genre(), o.cible().equals("*") ? "livraisons" : o.cible());
+    }
+
+    void devCombat(Combat.Genre genre, int nombre) {
+        combat.niveau(1f);
+        combat.commencer(genre, nombre, monde.joueur.x, monde.joueur.y, null, null, monde.scene());
+        passer(Mode.JEU);
+    }
+
+    void devCombat(List<Combat.Genre> groupe) {
+        combat.niveau(1f);
+        combat.commencer(groupe, monde.joueur.x, monde.joueur.y, null, null, monde.scene());
+        passer(Mode.JEU);
+    }
+
+    /**
+     * La difficulte d'un combat suit l'histoire : un peu en dessous de la normale au debut de l'acte 1, un peu au-dessus
+     * a la fin de l'acte 2 (ennemis plus vifs, coups plus forts).
+     */
+    float niveauDuCombat() {
+        histoire.Mission m = progression.courante();
+        if (m == null) {
+            return 1f;
+        }
+        try {
+            String[] n = m.id().split("\\.");
+            return 0.8f + Integer.parseInt(n[0]) * 0.1f + Integer.parseInt(n[1]) * 0.02f;
+        } catch (RuntimeException e) {
+            return 1f;
+        }
+    }
+
+    void devRoute() {
+        lancerConduite("namek", "");
+    }
+
+    /** Vrai pendant que l'inventaire est ouvert. */
+    boolean auxPoches() {
+        return mode == Mode.POCHES;
     }
 
     boolean auBilan() {
@@ -240,6 +365,19 @@ final class EcranPartie implements Ecran {
         tempsMode += dt;
         fondu = Math.max(0f, fondu - dt);
         animerInterface(dt);
+        for (histoire.Inventaire.Mouvement m : progression.etat().inventaire().prendreMouvements()) {
+            if (mode == Mode.POCHES) {
+                continue;                                              // dans les poches, on voit deja ce qui change
+            }
+            mouvements.add(new Mouvement(m.id(), m.delta()));
+            if (m.delta() > 0) {
+                poches.signaler(m.id());
+            }
+        }
+        for (Mouvement m : mouvements) {
+            m.age += dt;
+        }
+        mouvements.removeIf(m -> m.age > 2.6f);
         if (encarts.ouvert()) {                                        // un encart : le jeu attend qu'on l'ait lu
             monde.attendre(0);
             encarts.maj(dt, touches);
@@ -263,6 +401,22 @@ final class EcranPartie implements Ecran {
                 if (range) {
                     jeu.audio.jouer("tel_ferme", 0.5f, 0.2f, 1);
                     jeu.audio.jouer(Audio.Bus.EFFETS, "vetement", 0.35f, 0.2f, 1.1f, 0.15f);   // on le range
+                    monde.peupler();
+                    sauvegarder();
+                    passer(Mode.JEU);
+                }
+            }
+            case CONDUITE -> {
+                conduite.maj(dt, touches);
+                jeu.audio.musique("mus_tension");
+                if (conduite.fini()) {
+                    finirConduite();
+                }
+                return;                                                // la route fait son propre son
+            }
+            case POCHES -> {
+                monde.attendre(0);
+                if (poches.maj(dt, touches)) {
                     monde.peupler();
                     sauvegarder();
                     passer(Mode.JEU);
@@ -341,6 +495,13 @@ final class EcranPartie implements Ecran {
         if (mode != Mode.JEU) {
             return;
         }
+        if (touches.frappee(java.awt.event.KeyEvent.VK_I)) {          // l'inventaire
+            poches.ouvrir();
+            jeu.audio.jouer(Audio.Bus.EFFETS, "vetement", 0.4f, 0, 0.9f, 0);
+            jeu.audio.jouer("tel_ouvre", 0.3f, 0, 0.8f);
+            passer(Mode.POCHES);
+            return;
+        }
         if (touches.telephone()) {
             telephone.ouvrir();
             jeu.audio.jouer("vetement", 0.4f, 0.2f, 1.2f);          // on le sort de la poche
@@ -355,7 +516,12 @@ final class EcranPartie implements Ecran {
         }
         frapperLesHabitants();
         temoins(dt);
-        if (touches.lacher() && progression.etat().armeEnMain() != null && !combat.actif()) {
+        astuces(dt);
+        decouvrirArmes();
+        if (touches.lacher() && progression.etat().armeEnMain() != null && !combat.actif()
+                && progression.etat().inventaire().equipee().fiche().mission()) {
+            annoncer("TU NE LA LÂCHES PAS. PAS ELLE.", Affichage.GRIS);
+        } else if (touches.lacher() && progression.etat().armeEnMain() != null && !combat.actif()) {
             annoncer("TU POSES " + progression.etat().armeEnMain().nom() + ". ELLE RESTE LÀ.", Affichage.GRIS);
             progression.etat().poserArme(monde.carte(), monde.joueur.x + (monde.joueur.versDroite ? 10 : -10), monde.joueur.y);
             sauvegarder();
@@ -367,13 +533,21 @@ final class EcranPartie implements Ecran {
             return;
         }
         monde.meteo("pluie".equals(meteo()));
+        if (touches.saut() && !combat.occupe() && monde.sauter()) {   // Espace : il saute
+            jeu.audio.jouer(Audio.Bus.EFFETS, "vetement", 0.45f, 0, 1.2f, 0);
+            jeu.audio.jouer(Audio.Bus.VOIX, "v_heros_grogne", 0.15f, 0, 1.4f, 0);
+        }
+        if (monde.prendreAtterrissage()) {                             // il retombe : ses semelles sur le sol
+            jeu.audio.jouer(Audio.Bus.EFFETS, "pas_dur", 0.55f, 0, 0.8f, 0);
+            effets.impact(monde.joueur.x, monde.joueur.y - 2, 0xA0A0A0, 3);
+        }
         if (combat.occupe()) {
             monde.avancer(0, 0, false, dt);
         } else {
             monde.avancer(touches.axeX(), touches.axeY(), touches.court(), dt);
         }
         if (!monde.enScooter()) {
-            sonorisation.pieds(monde.carte(), meteo(), monde.joueur.enMouvement ? monde.chemin() : 0, monde.court(),
+            sonorisation.pieds(monde.carte(), meteo(), monde.joueur.enMouvement && !monde.enLAir() ? monde.chemin() : 0, monde.court(),
                     monde.joueur.vitesse(), monde.joueur.versDroite);
         }
         vivre(dt, touches);
@@ -414,7 +588,7 @@ final class EcranPartie implements Ecran {
             return;
         }
         Monde.Cible cible = monde.cible();
-        if (cible != null && touches.valider()) {
+        if (cible != null && touches.interagir()) {
             agir(cible);
             if (mode != Mode.JEU) {
                 return;
@@ -428,6 +602,13 @@ final class EcranPartie implements Ecran {
      * ceux qui regardent reagissent, et une riposte devient une bagarre, ou la police s'en mele.
      */
     private void frapperLesHabitants() {
+        for (Object o = combat.prendreHabitantAtteint(); o != null; o = combat.prendreHabitantAtteint()) {
+            Monde.Habitant h = (Monde.Habitant) o;                     // un objet lance l'a atteint
+            Vie.Suite suite = monde.vie().frapper(h, h.acteur.x > monde.joueur.x ? 1 : -1);
+            if (suite != Vie.Suite.RIEN) {
+                engager(h, suite == Vie.Suite.POLICE ? Combat.POLICIER : Combat.PASSANT);
+            }
+        }
         Combat.Geste g = combat.gesteActif();
         if (g == null || monde.enScooter()) {
             return;
@@ -450,6 +631,23 @@ final class EcranPartie implements Ecran {
     }
 
     private float temoinsRepos;
+
+    /** Une arme d'un genre nouveau entre dans le sac : son encart l'explique, une fois. */
+    private void decouvrirArmes() {
+        histoire.Inventaire inv = progression.etat().inventaire();
+        for (histoire.Inventaire.Ligne l : inv.lignes(histoire.Inventaire.Categorie.ARMES)) {
+            histoire.Etat.Arme a = histoire.Etat.arme(l.id);
+            if (a == null) {
+                continue;
+            }
+            String encart = a.relique() ? "katana_relique" : a.aFeu() ? "armes_feu" : a.famille() == histoire.Etat.Famille.LAME
+                    || a.famille() == histoire.Etat.Famille.CONTONDANT ? "armes_lourdes" : null;
+            if (encart != null && !progression.drapeau("vu_" + encart)) {
+                encarts.ouvrir(encart, progression);
+                return;
+            }
+        }
+    }
 
     /** Pendant une bagarre, ceux qui sont autour regardent, crient, s'en vont ; un policier qui passe s'en mele. */
     private void temoins(float dt) {
@@ -488,6 +686,7 @@ final class EcranPartie implements Ecran {
         secousse = Math.max(0f, secousse - dt);
         etat.livrer(dt);                                               // les commandes approchent
         etat.calendrier().passer(dt);                                  // une minute du quartier par seconde de jeu
+        etat.majLoyer();
         if (progression.drapeau("organisation")) {                     // l'equipe travaille pendant qu'on joue
             etat.organisation().recruter(progression);
             for (histoire.Organisation.Bilan b : etat.organisation().avancer(dt, etat)) {
@@ -671,11 +870,26 @@ final class EcranPartie implements Ecran {
         }
         int jourAvant = cal.jour();
         int minutesAvant = cal.minutes();
-        List<String> pendant = progression.laisserPasser(ecart);
+        histoire.Etat etat = progression.etat();
+        int soldeAvant = etat.argent();
+        long noteesAvant = etat.notees();
+        List<String> pendant = new ArrayList<>(progression.laisserPasser(ecart));
         cal.regler(mission.jour(), mission.heure());
+        Cinematique ellipse = res.campagne.cinematique(mission.ellipse());
+        if (ellipse != null) {                                         // ce qui s'est passe entre-temps : de vrais mouvements
+            scenographe.appliquer(ellipse);
+            if (etat.loyerDu() == 0) {
+                pendant.removeIf(l -> l.startsWith("LOYER"));
+            }
+        }
+        etat.majLoyer();
+        List<histoire.Etat.Ligne> journal = etat.journal();
+        int n = (int) Math.min(journal.size(), etat.notees() - noteesAvant);
+        List<histoire.Etat.Ligne> mouvements = new ArrayList<>(journal.subList(journal.size() - n, journal.size()));
         rentrerChezSoi();
         return new Saut(jourAvant, minutesAvant, mission.jour(), mission.heure(),
-                histoire.Calendrier.delai(jourAvant, mission.jour(), mission.heure(), ecart), pendant);
+                histoire.Calendrier.delai(jourAvant, mission.jour(), mission.heure(), ecart), pendant, mouvements, soldeAvant,
+                etat.argent());
     }
 
     /** On se reveille chez soi, au pied du lit. */
@@ -694,7 +908,8 @@ final class EcranPartie implements Ecran {
         }
         if (mission.chrono() > 0) {
             float avant = chrono;
-            chrono = chrono < 0 ? mission.chrono() : chrono - dt;
+            int duree = mission.chrono() - (progression.drapeau("soleil_leve") ? 15 : 0);   // arrive tard : le soleil presse
+            chrono = chrono < 0 ? duree : chrono - dt;
             if (chrono <= 10 && (int) Math.ceil(chrono) != (int) Math.ceil(avant) && chrono > 0) {
                 jeu.audio.jouer("ui_deplace", 0.6f, 0, 1.5f);
             }
@@ -743,6 +958,16 @@ final class EcranPartie implements Ecran {
     }
 
     private void agir(Monde.Cible cible) {
+        String manque = progression.objetManquant(cible.genre(), cible.id());
+        if (manque != null) {                                          // une livraison sans la marchandise : on ne fait pas semblant
+            refus = "IL TE MANQUE : " + histoire.Inventaire.fiche(manque).nom() + ".";
+            refusReste = 3f;
+            jeu.audio.jouer("ui_refus", 0.6f, 0, 1);
+            return;
+        }
+        if (cible.genre() == Objectif.Genre.PARLER) {
+            scenographe.parlerA(cible.id());                           // c'est une vraie rencontre : il peut se presenter
+        }
         switch (cible.genre()) {
             case AGIR -> {
                 if (cible.id().equals("colis")) {
@@ -919,14 +1144,23 @@ final class EcranPartie implements Ecran {
             lancerScenes();
             return;
         }
+        Plan route = scenographe.prendreConduite();
+        if (route != null) {
+            lancerConduite(route.mot(0), route.mot(1));
+            return;
+        }
         Plan demande = scenographe.prendreCombat();
         if (demande != null) {                                         // la scene laisse la main : il faut se battre
-            Combat.Genre genre = demande.mot(0).equals("alien") ? Combat.ALIEN : Combat.GUETTEUR;
-            combat.commencer(genre, Integer.parseInt(demande.mot(1)), monde.joueur.x, monde.joueur.y, demande.mot(2), demande.mot(3),
-                    monde.scene());
+            List<Combat.Genre> groupe = Combat.groupe(demande.mot(0), Integer.parseInt(demande.mot(1)));
+            combat.niveau(niveauDuCombat());
+            combat.commencer(groupe, monde.joueur.x, monde.joueur.y, demande.mot(2), demande.mot(3), monde.scene());
             passer(Mode.JEU);
-            annoncer(genre == Combat.ALIEN ? "ILS T'ENCERCLENT." : "IL NE TE LAISSERA PAS PASSER.", ROUGE);
+            annoncer(groupe.get(0) == Combat.ALIEN ? "ILS T'ENCERCLENT." : groupe.size() > 2 ? "ILS SONT ARMÉS. RESTE EN MOUVEMENT."
+                    : "IL NE TE LAISSERA PAS PASSER.", ROUGE);
             encarts.ouvrir("combat", progression);
+            if (groupe.stream().anyMatch(g -> g.style() != Combat.Style.CORPS)) {
+                encarts.ouvrir("ennemis_armes", progression);
+            }
             return;
         }
         fondu = FONDU;
@@ -977,6 +1211,10 @@ final class EcranPartie implements Ecran {
                     sauvegarder();
                     jeu.ouvrirMenu();
                 }
+                case 2 -> {
+                    poches.ouvrir();
+                    passer(Mode.POCHES);
+                }
                 default -> page = choix;
             }
         }
@@ -1007,6 +1245,7 @@ final class EcranPartie implements Ecran {
     /** Une bagarre de rue se termine : pas de scene, mais des consequences (une amende si la police gagne). */
     private void finirBagarre() {
         boolean gagne = combat.gagne();
+        boolean fui = combat.fui();
         boolean police = combat.ennemis().stream().anyMatch(e -> e.genre == Combat.POLICIER);
         combat.oublier();
         monde.imposerPose(null);
@@ -1016,7 +1255,9 @@ final class EcranPartie implements Ecran {
             }
         }
         histoire.Etat etat = progression.etat();
-        if (gagne) {
+        if (fui) {
+            annoncer(police ? "TU AS SEMÉ LA POLICE. POUR CE SOIR." : "TU T'ES ÉCLIPSÉ. IL NE TE SUIT PAS.", Affichage.GRIS);
+        } else if (gagne) {
             annoncer(police ? "TU T'ES DÉGAGÉ. LA POLICE VA TE CHERCHER." : "IL N'INSISTE PAS.", Affichage.GRIS);
         } else {
             etat.soigner(30);
@@ -1050,8 +1291,9 @@ final class EcranPartie implements Ecran {
         java.util.Random tirage = new java.util.Random(java.util.Objects.hash(repere, mission, etat.argent() / 50));
         float d = tirage.nextFloat();
         String trouve = null;
+        boolean acte2 = !mission.isEmpty() && mission.charAt(0) >= '2';    // plus loin dans l'histoire, de quoi frapper plus fort
         if (repere.contains("arme")) {
-            trouve = d < 0.5f ? "barre" : d < 0.8f ? "tuyau" : "planche";
+            trouve = acte2 ? d < 0.6f ? "batte" : d < 0.85f ? "barre" : "tuyau" : d < 0.5f ? "barre" : d < 0.8f ? "tuyau" : "planche";
         } else if (d < 0.36f) {
             annoncer(RIEN[tirage.nextInt(RIEN.length)], Affichage.GRIS);
         } else if (d < 0.56f) {
@@ -1060,49 +1302,28 @@ final class EcranPartie implements Ecran {
             annoncer(pieces + (pieces > 1 ? " EUROS" : " EURO") + " AU FOND D'UN SAC.", Affichage.BLANC);
         } else {
             float k = tirage.nextFloat();
-            trouve = k < 0.32f ? "bouteille" : k < 0.6f ? "planche" : k < 0.85f ? "tuyau" : "barre";
+            if (k < 0.3f) {                                            // de quoi lancer : quelques canettes, ou un pave
+                String objet = k < 0.18f ? "canette" : "pierre";
+                int n = objet.equals("canette") ? 2 + tirage.nextInt(2) : 1;
+                etat.inventaire().ajouter(objet, n);
+                annoncer("TU PRENDS : " + n + " × " + histoire.Inventaire.fiche(objet).nom() + ". H POUR LANCER.", Affichage.VERT);
+                encarts.ouvrir("fouille", progression);
+                sauvegarder();
+                return;
+            }
+            trouve = k < 0.5f ? "bouteille" : k < 0.68f ? "planche" : k < 0.86f ? "tuyau" : acte2 && k > 0.94f ? "batte" : "barre";
         }
         if (trouve != null) {
             histoire.Etat.Arme arme = histoire.Etat.arme(trouve);
             histoire.Etat.Arme ancienne = etat.prendreArme(trouve);
+            if (ancienne != null) {                                    // le sac est plein : l'ancienne reste la, par terre
+                etat.auSol().add(new histoire.Etat.AuSol(ancienne.id(), 0, monde.carte(), monde.joueur.x - 8, monde.joueur.y));
+            }
             jeu.audio.jouer(Audio.Bus.EFFETS, trouve.equals("bouteille") ? "tinte" : "ferraille", 0.6f, 0, 1, 0.5f);
             annoncer("TU PRENDS : " + arme.nom() + (ancienne != null ? ". TU LAISSES " + ancienne.nom() + "." : "."), Affichage.VERT);
             encarts.ouvrir("armes", progression);                      // apres celui de la fouille, s'il vient de s'ouvrir
         }
         sauvegarder();
-    }
-
-    /** Tes poches : les objets de l'histoire, ce qu'on a achete, l'arme en main. */
-    private void poches(Rendu rendu) {
-        rendu.cadre(70, 34, 340, 206);
-        affichage.police().ecrire(rendu, "TES POCHES", 84, 44, Affichage.ORANGE, 2);
-        int y = 76;
-        String[][] recits = {{"beeper", "beeper", "LE BEEPER VERT DU SDF"}, {"boitier_orange", "flipper", "LE BOÎTIER ORANGE"},
-            {"eclat_irise", "eclat", "UN ÉCLAT IRISÉ"}};
-        for (String[] o : recits) {
-            if (progression.drapeau(o[0])) {
-                decor.Texture t = res.image(o[1]);
-                if (t != null) {
-                    rendu.calqueEchelle(t, 86, y - 1, Math.max(1, 10 / Math.max(t.largeur(), t.hauteur())));
-                }
-                affichage.police().ecrire(rendu, o[2], 104, y, Affichage.BLANC, 1);
-                y += 14;
-            }
-        }
-        for (String objet : progression.etat().objets()) {
-            histoire.Etat.Article art = histoire.Etat.article(objet);
-            affichage.police().ecrire(rendu, art == null ? objet.toUpperCase() : art.nom(), 104, y, Affichage.GRIS, 1);
-            y += 14;
-        }
-        histoire.Etat.Arme arme = progression.etat().armeEnMain();
-        y += 6;
-        affichage.petite().ecrire(rendu, "EN MAIN", 86, y, Affichage.SOMBRE, 1);
-        affichage.police().ecrire(rendu, arme == null ? "TES POINGS. J : POING, K : PIED." : arme.nom() + " — " + arme.phrase(), 86,
-                y + 10, Affichage.BLANC, 1);
-        if (y == 82 && progression.etat().objets().isEmpty()) {
-            affichage.police().ecrire(rendu, "RIEN QUI COMPTE.", 104, 76, Affichage.SOMBRE, 1);
-        }
-        affichage.petite().ecrire(rendu, "ECHAP : RETOUR", 84, 226, Affichage.GRIS, 1);
     }
 
     private void annoncer(String texte, int couleur) {
@@ -1123,8 +1344,13 @@ final class EcranPartie implements Ecran {
     @Override
     public void dessiner(Rendu rendu) {
         boolean pluie = "pluie".equals(meteo());
+        if (mode == Mode.CONDUITE && conduite != null) {
+            conduite.dessiner(rendu);
+            return;
+        }
         if (mode == Mode.SCENE) {
             scenographe.dessiner(rendu, pluie);
+            dessinerMouvements(rendu);
             encarts.dessiner(rendu);                                   // un encart ouvert par la scene doit se voir : c'est lui qu'on attend
             return;
         }
@@ -1133,8 +1359,18 @@ final class EcranPartie implements Ecran {
             if (a.carte().equals(monde.carte())) {
                 histoire.Etat.Arme arme = histoire.Etat.arme(a.arme());
                 float x = a.x() - monde.camX();
-                float l = arme.longueur() / 2f;
-                rendu.ligne(x - l, a.y() - 1, x + l, a.y() - 3, arme.id().equals("bouteille") ? 3 : 2, arme.couleur());
+                decor.Texture dessin = arme.aFeu() ? res.image(arme.dessin()) : null;
+                if (dessin != null) {
+                    rendu.rect(Math.round(x) - dessin.largeur() / 2, Math.round(a.y()) - 1, dessin.largeur(), 2, 0x000000, 80);
+                    rendu.calque(dessin, Math.round(x) - dessin.largeur() / 2, Math.round(a.y()) - dessin.hauteur() - 1);
+                } else {
+                    float l = arme.longueur() / 2f;
+                    rendu.ligne(x - l, a.y() - 1, x + l, a.y() - 3, arme.id().equals("bouteille") || arme.id().equals("batte") ? 3 : 2,
+                            arme.couleur());
+                }
+                if (Math.abs(a.x() - monde.joueur.x) < 60 && monde.tempsMs() / 500 % 2 == 0) {   // ca brille : ca se ramasse
+                    rendu.point(Math.round(x) + 2, Math.round(a.y()) - 5, 0xFFFFFF);
+                }
             }
         }
         combat.dessiner(rendu, monde, progression.etat());
@@ -1175,6 +1411,14 @@ final class EcranPartie implements Ecran {
             dessinerBilan(rendu);
         } else if (mode == Mode.TEMPS && saut != null) {
             dessinerTemps(rendu);
+        } else if (mode == Mode.POCHES) {
+            poches.dessiner(rendu);
+        }
+        if (mode != Mode.POCHES) {
+            dessinerMouvements(rendu);
+        }
+        if (mode == Mode.JEU) {
+            dessinerAstuce(rendu);
         }
         encarts.dessiner(rendu);
     }
@@ -1183,6 +1427,87 @@ final class EcranPartie implements Ecran {
     // Regle : on ne montre que ce qui sert maintenant. L'objectif en haut a gauche, les jauges en bas a gauche quand
     // elles bougent, les notifications en haut a droite, l'action possible en bas au centre. Pas de cadres pleins :
     // du texte ombre, des voiles degrades, des icones de quelques pixels.
+
+    private String astuce;
+    private float astuceReste;
+
+    /**
+     * Pendant un combat, une ligne au bas de l'ecran apprend ce qui sert maintenant, une fois chacune : les touches au
+     * premier combat, puis K maintenu quand un ennemi se garde, L quand on est entoure, H quand on a de quoi lancer,
+     * et qu'on peut fuir une bagarre de rue.
+     */
+    private void astuces(float dt) {
+        astuceReste = Math.max(0, astuceReste - dt);
+        if (!combat.actif() || astuceReste > 0) {
+            return;
+        }
+        String[][] candidates = {
+            {"vu_astuce_touches", "A : ATTAQUER (RAPPUIE : ENCHAÎNEMENT)   ESPACE : SAUT   C : ESQUIVE   X : GARDE / CONTRE"},
+            {"vu_astuce_contre", combat.ennemis().stream().anyMatch(Combat::fenetreDeContre)
+                    ? "SON SIGNE PASSE AU BLANC : X MAINTENANT, C'EST LE CONTRE." : null},
+            {"vu_astuce_tir", progression.etat().armeEnMain() != null && progression.etat().armeEnMain().aFeu()
+                    ? "DE LOIN, A TIRE. DE PRÈS, A FRAPPE. LA DIRECTION TENUE CHOISIT LA CIBLE." : null},
+            {"vu_astuce_tireur", combat.ennemis().stream().anyMatch(e -> e.etat == Combat.Phase.VISE)
+                    ? "LE TRAIT ROUGE : IL TE VISE. C POUR ESQUIVER, OU METS UN OBSTACLE ENTRE VOUS." : null},
+            {"vu_astuce_charge", combat.ennemis().stream().anyMatch(e -> e.etat == Combat.Phase.PREPARE && e.charge)
+                    ? "LA BRUTE VA CHARGER : SAUTE PAR-DESSUS (ESPACE) OU ESQUIVE (C)." : null},
+            {"vu_astuce_air", combat.ennemis().stream().anyMatch(e -> e.etat == Combat.Phase.GARDE)
+                    ? "IL SE PROTÈGE : UN COUP SAUTÉ (ESPACE PUIS A) OU K MAINTENU PASSE SA GARDE." : null},
+            {"vu_astuce_garde", combat.ennemis().stream().anyMatch(e -> e.etat == Combat.Phase.GARDE) ? "IL SE PROTÈGE : K MAINTENU, PUIS LÂCHÉ, CASSE SA GARDE." : null},
+            {"vu_astuce_entoure", combat.ennemis().stream().filter(e -> e.vivant() && Math.abs(e.acteur.x - monde.joueur.x) < 50).count() >= 2
+                    ? "ILS T'ENTOURENT : L, LE BALAYAGE, FAIT TOMBER TOUT CE QUI EST AUTOUR DE TOI." : null},
+            {"vu_astuce_lancer", progression.etat().inventaire().possede("canette") || progression.etat().inventaire().possede("pierre")
+                    || progression.etat().armeEnMain() != null ? "H : LANCE CE QUE TU AS EN MAIN, OU DANS TES POCHES." : null},
+            {"vu_astuce_fuite", combat.rue() != null ? "TROP FORT POUR TOI ? ÉLOIGNE-TOI : IL NE TE SUIVRA PAS LOIN." : null}};
+        for (String[] c : candidates) {
+            if (c[1] != null && !progression.drapeau(c[0])) {
+                progression.marquer("+" + c[0]);
+                astuce = c[1];
+                astuceReste = c[0].equals("vu_astuce_touches") ? 7f : 4.5f;
+                return;
+            }
+        }
+        astuce = null;
+    }
+
+    private void dessinerAstuce(Rendu rendu) {
+        if (astuce == null || astuceReste <= 0 || !combat.actif()) {
+            return;
+        }
+        int a = Math.round(230 * Math.min(1f, astuceReste / 0.4f));
+        int l = affichage.petite().largeur(astuce, 1) + 14;
+        int x = Rendu.L / 2 - l / 2;
+        rendu.rect(x, 222, l, 12, 0x0C0C12, a);
+        rendu.rect(x, 222, 2, 12, Affichage.ORANGE, a);
+        affichage.petite().ecrire(rendu, astuce, x + 8, 225, Affichage.BLANC, 1);
+    }
+
+    /** Ce qui entre (+1, en vert) ou sort (-1) de l'inventaire : l'icone glisse depuis la droite, puis s'efface. */
+    private void dessinerMouvements(Rendu rendu) {
+        int y = 70;
+        for (Mouvement m : mouvements) {
+            histoire.Inventaire.Fiche f = histoire.Inventaire.fiche(m.id);
+            if (f == null) {
+                continue;
+            }
+            float entree = doux(m.age / 0.3f);
+            float sortie = m.age > 2.1f ? 1 - (m.age - 2.1f) / 0.5f : 1;
+            String t = (m.delta > 0 ? "+" + m.delta + "  " : "-" + (-m.delta) + "  ") + f.nom();
+            int l = affichage.petite().largeur(t, 1) + 30;
+            int x = Rendu.L - 6 - Math.round(l * entree);
+            int a = Math.round(220 * Math.max(0, sortie));
+            rendu.rect(x, y, l, 20, 0x0C0C12, a);
+            rendu.rect(x, y, 2, 20, m.delta > 0 ? Affichage.VERT : Affichage.GRIS, a);
+            decor.Texture icone = res.image("obj_" + m.id);
+            if (icone != null && sortie > 0.4f) {
+                rendu.calque(icone, x + 6, y + 2);
+            }
+            if (sortie > 0.3f) {
+                affichage.petite().ecrire(rendu, t, x + 26, y + 6, m.delta > 0 ? Affichage.VERT : Affichage.GRIS, 1);
+            }
+            y += 23;
+        }
+    }
 
     /** Ce que disent les habitants, au-dessus de leur tete : une ou deux lignes, sans cadre plein. */
     private void bulles(Rendu rendu) {
@@ -1329,6 +1654,16 @@ final class EcranPartie implements Ecran {
             finEcart = finArgent + 6 + ombre(rendu, (ecartArgent > 0 ? "+" : "-") + Math.abs(ecartArgent), finArgent + 6,
                     y - Math.round(8 * k), ecartArgent > 0 ? Affichage.VERT : ROUGE, 1);
         }
+        int aLivrer = etat.inventaire().lignes(histoire.Inventaire.Categorie.LIVRAISONS).stream().mapToInt(l -> l.quantite).sum();
+        if (aLivrer > 0) {                                             // en bas a droite : ce qu'on porte, et ou le voir
+            String t = aLivrer + " À LIVRER  ·  I";
+            int lt = affichage.petite().largeur(t, 1);
+            decor.Texture sac = res.image("obj_" + etat.inventaire().lignes(histoire.Inventaire.Categorie.LIVRAISONS).get(0).id);
+            if (sac != null) {
+                rendu.calque(sac, Rendu.L - 12 - lt - 20, y - 5);
+            }
+            ombrePetite(rendu, t, Rendu.L - 10 - lt, y + 1, Affichage.VERT);
+        }
         if (etat.nonLus() > 0 || !etat.colis().isEmpty()) {            // le telephone a quelque chose : apres le gain, jamais dessous
             int px = Math.max(finArgent + 34, finEcart + 10);
             icone(rendu, PHONE, px, y - 1, Affichage.GRIS, 256);
@@ -1337,12 +1672,45 @@ final class EcranPartie implements Ecran {
         }
         histoire.Etat.Arme arme = etat.armeEnMain();
         if (arme != null) {                                            // l'arme en main, au-dessus des jauges
-            int ay = y - (a < 8 ? 12 : 34);
-            rendu.ligne(x, ay + 6, x + 7, ay - 1, 2, arme.couleur());
-            int fin = x + 12 + ombrePetite(rendu, arme.nom(), x + 12, ay, Affichage.BLANC);
-            int reste = etat.coupsRestants();
-            ombrePetite(rendu, reste < 0 ? "J : FRAPPER   G : LÂCHER" : reste + (reste > 1 ? " COUPS" : " COUP") + "   J : FRAPPER", fin + 8, ay,
-                    Affichage.GRIS);
+            int ay = y - (a < 8 ? 14 : 36);
+            decor.Texture icone = res.image("obj_" + arme.id());
+            if (icone != null) {
+                rendu.calque(icone, x - 2, ay - 5);
+            }
+            int fin = x + 16 + ombrePetite(rendu, arme.nom(), x + 16, ay, arme.relique() ? 0xC8B8FF : Affichage.BLANC);
+            if (arme.aFeu()) {                                         // le chargeur, la reserve, le rechargement
+                int dans = etat.chargees();
+                int reserve = etat.reserve();
+                boolean videClignote = (dans == 0 || combat.chargeurVide()) && monde.tempsMs() / 250 % 2 == 0;
+                int f2 = fin + 8 + ombrePetite(rendu, dans + " / " + reserve, fin + 8, ay, dans == 0 ? ROUGE : dans <= arme.chargeur() / 4
+                        ? Affichage.ORANGE : Affichage.BLANC);
+                for (int i = 0; i < Math.min(arme.chargeur(), 30); i++) {          // une barre par balle
+                    rendu.rect(x + 16 + i * 2, ay + 7, 1, 3, i < dans ? 0xE0C070 : 0x3A3A44, 256);
+                }
+                float r = combat.rechargement();
+                if (r >= 0) {
+                    rendu.rect(f2 + 8, ay + 2, 40, 3, 0x000000, 160);
+                    rendu.rect(f2 + 8, ay + 2, Math.round(40 * r), 3, 0xE0C070, 256);
+                    ombrePetite(rendu, "RECHARGE", f2 + 52, ay, Affichage.GRIS);
+                } else if (dans == 0) {
+                    ombrePetite(rendu, reserve > 0 ? "VIDE  R : RECHARGER" : "PLUS DE BALLES", f2 + 8, ay, videClignote ? ROUGE : Affichage.GRIS);
+                } else {
+                    ombrePetite(rendu, "A : TIRER   V : CHANGER", f2 + 8, ay, Affichage.GRIS);
+                }
+            } else {
+                int reste = etat.coupsRestants();
+                ombrePetite(rendu, reste < 0 ? "A : FRAPPER   V : CHANGER" : reste + (reste > 1 ? " COUPS" : " COUP") + "   A : FRAPPER", fin + 8, ay,
+                        Affichage.GRIS);
+            }
+        }
+        int combo = combat.combo();
+        if (combo >= 3) {                                              // l'enchainement, en bas a gauche, au-dessus de l'arme
+            float k = Math.max(0f, 1f - combat.comboAge() / 1.8f);
+            String t = combo + " COUPS";
+            int l = affichage.police().largeur(t, 2);
+            int cy = y - 36 - 26;
+            ombre(rendu, t, x, cy, combo >= 8 ? Affichage.ORANGE : Affichage.BLANC, 2);
+            rendu.rect(x, cy + 17, Math.round(l * k), 2, combo >= 8 ? Affichage.ORANGE : 0xE0E0E0, 220);
         }
         if (combat.actif()) {
             barresReveil = 1f;                                         // en combat, la sante reste sous les yeux
@@ -1526,8 +1894,6 @@ final class EcranPartie implements Ecran {
             rendu.cadre(50, 26, 380, 218);
             Menus.ficheMission(rendu, affichage, res.campagne, progression, progression.courante(), 62, 36, 356);
             affichage.petite().ecrire(rendu, "ECHAP : RETOUR", 62, 232, Affichage.GRIS, 1);
-        } else if (page == 2) {
-            poches(rendu);
         } else if (page == 3) {
             rendu.cadre(90, 34, 300, 206);
             options.dessiner(rendu, 104, 44);
@@ -1544,48 +1910,140 @@ final class EcranPartie implements Ecran {
     }
 
     /** L'ecran de fin de mission : ce qu'on vient de faire, et ce que cela debloque. */
+    /**
+     * Le recapitulatif d'une mission : a gauche ce qui s'est passe (les objectifs faits, dans l'ordre), a droite ce que
+     * la mission a vraiment fait au compte, par poste (les lignes de la banque depuis son debut, additionnees), puis la
+     * suite. Rien n'est recalcule a part : ce sont les mouvements enregistres.
+     */
     private void dessinerBilan(Rendu rendu) {
         Mission faite = bilan.mission();
         Mission suivante = bilan.suivante();
-        rendu.rect(0, 0, Rendu.L, Rendu.H, 0x000000, 170);
-        rendu.cadre(70, 34, 340, 202);
-        affichage.police().ecrireCentre(rendu, "MISSION TERMINÉE", Rendu.L / 2, 42, Affichage.VERT, 2);
-        affichage.police().ecrireCentre(rendu, faite.id() + "  " + faite.titre(), Rendu.L / 2, 70, Affichage.BLANC, 1);
-        int y = 90;
-        Affichage.etat(rendu, 96, y + 2, histoire.EtatMission.TERMINEE);
-        affichage.police().ecrire(rendu, "OBJECTIFS : " + faite.etapes().size() + " SUR " + faite.etapes().size(), 110, y, Affichage.GRIS, 1);
-        if (!faite.facultatifs().isEmpty()) {
-            y += 13;
-            affichage.police().ecrire(rendu, "SECONDAIRES : " + bilan.facultatifsFaits() + " SUR " + faite.facultatifs().size(),
-                    110, y, Affichage.GRIS, 1);
+        rendu.rect(0, 0, Rendu.L, Rendu.H, 0x000000, 180);
+        rendu.rect(30, 24, 420, 222, 0x14141E, 250);
+        rendu.rect(30, 24, 420, 3, Affichage.VERT, 256);
+        affichage.petite().ecrire(rendu, "MISSION TERMINÉE", 44, 34, Affichage.VERT, 1);
+        affichage.police().ecrire(rendu, faite.id() + "  " + faite.titre(), 44, 46, Affichage.BLANC, 2);
+        // la chronologie : ce qu'on a fait
+        int y = 78;
+        affichage.petite().ecrire(rendu, "CE QUI S'EST PASSÉ", 44, y, Affichage.SOMBRE, 1);
+        y += 11;
+        List<Objectif> etapes = faite.etapes();
+        int montre = Math.min(etapes.size(), 7);
+        for (int i = 0; i < montre; i++) {
+            Objectif o = etapes.get(etapes.size() <= 7 ? i : i * (etapes.size() - 1) / 6);
+            float a = doux((tempsMode - i * 0.12f) / 0.3f);
+            if (a <= 0) {
+                break;
+            }
+            rendu.rect(46, y + 3, 3, 3, Affichage.VERT, Math.round(256 * a));
+            String t = Casse.phrase(o.texte());
+            t = t.contains(",") ? t.substring(0, t.indexOf(',')) : t;
+            List<String> l = affichage.petite().couper(affichage.petite().propre(t), 170);
+            affichage.petite().ecrire(rendu, l.get(0) + (l.size() > 1 ? "…" : ""), 54, y, Affichage.GRIS, 1);
+            y += 10;
         }
-        rendu.rect(96, y + 20, 288, 1, Affichage.SOMBRE, 256);
-        y += 28;
+        if (!faite.facultatifs().isEmpty()) {
+            affichage.petite().ecrire(rendu, "SECONDAIRES : " + bilan.facultatifsFaits() + " SUR " + faite.facultatifs().size(), 44, y + 4,
+                    Affichage.SOMBRE, 1);
+        }
+        // le compte
+        histoire.Etat etat = progression.etat();
+        List<histoire.Etat.Ligne> journal = etat.journal();
+        int n = (int) Math.min(journal.size(), etat.notees() - progression.noteesDebut());
+        java.util.Map<String, int[]> postes = new java.util.LinkedHashMap<>();
+        for (histoire.Etat.Ligne l : journal.subList(journal.size() - Math.max(0, n), journal.size())) {
+            int[] p = postes.computeIfAbsent(poste(l.libelle()), k -> new int[2]);
+            p[0] += l.montant();
+            p[1]++;
+        }
+        int x = 248;
+        int lc = 188;
+        int cy = 78;
+        rendu.rect(x - 8, 72, 1, 126, 0x2A2A36, 256);
+        affichage.petite().ecrire(rendu, "LE COMPTE DE LA MISSION", x, cy, Affichage.SOMBRE, 1);
+        cy += 11;
+        List<java.util.Map.Entry<String, int[]>> tries = new ArrayList<>(postes.entrySet());
+        tries.sort((a, b) -> Integer.compare(Math.abs(b.getValue()[0]), Math.abs(a.getValue()[0])));
+        int autres = 0;
+        for (int i = 0; i < tries.size(); i++) {
+            var e = tries.get(i);
+            if (i >= 7) {
+                autres += e.getValue()[0];
+                continue;
+            }
+            float a = doux((tempsMode - 0.3f - i * 0.12f) / 0.3f);
+            if (a <= 0) {
+                break;
+            }
+            String nom = e.getKey() + (e.getValue()[1] > 2 ? " (" + e.getValue()[1] + ")" : "");
+            String m = (e.getValue()[0] >= 0 ? "+" : "-") + Math.abs(e.getValue()[0]) + " €";
+            List<String> l = affichage.petite().couper(affichage.petite().propre(nom), lc - 46);
+            affichage.petite().ecrire(rendu, l.get(0), x, cy, Affichage.GRIS, 1);
+            affichage.petite().ecrire(rendu, m, x + lc - affichage.petite().largeur(m, 1), cy,
+                    e.getValue()[0] >= 0 ? Affichage.VERT : Affichage.BLANC, 1);
+            cy += 10;
+        }
+        if (autres != 0) {
+            String m = (autres >= 0 ? "+" : "-") + Math.abs(autres) + " €";
+            affichage.petite().ecrire(rendu, "AUTRES", x, cy, Affichage.SOMBRE, 1);
+            affichage.petite().ecrire(rendu, m, x + lc - affichage.petite().largeur(m, 1), cy, Affichage.SOMBRE, 1);
+            cy += 10;
+        }
+        if (tries.isEmpty()) {
+            affichage.petite().ecrire(rendu, "PAS UN EURO N'A BOUGÉ.", x, cy, Affichage.SOMBRE, 1);
+            cy += 10;
+        }
+        rendu.rect(x, cy + 2, lc, 1, Affichage.SOMBRE, 256);
+        String solde = progression.argentDebut() + " €  À  " + etat.argent() + " €";
+        affichage.police().ecrire(rendu, solde, x + lc - affichage.police().largeur(solde, 1), cy + 7,
+                etat.argent() >= progression.argentDebut() ? Affichage.VERT : ROUGE, 1);
+        affichage.petite().ecrire(rendu, etat.loyerDu() == 0 ? "LOYER DU 12 : À JOUR" : "LOYER DU 12 : " + etat.loyerDu() + " MOIS EN RETARD",
+                x, cy + 22, etat.loyerDu() == 0 ? Affichage.VERT : ROUGE, 1);
+        // la suite
+        rendu.rect(44, 204, 392, 1, 0x2A2A36, 256);
         if (suivante == null) {
-            affichage.police().ecrireCentre(rendu, "FIN DE LA PARTIE JOUABLE", Rendu.L / 2, y, Affichage.ORANGE, 1);
-            affichage.police().ecrireCentre(rendu, "LES ACTES 3 À 7 SONT EN COURS D'ÉCRITURE.", Rendu.L / 2, y + 16, Affichage.GRIS, 1);
+            affichage.petite().ecrire(rendu, "FIN DE LA PARTIE JOUABLE. LES ACTES 3 À 7 SONT EN COURS D'ÉCRITURE.", 44, 212, Affichage.ORANGE, 1);
         } else {
             Chapitre avant = res.campagne.chapitreDe(faite);
             Chapitre apres = res.campagne.chapitreDe(suivante);
-            if (avant != apres) {
-                affichage.police().ecrireCentre(rendu, "NOUVEAU CHAPITRE : " + apres.titre() + " - " + apres.sousTitre(),
-                        Rendu.L / 2, y, Affichage.ORANGE, 1);
-                y += 16;
-            }
-            affichage.police().ecrire(rendu, "NOUVELLE MISSION DÉBLOQUÉE", 96, y, Affichage.GRIS, 1);
-            Affichage.etat(rendu, 96, y + 16, histoire.EtatMission.DISPONIBLE);
-            affichage.police().ecrire(rendu, suivante.id() + "  " + suivante.titre(), 110, y + 14, Affichage.BLANC, 1);
-            affichage.police().ecrire(rendu, suivante.lieu(), 110, y + 27, Affichage.GRIS, 1);
-            int ligne = y + 44;
+            String suite = (avant != apres ? apres.titre() + " · " : "") + "ENSUITE : " + suivante.id() + "  " + suivante.titre();
+            affichage.petite().ecrire(rendu, suite, 44, 212, Affichage.BLANC, 1);
+            StringBuilder ouverts = new StringBuilder();
             for (String lieu : suivante.ouvre()) {
-                affichage.police().ecrire(rendu, "LIEU OUVERT : " + res.campagne.nomDuLieu(lieu), 96, ligne, Affichage.VERT, 1);
-                ligne += 13;
+                ouverts.append(ouverts.length() == 0 ? "LIEU OUVERT : " : " · ").append(res.campagne.nomDuLieu(lieu));
+            }
+            if (ouverts.length() > 0) {
+                affichage.petite().ecrire(rendu, ouverts.toString(), 44, 223, Affichage.VERT, 1);
             }
         }
         if (tempsMode > 0.6f) {
-            affichage.police().ecrireCentre(rendu, "E : CONTINUER", Rendu.L / 2, 218, Affichage.BLANC, 1);
+            affichage.petite().ecrire(rendu, "E : CONTINUER", 436 - affichage.petite().largeur("E : CONTINUER", 1), 234, Affichage.GRIS, 1);
         }
     }
+
+    /** Le poste d'un mouvement de la banque, pour les recapitulatifs : les memes choses ensemble. */
+    static String poste(String libelle) {
+        if (libelle.startsWith("VENTE") || libelle.startsWith("RECOUVRÉ")) {
+            return "VENTES DE CELL";
+        }
+        if (libelle.startsWith("PAIE DE")) {
+            return "PAIES DE L'ÉQUIPE";
+        }
+        if (libelle.startsWith("LABO")) {
+            return "CUVES DE GERO";
+        }
+        if (libelle.startsWith("LOYER")) {
+            return libelle.contains("ÉPICERIE") ? "LOYER DE L'ÉPICERIE" : "LOYER DU 12";
+        }
+        if (libelle.startsWith("FRAIS")) {
+            return "FRAIS DES OPÉRATIONS";
+        }
+        if (libelle.contains("GETO") || libelle.contains("MAÎTRE POULET") || libelle.contains("CRIMÉE") || libelle.contains("VERTE")) {
+            return "PAYÉ PAR GETO";
+        }
+        return libelle;
+    }
+
 
     /**
      * Le temps qui passe : l'horloge tourne de l'ancienne heure a la nouvelle, les jours defilent, puis ce qui est arrive
@@ -1599,21 +2057,20 @@ final class EcranPartie implements Ecran {
         float vu = avant + (apres - avant) * t;
         int jourVu = (int) (vu / 1440f);
         int minutesVues = Math.round(vu - jourVu * 1440f) % 1440;
-        int cx = Rendu.L / 2;
-        affichage.petite().ecrire(rendu, saut.delai(), cx - affichage.petite().largeur(saut.delai(), 1) / 2, 46, Affichage.ORANGE, 1);
-        String jour = histoire.Calendrier.nomDuJour(jourVu);
-        affichage.police().ecrireCentre(rendu, jour, cx, 62, Affichage.BLANC, 3);
-        affichage.police().ecrireCentre(rendu, histoire.Calendrier.horloge(minutesVues), cx, 96, Affichage.GRIS, 2);
-        int semaine = 7;
-        for (int k = 0; k < semaine; k++) {                             // la semaine : le jour qui s'allume
-            int jk = jourVu - 3 + k;
-            int x = cx - semaine * 15 / 2 + k * 15;
+        boolean compte = !saut.mouvements().isEmpty();
+        int cx = compte ? 128 : Rendu.L / 2;                           // avec des mouvements : le calendrier a gauche, le compte a droite
+        int haut = compte ? 34 : 46;
+        affichage.petite().ecrire(rendu, saut.delai(), cx - affichage.petite().largeur(saut.delai(), 1) / 2, haut, Affichage.ORANGE, 1);
+        affichage.police().ecrireCentre(rendu, histoire.Calendrier.nomDuJour(jourVu), cx, haut + 16, Affichage.BLANC, 3);
+        affichage.police().ecrireCentre(rendu, histoire.Calendrier.horloge(minutesVues), cx, haut + 50, Affichage.GRIS, 2);
+        for (int k = 0; k < 7; k++) {                                   // la semaine : le jour qui s'allume
+            int x = cx - 7 * 15 / 2 + k * 15;
             boolean ici = k == 3;
-            rendu.rect(x, 122, 12, 3, ici ? Affichage.ORANGE : 0x2A2A36, 256);
-            String initiale = histoire.Calendrier.nomDuJour(jk).substring(0, 1);
-            affichage.petite().ecrire(rendu, initiale, x + 4, 128, ici ? Affichage.BLANC : Affichage.SOMBRE, 1);
+            rendu.rect(x, haut + 76, 12, 3, ici ? Affichage.ORANGE : 0x2A2A36, 256);
+            affichage.petite().ecrire(rendu, histoire.Calendrier.nomDuJour(jourVu - 3 + k).substring(0, 1), x + 4, haut + 82,
+                    ici ? Affichage.BLANC : Affichage.SOMBRE, 1);
         }
-        int y = 150;
+        int y = haut + 104;
         if (!saut.pendant().isEmpty()) {
             affichage.petite().ecrire(rendu, "PENDANT CE TEMPS", cx - affichage.petite().largeur("PENDANT CE TEMPS", 1) / 2, y,
                     Affichage.SOMBRE, 1);
@@ -1625,14 +2082,70 @@ final class EcranPartie implements Ecran {
                 break;
             }
             String ligne = saut.pendant().get(i);
-            int l = affichage.police().largeur(ligne, 1);
             int couleur = ligne.contains("+ ") ? Affichage.VERT : ligne.startsWith("LOYER") ? ROUGE : Affichage.BLANC;
-            affichage.police().ecrire(rendu, ligne, cx - l / 2, y + Math.round((1 - apparition) * 6), couleur, 1);
-            y += 13;
+            for (String m : affichage.petite().couper(ligne, compte ? 200 : 380)) {
+                int l = affichage.petite().largeur(m, 1);
+                affichage.petite().ecrire(rendu, m, cx - l / 2, y + Math.round((1 - apparition) * 6), couleur, 1);
+                y += 10;
+            }
+            y += 3;
+        }
+        if (compte) {
+            compteDuTemps(rendu);
         }
         if (tempsMode > 1.2f) {
-            affichage.petite().ecrire(rendu, "E : CONTINUER", cx - affichage.petite().largeur("E : CONTINUER", 1) / 2, 248,
+            affichage.petite().ecrire(rendu, "E : CONTINUER", Rendu.L / 2 - affichage.petite().largeur("E : CONTINUER", 1) / 2, 248,
                     Affichage.GRIS, 1);
         }
     }
+
+    /**
+     * A droite de l'ecran du temps qui passe : ce que le compte a vraiment vu entre-temps, ligne par ligne (les memes
+     * libelles additionnes), puis le solde avant et apres. Ce sont les lignes de la banque, rien d'autre.
+     */
+    private void compteDuTemps(Rendu rendu) {
+        java.util.Map<String, Integer> postes = new java.util.LinkedHashMap<>();
+        for (histoire.Etat.Ligne l : saut.mouvements()) {
+            postes.merge(l.libelle(), l.montant(), Integer::sum);
+        }
+        int x = 250;
+        int l = 206;
+        int y = 34;
+        rendu.rect(x - 8, y - 6, l + 16, 200, 0x10101A, 256);
+        rendu.rect(x - 8, y - 6, 2, 200, Affichage.ORANGE, 256);
+        affichage.petite().ecrire(rendu, "LE COMPTE", x, y, Affichage.ORANGE, 1);
+        y += 14;
+        int i = 0;
+        for (var e : postes.entrySet()) {
+            if (y > 180) {
+                break;
+            }
+            float apparition = doux((tempsMode - 1.0f - i * 0.25f) / 0.3f);
+            if (apparition <= 0) {
+                break;
+            }
+            String m = (e.getValue() > 0 ? "+" : "-") + Math.abs(e.getValue()) + " €";
+            int c = e.getValue() > 0 ? Affichage.VERT : e.getKey().startsWith("LOYER") ? ROUGE : Affichage.BLANC;
+            List<String> lignes = affichage.petite().couper(affichage.petite().propre(Casse.phrase(e.getKey())), l - 50);
+            affichage.petite().ecrire(rendu, lignes.get(0), x, y, Affichage.GRIS, 1);
+            affichage.petite().ecrire(rendu, m, x + l - affichage.petite().largeur(m, 1), y, c, 1);
+            y += 11;
+            i++;
+        }
+        float fin = doux((tempsMode - 1.2f - i * 0.25f) / 0.4f);
+        if (fin > 0) {
+            rendu.rect(x, 192, l, 1, Affichage.SOMBRE, 256);
+            int solde = Math.round(saut.soldeAvant() + (saut.soldeApres() - saut.soldeAvant()) * fin);
+            affichage.petite().ecrire(rendu, "SOLDE", x, 200, Affichage.SOMBRE, 1);
+            String s = saut.soldeAvant() + " €  À  " + solde + " €";
+            affichage.police().ecrire(rendu, s, x + l - affichage.police().largeur(s, 1), 198,
+                    saut.soldeApres() >= saut.soldeAvant() ? Affichage.VERT : ROUGE, 1);
+            if (progression.etat().loyerDu() == 0) {
+                affichage.petite().ecrire(rendu, "LOYER DU 12 : À JOUR", x, 214, Affichage.VERT, 1);
+            } else {
+                affichage.petite().ecrire(rendu, "LOYER DU 12 : " + progression.etat().loyerDu() + " MOIS EN RETARD", x, 214, ROUGE, 1);
+            }
+        }
+    }
+
 }

@@ -47,6 +47,20 @@ public final class Poses {
         });
     }
 
+    /** Le meme dessin, retourne de gauche a droite (une arme tenue par quelqu'un tourne vers la gauche). */
+    public static Texture miroir(Texture t) {
+        return memo(t, "miroir", () -> {
+            int l = t.largeur();
+            int[] p = new int[l * t.hauteur()];
+            for (int y = 0; y < t.hauteur(); y++) {
+                for (int x = 0; x < l; x++) {
+                    p[y * l + (l - 1 - x)] = t.pixels()[y * l + x];
+                }
+            }
+            return new Texture(l, t.hauteur(), p);
+        });
+    }
+
     /** Ecrase verticalement (k entre 0 et 1), les pieds au sol : accroupi, a genoux, plie en deux. */
     public static Texture tasse(Texture t, float k) {
         return memo(t, "tasse" + k, () -> {

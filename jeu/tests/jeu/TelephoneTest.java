@@ -116,11 +116,14 @@ class TelephoneTest {
     }
 
     @Test
-    void leLoyerTombeAChaqueMissionEtDeuxMoisDeRetardCoupentLeCourant() {
-        etat.finDeMission();
-        assertEquals(1, etat.loyerDu());
+    void leLoyerSuitLeCalendrierEtQuatreMoisDeRetardCoupentLeCourant() {
+        etat.calendrier().regler(2, 600);
+        assertEquals(3, etat.loyerDu(), "trois mois de retard au debut de l'histoire");
         assertFalse(etat.coupe());
         etat.finDeMission();
+        assertEquals(3, etat.loyerDu(), "finir une mission ne fait pas tomber de loyer");
+        etat.calendrier().regler(6, 600);                              // le 5 est passe
+        assertEquals(4, etat.loyerDu());
         assertTrue(etat.coupe());
         etat.blesser(50f, 0f);
         float[] lit = robot.jeu.res.carte("appartement").reperes.get("lit");
@@ -131,7 +134,7 @@ class TelephoneTest {
 
         etat.gagner(40);
         telephone(1, 0);                                               // BANQUE, payer un mois
-        assertEquals(1, etat.loyerDu());
+        assertEquals(3, etat.loyerDu());
         assertEquals(0, etat.argent());
         robot.frapper(KeyEvent.VK_E);
         assertEquals(100f, etat.sante(), 0.01f, "le loyer paye, on redort chez soi");
@@ -192,14 +195,16 @@ class TelephoneTest {
         etat.commander("casque");
         etat.livrer(Etat.DELAI - 10);
         etat.acheter(Etat.COMMERCES.get(0));
-        etat.finDeMission();
+        etat.gagner(40);
+        etat.payerLoyer();
+        int du = etat.loyerDu();
         etat.recevoir("soul", "Roule.", List.of(new Etat.Reponse("Qui es-tu ?", "+soul_demande")));
         partie.sauvegarder();
         Etat lu = new Sauvegarde(dossier.resolve("partie.properties")).charger(robot.jeu.res.campagne).progression().etat();
         assertEquals(etat.argent(), lu.argent());
         assertTrue(lu.enRoute("gilet") && lu.enRoute("casque"));
         assertTrue(lu.commerces().contains("kiosque"));
-        assertEquals(1, lu.loyerDu());
+        assertEquals(du, lu.loyerDu(), "un loyer paye reste paye apres un chargement");
         assertEquals("Roule.", lu.fil("soul").get(0).texte());
         assertEquals("Qui es-tu ?", lu.reponses("soul").get(0).texte());
         assertEquals(etat.journal().size(), lu.journal().size());

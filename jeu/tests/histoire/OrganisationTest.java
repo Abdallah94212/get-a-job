@@ -179,8 +179,8 @@ class OrganisationTest {
             avancerJusquAuBout();
         }
         etat.gagner(320, "LA CAISSE DU PREMIER JOUR");
-        etat.finDeMission();                                            // un mois de loyer en retard, chez soi
-        assertEquals(1, etat.loyerDu());
+        etat.calendrier().regler(33, 9 * 60);                          // le lendemain de l'ouverture : 3 mois de retard + celui du 5
+        assertEquals(4, etat.loyerDu());
         Mois mois = new Mois(progression);
         int depart = mois.depart();
         int somme = 0;
@@ -197,7 +197,8 @@ class OrganisationTest {
             soldes.add(j.solde());
         }
         int[] r = mois.resume();
-        assertEquals(0, etat.loyerDu(), "le loyer de l'appartement est rattrape pendant le mois");
+        assertEquals(0, etat.loyerDu(), "le loyer de l'appartement est rattrape pendant le mois, et celui du 35 aussi");
+        assertEquals(63, etat.calendrier().jour(), "le mois a fait passer trente vrais jours");
         assertEquals(etat.argent() - depart, somme, "chaque euro du mois est une ligne de la banque");
         assertEquals(r[4], r[0] - r[1] - r[2] - r[3], "recettes - paies - labo - frais = ce que le compte a gagne");
         assertTrue(etat.argent() > 7000 && etat.argent() < 14000, "un mois d'affaires : autour de 10 000 euros, pas plus : " + etat.argent());

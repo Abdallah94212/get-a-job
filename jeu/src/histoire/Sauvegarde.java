@@ -27,6 +27,10 @@ public final class Sauvegarde {
         return new Sauvegarde(Path.of(System.getProperty("user.home"), ".get-a-job", "partie.properties"));
     }
 
+    public Path fichier() {
+        return fichier;
+    }
+
     /** Le dossier de la partie : le journal des incidents y est ecrit a cote. */
     public Path dossier() {
         return fichier.toAbsolutePath().getParent();
@@ -47,6 +51,8 @@ public final class Sauvegarde {
         p.setProperty("etape", Integer.toString(progression.etape()));
         p.setProperty("facultatifs", String.join(",", progression.facultatifsFaits()));
         p.setProperty("debut", Boolean.toString(progression.debutJoue()));
+        p.setProperty("mission.notees", Long.toString(progression.noteesDebut()));
+        p.setProperty("mission.argent", Integer.toString(progression.argentDebut()));
         p.setProperty("drapeaux", String.join(",", progression.drapeaux()));
         Etat etat = progression.etat();
         p.setProperty("sante", Float.toString(etat.sante()));
@@ -98,6 +104,9 @@ public final class Sauvegarde {
                     p.getProperty("scooter.carte", ""), Float.parseFloat(p.getProperty("scooter.x", "0")),
                     Float.parseFloat(p.getProperty("scooter.y", "0")));
             progression.etat().relire(p);
+            progression.reparerInventaire();                           // une vieille partie : ce qu'elle avait deja en poche
+            progression.reprendreDebut(Long.parseLong(p.getProperty("mission.notees", Long.toString(progression.etat().notees()))),
+                    Integer.parseInt(p.getProperty("mission.argent", Integer.toString(progression.etat().argent()))));
             String carte = p.getProperty("carte");
             if (carte == null || carte.isBlank()) {
                 throw new IOException("Sauvegarde sans carte");

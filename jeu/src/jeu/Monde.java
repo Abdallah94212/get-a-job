@@ -3,6 +3,7 @@ package jeu;
 import decor.Acteur;
 import decor.Joueur;
 import decor.Porte;
+import decor.Poses;
 import decor.Rendu;
 import decor.Scene;
 import histoire.Figurant;
@@ -82,6 +83,13 @@ public final class Monde {
     private float tremblement;
     private final java.util.Random secousses = new java.util.Random(5);
     private boolean court;
+    /** Le saut du heros : sa hauteur au-dessus du sol (z), sa vitesse vers le haut, et l'instant ou il retombe. */
+    private float z;
+    private float vz;
+    private float reception;
+    private boolean vientDAtterrir;
+    static final float IMPULSION = 165f;
+    static final float PESANTEUR = 560f;
     private final Vie vie;
     private boolean pluie;
 
@@ -131,6 +139,55 @@ public final class Monde {
         return null;
     }
 
+    /**
+     * Une scene se joue ici avec ces personnages : les autres, trop pres du heros ou d'eux, s'ecartent a pied pour lui
+     * laisser la place (on ne les fait pas disparaitre), et reviennent ensuite.
+     */
+    void reserver(java.util.Set<String> participants) {
+        List<float[]> centres = new ArrayList<>();
+        centres.add(new float[] {joueur.x, joueur.y});
+        for (Habitant h : habitants) {
+            if (participants.contains(h.figurant.id())) {
+                centres.add(new float[] {h.acteur.x, h.acteur.y});
+            }
+        }
+        for (Habitant h : habitants) {
+            if (participants.contains(h.figurant.id()) || h.figurant.id().startsWith("scooter") || h.acteur.texture == null
+                    || h.figurant.garde()) {
+                continue;
+            }
+            float[] proche = null;
+            for (float[] c : centres) {
+                if (Math.abs(h.acteur.x - c[0]) < 90 && (proche == null || Math.abs(h.acteur.x - c[0]) < Math.abs(h.acteur.x - proche[0]))) {
+                    proche = c;
+                }
+            }
+            if (proche == null) {
+                continue;
+            }
+            float loin = h.acteur.x < proche[0] ? -1 : 1;
+            float cible = proche[0] + loin * 110;
+            if (scene.bloque(cible, h.acteur.y, 5) || cible < scene.xMin + 6 || cible > scene.xMax - 6) {
+                cible = proche[0] - loin * 110;
+            }
+            h.reaction = "ecarte";
+            h.reactionReste = 9f;
+            h.cibleX = cible;
+            h.cibleY = h.acteur.y;
+            h.partenaire = null;
+        }
+    }
+
+    /** Une arme tombee la (lancee) : elle reste par terre, on peut la ramasser. */
+    void poserAuSol(histoire.Etat.AuSol a) {
+        progression.etat().auSol().add(a);
+    }
+
+    /** Un objet pose dans le decor (les caisses, la chambre froide...), ou null. */
+    Acteur objet(String id) {
+        return points.get(id);
+    }
+
     /** L'acteur du heros : une cinematique jouee sur place peut le deplacer elle-meme. */
     Acteur heros() {
         return heros;
@@ -174,6 +231,102 @@ public final class Monde {
     /** Le heros a un scooter gare quelque part, qui l'attend. */
     boolean scooterGare() {
         return progression.drapeau("scooter_gare") && progression.etat().scooterCarte() != null;
+    }
+
+    /** Saute, s'il a les pieds par terre, a pied et sans les caisses dans les bras. Renvoie vrai s'il saute. */
+    boolean sauter() {
+        if (z > 0 || reception > 0 || enScooter() || charge() || scenePilote) {
+            return false;
+        }
+        vz = IMPULSION;
+        z = 0.01f;
+        return true;
+    }
+
+    /** Un elan horizontal pendant qu'il est en l'air : un coup de pied saute qui avance, une projection. */
+    private float elanX;
+    private boolean projete;
+
+    /** Projete : un coup trop fort le souleve et l'envoie en arriere ; il retombera au sol. */
+    void projeter(float vx, float vzInitial) {
+        if (enScooter()) {
+            return;
+        }
+        z = Math.max(z, 0.01f);
+        vz = vzInitial;
+        elanX = vx;
+        projete = true;
+    }
+
+    /** Un elan en l'air, vers l'avant (le coup de pied saute). */
+    void elancer(float vx) {
+        elanX = vx;
+    }
+
+    /** L'attaque plongeante : il tombe d'un coup, vers l'avant. */
+    void plonger(float vx) {
+        vz = Math.min(vz, -330f);
+        elanX = vx;
+    }
+
+    /** Vrai s'il a ete projete et n'a pas encore touche le sol. */
+    boolean projete() {
+        return projete;
+    }
+
+    float vitesseVerticale() {
+        return vz;
+    }
+
+    /** Vrai tant qu'il est en l'air (un coup a hauteur d'homme passe dessous). */
+    boolean enLAir() {
+        return z > 6;
+    }
+
+    float hauteurDuSaut() {
+        return z;
+    }
+
+    /** Vrai une fois, a l'image ou il retombe. */
+    boolean prendreAtterrissage() {
+        boolean a = vientDAtterrir;
+        vientDAtterrir = false;
+        return a;
+    }
+
+    /** Vrai une fois, a l'image ou il retombe d'une projection (il tombe au lieu de se recevoir). */
+    boolean prendreChute() {
+        if (projete && z <= 0) {
+            projete = false;
+            return true;
+        }
+        return false;
+    }
+
+    /** Le saut avance : il monte, ralentit, retombe ; on peut encore se diriger en l'air. */
+    private void sauterUnPeu(float dt) {
+        reception = Math.max(0, reception - dt);
+        if (z <= 0 && vz <= 0) {
+            return;
+        }
+        z += vz * dt;
+        vz -= PESANTEUR * dt;
+        if (elanX != 0) {                                              // l'elan le porte, sauf un mur
+            float nx = joueur.x + elanX * dt;
+            if (!scene.bloque(nx, joueur.y, Joueur.RAYON) && nx > scene.xMin + 4 && nx < scene.xMax - 4) {
+                joueur.x = nx;
+                heros.x = nx;
+            } else {
+                elanX = 0;
+            }
+        }
+        if (z <= 0) {
+            z = 0;
+            vz = 0;
+            elanX = 0;
+            reception = 0.12f;                                           // il plie les genoux en se recevant
+            vientDAtterrir = true;
+        }
     }
 
     /** Vrai a l'image ou le scooter vient de heurter un obstacle a pleine vitesse. */
@@ -303,6 +456,14 @@ public final class Monde {
             joueur.course = joueur.marche;
             joueur.reprise = Joueur.REPRISE;
             joueur.frein = Joueur.REPRISE;
+        } else if (z > 0) {                                             // en l'air : les jambes ecartees, le corps tendu
+            heros.texture = Poses.penche(res.image("heros_2"), vz > 0 ? 1 : -1);
+            heros.pas = heros.texture;
+            return;
+        } else if (reception > 0) {                                     // il se recoit, les genoux plies
+            heros.texture = Poses.tasse(res.image("heros"), 0.88f);
+            heros.pas = heros.texture;
+            return;
         } else {
             heros.texture = res.image("heros");
             heros.pas = res.image("heros_2");
@@ -332,6 +493,7 @@ public final class Monde {
         boolean aPied = progression.etat().respirer(bouge && !scooter, court && bouge && !scooter && !charge(), charge(), dt);
         this.court = scooter ? court : aPied;
         joueur.avancer(scene, dx, dy, this.court, dt);
+        sauterUnPeu(dt);
         choc = scooter && joueur.choc > 150f;
         chemin = (float) Math.hypot(joueur.x - x0, joueur.y - y0);
         bouger(dt);
@@ -355,6 +517,13 @@ public final class Monde {
 
     /** Le temps passe sans que le joueur bouge : pendant un dialogue, une pause. Les patrouilles, elles, continuent. */
     void attendre(float dt) {
+        if (z > 0) {                                                     // une scene, un telephone : il retombe sur ses pieds
+            z = 0;
+            vz = 0;
+        }
+        elanX = 0;
+        projete = false;
+        vie.ecarter(dt);                                              // pendant une scene, seuls ceux qu'on a ecartes bougent
         tempsMs += Math.round(dt * 1000);
         chemin = 0;
         choc = false;
@@ -585,7 +754,10 @@ public final class Monde {
             heros.x = joueur.x;
             heros.y = joueur.y;
             heros.miroir = !joueur.versDroite;
-            heros.marche = joueur.enMouvement;
+            heros.marche = joueur.enMouvement && z <= 0;
+            heros.hauteur = Math.round(z);                              // en l'air : l'ombre reste au sol
+        } else {
+            heros.hauteur = 0;
         }
         tous.add(heros);
         tous.addAll(enPlus);
@@ -595,5 +767,28 @@ public final class Monde {
     void dessiner(Rendu rendu, List<Acteur> enPlus) {
         int secousse = tremblement > 0.3f ? Math.round((secousses.nextFloat() * 2 - 1) * tremblement) : 0;
         rendu.dessiner(scene, Math.round(camX) + secousse, tempsMs, acteurs(enPlus));
+        porte(rendu, Math.round(camX) + secousse);
+    }
+
+    /**
+     * Ce que le heros porte a la main pendant une livraison : le premier sac de l'inventaire, dans la main de devant
+     * (les caisses de poulet, elles, se voient deja dans sa pose de porteur).
+     */
+    private void porte(Rendu rendu, int cam) {
+        histoire.Inventaire inv = progression.etat().inventaire();
+        if (heros.texture == null || inv.possede("caisses_poulet") || poseImposee != null && !scenePilote) {
+            return;
+        }
+        for (histoire.Inventaire.Ligne l : inv.lignes(histoire.Inventaire.Categorie.LIVRAISONS)) {
+            decor.Texture t = res.image("tenu_" + l.id);
+            if (t == null) {
+                continue;
+            }
+            boolean gauche = heros.miroir;
+            int hx = Math.round(heros.x) - cam + (enScooter() ? (gauche ? -14 : 10) : (gauche ? -9 : 4));
+            int hy = Math.round(heros.y) - (enScooter() ? 30 : 24) + (heros.marche && (tempsMs / 160) % 2 == 0 ? 1 : 0);
+            rendu.calque(t, hx, hy);
+            return;
+        }
     }
 }

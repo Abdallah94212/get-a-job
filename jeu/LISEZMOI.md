@@ -20,7 +20,13 @@ bash jeu/tester.sh
 |---|---|
 | Flèches ou ZQSD | Marcher : gauche et droite le long de l'avenue, haut et bas entre le trottoir et la chaussée |
 | Maj | Courir |
-| E, Entrée ou Espace | Parler, agir, entrer, passer à la réplique suivante, choisir une réponse |
+| E, Entrée | Parler, agir, entrer, passer à la réplique suivante, choisir une réponse (Espace aussi, dans un dialogue) |
+| A | Attaquer : un coup, un élan vers l'adversaire à quelques pas, ou un tir si l'arme en main tire et qu'il est loin |
+| Espace | Sauter ; en l'air, A : coup de pied sauté (bas + A : attaque plongeante) |
+| C / X | Esquive / garde (X au moment où le signe d'un ennemi passe au blanc : contre) |
+| R / V | Recharger / arme suivante (les poings, puis chaque arme du sac) |
+| J, K, L, H, G | Poing, pied (maintenu : puissant), balayage, lancer, lâcher l'arme |
+| I / P | Les poches / le téléphone |
 | Haut, bas | Changer de réponse dans un dialogue |
 | Échap | Pause en jeu, retour dans les menus, passer une cinématique |
 | T | Trame à l'ancienne, oui ou non |
@@ -73,7 +79,7 @@ lancement une campagne qu'on ne pourrait pas finir (cible inconnue, lieu jamais 
 - `EcranPartie` relie le tout : il transmet à `Progression` ce que fait le joueur et affiche ce qui en résulte.
 - `Jeu` tourne sans fenêtre, ce qui permet aux tests de jouer la vraie campagne.
 
-Les tests (`tests/`, JUnit 5, 137 tests) couvrent la stabilité (chaque scène passée avec Échap et jouée avec E,
+Les tests (`tests/`, JUnit 5, 204 tests) couvrent la stabilité (chaque scène passée avec Échap et jouée avec E,
 une partie tapée au hasard qui rend toujours la main, aucune erreur rattrapée), le temps et la continuité entre les
 missions, le quartier vivant, le combat, la progression, les drapeaux, la sauvegarde, la lecture de la
 campagne, l'organisation et le mois d'affaires, et le parcours complet : un joueur automatique termine les douze
@@ -318,6 +324,78 @@ garé sur place, et on peut le reprendre pour 5 euros.
   leur rôle, ce que le héros sait d'eux à ce moment-là, et où ils en sont tous les deux (`encart presente_<id>
   PERSONNAGE | ...`).
 
+## La route de Namek (mission 2.4, `jeu/Conduite.java`)
+
+Une séquence de conduite vue du dessus, jouée dans la boucle du jeu (un mode de plus, comme le téléphone) : la scène
+de départ dit `conduite namek namek_arrivee`, la route se joue, puis la scène d'arrivée. Trois tronçons de plus en
+plus durs : l'autoroute de nuit (des camions à doubler), la départementale (virages, nids-de-poule, chèvres), la piste
+de Namek à l'aube (étroite, des rochers, le vide au bord). Haut accélère, bas freine, gauche et droite tournent, Maj
+pour le turbo (il boit). L'essence baisse (bidons rouges sur la route), chaque choc abîme la RS6, le gravier freine.
+Tomber de la piste, la panne sèche ou la voiture qui fume font repartir au début du tronçon (et, deux fois au même
+endroit, juste avant ce passage). Arriver après le lever du soleil raccourcit la récolte à pied de quinze secondes
+(`soleil_leve`) ; une RS6 très abîmée se remarque (`rs6_abimee`). Échap met en pause. Une partie quittée au volant
+reprend la route au chargement.
+
+Les images de la route (voitures, plots, fûts, pneus, rochers, flaques d'huile, arbres, asphalte, herbe, sable) viennent
+du « Racing Pack » de Kenney (www.kenney.nl), sous licence CC0 : le pack est dans `designs/assets/kenney_racing/`, et
+`designs/decor/conduite.py` les réduit à l'échelle du jeu, les assombrit pour la nuit et réchauffe l'aube de Namek.
+
+## Le combat, deuxième passe
+
+- J : trois coups enchaînés si l'on rappuie (le dernier fait tomber). K : coup de pied ; K maintenu puis lâché : coup
+  de pied chargé, qui casse une garde et envoie au sol. L : balayage, des deux côtés, qui fait tomber garde ou pas.
+  H : lancer une canette, une pierre (trouvées dans les poubelles) ou l'arme en main : l'objet vole, a une ombre,
+  touche ce qu'il rencontre (ennemi ou passant), et une arme retombe par terre, où on la ramasse.
+- Chaque coup a son anticipation (l'épaule ou la hanche recule), puis sa phase d'impact : rien ne touche avant. Le
+  héros se tourne vers l'ennemi qu'il vise et se cale à sa hauteur.
+- À plusieurs : deux attaques au plus à la fois, les autres se postent de part et d'autre (ils encerclent), les corps
+  ne passent pas les uns dans les autres. Une bagarre de rue se fuit : assez loin, assez longtemps, elle s'arrête.
+- Les astuces apparaissent une fois, au moment où elles servent : les touches au premier combat, K maintenu quand un
+  ennemi se garde, L quand on est entouré, H quand on a de quoi lancer, la fuite dans une bagarre de rue.
+
+## Le loyer, la banque, les récapitulatifs
+
+- Le loyer du 12 suit le calendrier : trois mois de retard au début (120 euros, la lettre de la régie), un mois de plus
+  le 5 de chaque mois, 40 euros. Ce qui est dû, c'est ce qui est tombé moins ce qui est payé : la banque, le téléphone,
+  les récapitulatifs et la sauvegarde lisent ce seul chiffre. Quatre mois de retard : plus de courant.
+- Une mission peut avoir une ellipse (`ellipse <scene>`) : ce qui s'est passé hors de l'écran, appliqué pour de vrai
+  au moment du saut dans le temps. Avant « Le Plafond » : trois semaines de livraisons payées par Geto, et le retard de
+  loyer réglé. L'écran du temps qui passe montre alors « LE COMPTE » : les lignes de la banque, et le solde avant, après.
+- Le récapitulatif de fin de mission montre ce qui s'est passé (les objectifs) et ce que la mission a fait au compte,
+  par poste (ventes de Cell, paies de l'équipe, cuves de Gero, loyers, frais, ce qu'a payé Geto), depuis son début.
+- Au téléphone, une réponse entre parenthèses (« (Ne rien répondre.) ») est un geste : rien n'est envoyé.
+- Une scène réserve sa place : ceux qui n'y jouent pas et sont trop près s'écartent à pied, puis reviennent.
+
+## L'inventaire (touche I)
+
+- `histoire/Inventaire.java` est la seule base des objets : livraisons (sacs de Geto, enveloppe, caisses, sachets,
+  plants, Cell), armes (trois au plus dans le sac, une en main, chacune avec son usure), objets (beeper, boîtier,
+  éclat, ce qu'on achète). Les objets empilables partagent une ligne et une quantité ; les autres gardent la leur.
+  Tout ce qui touche aux objets passe par lui : les scènes (`donne <objet> [n] [qui]`, `remet ...`), les objectifs
+  (`avec:<objet>` : pas de livraison sans le sac, le jeu le dit), le combat (l'arme en main), les poubelles, les colis
+  du téléphone (ouverts, ils entrent dans l'inventaire), la sauvegarde. Une partie d'avant l'inventaire retrouve ce
+  qu'elle avait (les objets achetés, l'arme, le beeper, et les sacs déjà remis par une scène mais pas encore livrés).
+- La remise se joue : celui qui donne se penche, le héros tend la main, l'objet passe de l'un à l'autre sur un petit
+  arc, avec le son de sa matière (papier kraft, enveloppe, caisse, sachet, feuillage) ; à l'arrivée, « +1 SAC BLANC »
+  glisse à droite de l'écran. Pendant une livraison, le héros tient le sac à la main, et « 2 À LIVRER · I » s'affiche.
+- L'écran (I, ou « Tes poches » dans la pause) : trois onglets, une grille d'illustrations (`obj_*.png`, dessinées par
+  `designs/decor/inventaire.py`) avec les quantités, et la fiche de l'objet choisi (à qui il va, ce qu'il vaut, l'usure
+  d'une arme). E prend une arme en main ou la range, mange le sandwich ; G pose une arme par terre. Ce dont l'histoire a
+  besoin ne se jette pas.
+
+## L'appel de Geto (mission 1.2)
+
+`appel <qui> sonne <voix>` : son téléphone sonne et vibre, l'appelant s'affiche au-dessus de lui, il s'interrompt.
+`appel <qui> decroche` : il porte le téléphone à l'oreille et se détourne du héros. Tant qu'il est en ligne, ses
+répliques ont un onglet bleu « AU TÉLÉPHONE », son portrait tient le combiné, et la voix au bout du fil n'a pas de
+visage : l'écran d'un appel en cours (durée, onde de la voix), ses répliques en bleu pâle, entre guillemets.
+`appel <qui> raccroche` : il raccroche et revient vers le héros. Sons : `tel_sonnerie`, `tel_decroche`,
+`tel_raccroche` (`designs/sons/acte1.py`).
+
+Les fiches de présentation ne s'ouvrent qu'à une vraie rencontre : quand le joueur adresse la parole au personnage
+(E), ou quand celui-ci est juste à côté du héros dans la scène. Youngssef qui appelle de loin en sortant de chez soi
+n'est présenté qu'au moment où on va lui parler.
+
 ## Le temps, les journées, la continuité
 
 - Chaque mission dit quand elle se passe (`quand <jour> <hh:mm>`, le jour 1 étant le premier vendredi). L'horloge
@@ -343,3 +421,52 @@ garé sur place, et on peut le reprendre pour 5 euros.
   poste, notifications et messages des petits, puis le bilan. E accélère, Échap passe (le mois est déjà compté).
 - `tests/histoire/OrganisationTest.java` vérifie les réussites, les ventes décevantes et les échecs, les jauges, les
   refus, l'absence de double paiement, la sauvegarde des opérations en cours, et qu'un mois se relit euro par euro.
+
+## Le combat hybride et l'arsenal
+
+- **Une touche, A, qui choisit.** `jeu/Combat.java` choisit une cible (celle qui est dans la direction tenue, sinon
+  celle de devant ; un mur entre les deux l'écarte) et décide : arme à feu et cible loin, un tir ; cible proche, ou
+  arme de contact, un coup ; cible à quelques pas et pas d'arme à feu, un élan vers elle puis le coup. Le passage du tir
+  au corps à corps a une marge (on entre au contact sous 38 pixels, on revient au tir au-delà de 58) : pas de bascule
+  sans fin à la limite. Rappuyer enchaîne (poing, direct, pied ou crochet selon sa garde, circulaire) ; tenir la
+  direction de l'adversaire donne l'uppercut, qui le soulève. Un compteur d'enchaînement s'affiche dès trois coups ; au
+  cinquième, les coups s'accélèrent.
+- **Le saut au combat.** En l'air, A est un coup de pied sauté qui avance et projette ; bas + A, une attaque plongeante
+  qui couche tout autour à la réception ; juste après la réception, A reprend l'enchaînement au deuxième coup. Les coups
+  sautés passent les gardes. Un ennemi qui voit le héros sauter peut viser haut et le cueillir en l'air (il est alors
+  projeté). La position au sol (x, y) et la hauteur (z) sont séparées, pour le héros comme pour les ennemis projetés.
+- **Défense.** C : esquive (un instant intouchable, dans la direction tenue). X maintenu : la garde prend l'essentiel
+  d'un coup, mais coûte du souffle et cède à bout. X quand le signe rouge d'un ennemi passe au blanc : contre, il
+  vacille, le héros riposte.
+- **Quatre temps par coup** (élan, déclenchement, impact avec un gel d'image, retour en garde) et des réactions selon la
+  force : la tête qui part, le déséquilibre (il voit des étoiles), la chute, la projection, le soulèvement (on peut le
+  reprendre en l'air), un temps au sol avant de se relever. Poussière, éclats, secousse légère.
+- **L'arsenal** (`histoire/Etat.java`, `Etat.Arme`, et l'inventaire) : bouteille, planche, tuyau, barre ; batte (deux
+  élans, le second envoie voler) ; katana (trois coupes, la dernière soulève) ; katana relique (quatre coupes, la
+  dernière libère une onde ; unique, il ne casse pas, ne se lance pas, ne se pose pas) ; pistolet (précis, coup par
+  coup, 8 balles) ; pistolet lourd (lent, la balle traverse un corps et couche, 6 balles) ; mitraillette (rafale, se
+  disperse vite, 25 balles) ; fusil d'assaut (loin, fort, 30 cartouches rares). Chaque arme à feu a ses dégâts, sa
+  cadence, sa portée, sa dispersion et son échauffement, son chargeur, son temps de rechargement et ses munitions
+  (balles de 9 mm, de .45, cartouches de fusil, rangées dans les poches). Le chargeur est sauvegardé avec l'arme, posée
+  par terre comme dans le sac. Les balles s'arrêtent aux murs et aux meubles. Un appui pendant l'intervalle entre deux
+  tirs n'est pas perdu : le tir part dès que l'arme le permet.
+- **Les ennemis** : le bagarreur ; le sabreur (pare, riposte aussitôt, trois coupes) ; le tireur et le mitrailleur
+  (gardent leurs distances, cherchent une ligne de tir, visent avec un trait rouge, tirent, rechargent ; de près, la
+  crosse) ; la brute (lente, les petits coups ne l'arrêtent pas, elle charge : on saute par-dessus ou on esquive ;
+  contre un mur, elle reste sonnée) ; l'alien (bondit). Deux au plus attaquent au contact, un seul tireur fait feu à la
+  fois. La difficulté monte avec l'histoire (`EcranPartie.niveauDuCombat`). Un ennemi armé lâche son arme en tombant.
+- **La progression** : à l'acte 1, les poings et ce que cachent les conteneurs ; à l'acte 2, la batte dans le conteneur
+  de la cour du 29 ; le pistolet de Papy Bocal quand il cède l'épicerie (2.5) ; à Namek (2.4), la lame plantée dans la
+  roche, qui ne sort que pour celui qui porte l'éclat irisé ; à la fin de l'acte 2 (2.7), la visite des gars de Geto
+  tourne au combat contre une bande armée (bagarreur, sabreur, mitrailleur, brute) : leurs armes restent par terre, et
+  le sac tombé de leur coffre contient le pistolet lourd et le fusil d'assaut, pour l'acte 3.
+- **Les dessins et les sons** : `designs/decor/arsenal.py` (douze poses de combat du héros au même trait que
+  `heros.py`, les armes en main, les icônes, le sabreur, le tireur, la brute, la lame dans la roche, le sac) et
+  `designs/sons/arsenal.py` (quatre détonations, la mécanique des armes, la lame, la batte, les impacts, la garde, le
+  contre, l'esquive, la plongée).
+- **Les tests** : `tests/jeu/CombatArsenalTest.java` (les seize situations : enchaîner, pieds et balayette, attaques
+  aériennes, esquive, plusieurs adversaires, tir de loin et coup de près, la marge, changer de cible, les murs qui
+  arrêtent les balles, ramasser une arme, tirer et recharger, la rafale, le chargeur vide, changer d'arme en combat, la
+  sauvegarde ; et le tireur, la brute, les armes lâchées, la relique) et `tests/jeu/ArsenalHistoireTest.java` (où
+  l'histoire place les armes).
+

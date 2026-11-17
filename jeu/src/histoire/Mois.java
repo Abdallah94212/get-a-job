@@ -68,15 +68,19 @@ public final class Mois {
             return null;
         }
         jour++;
+        etat.calendrier().passer(Calendrier.JOURNEE);                  // un vrai jour passe : le loyer tombe a sa date
+        etat.majLoyer();
         long avant = etat.notees();
         List<Evenement> messages = new ArrayList<>();
-        if (jour == 8) {                                               // le loyer de l'epicerie tombe le 8
+        if (jour == 8 && progression.drapeau("epicerie_credit")) {     // le premier mois, que Papy Bocal a fait a credit
+            frais(LOYER_EPICERIE, "LOYER DE L'ÉPICERIE (PAPY BOCAL) : LE PREMIER MOIS, À CRÉDIT");
+            progression.marquer("-epicerie_credit");
+        } else if (jour == 30) {                                       // et le suivant, a la fin du mois
             frais(LOYER_EPICERIE, "LOYER DE L'ÉPICERIE (PAPY BOCAL)");
         }
-        if (jour == 5) {                                               // le loyer du 12 : tout le retard est rattrape
-            while (etat.loyerDu() > 0 && etat.payerLoyer()) {
-                orga.compterFrais(Etat.LOYER);
-            }
+        int loyers = etat.payerTousLesLoyers();                       // le loyer du 12, des qu'il tombe (et le retard)
+        for (int k = 0; k < loyers; k++) {
+            orga.compterFrais(Etat.LOYER);
         }
         if (jour % 7 == 0) {
             frais(FRAIS_SEMAINE, "FRAIS DE LA SEMAINE : FRIGOS, SACS, TÉLÉPHONES");

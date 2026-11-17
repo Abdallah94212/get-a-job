@@ -207,3 +207,60 @@ ou « deux jours plus tard » ont été retirés : l'écran du temps qui passe l
 Les fiches de présentation ne disent que ce que le héros sait au moment où il rencontre la personne (section 3) :
 Youngssef et Geto « de vue », Tata Lili qui ne le connaît pas, Omar jamais vu, Gero et Bidoche chez qui Geto l'envoie.
 Rien sur le guetteur, la femme à l'écharpe rouge ou Soul, dont le mystère compte.
+
+## 10. L'appel du grossiste et les sacs de l'acte 1
+
+L'appel qui fait basculer la 1.2 était une ligne de vibreur suivie de répliques qui se mêlaient à la conversation
+avec le héros. Il est désormais joué : Geto commence une phrase sur Youngssef, son téléphone sonne, il s'interrompt
+(« Attends. Le grossiste. À cette heure-ci. »), décroche, se détourne. Le grossiste parle (Marcel : la Krousty a racheté
+tout son volume), Geto encaisse, raccroche, puis revient au héros avec la même phrase qu'avant (« Mon grossiste. Il
+ne livre plus que la Krousty »), qui sert maintenant de transition et non plus d'explication.
+
+Les marchandises de l'acte 1 existent : le sac blanc de Tata Lili et le gros sac d'Omar (Geto les tend l'un après
+l'autre), l'enveloppe de Bidoche, les caisses de poulet, le sandwich, les trois sachets de Cell. Chaque livraison
+demande l'objet et le retire à la remise.
+
+## 11. Les graines, les sources, l'argent (passe narrative)
+
+**Soul et Nordine.** Le souvenir du banc ne parle plus d'un gamin mort au hasard : Nordine, un ami, travaillait pour la
+Krousty (il leur ramenait des signatures de commerçants), il a gardé l'argent d'une vente, et il a disparu. Soul le
+savait la veille ; il trouve la suite « prévisible » et se frotte les mains comme s'il avait froid. Sur le moment,
+c'est un ami qui dit une chose dure. Relu à l'acte 6, quand on apprend qu'il travaille pour la Krousty, c'est un aveu.
+Le héros lui répond « Regarde Nordine » ; Soul : « Nordine a mal joué. »
+
+**La RS6 et le boîtier.** Ce n'est plus Gero qui révèle la voiture d'Omar. C'est le mécano d'Omar, bavard, le soir de la
+livraison de poulet (1.1) : une RS6, sortie une nuit par mois, les pneus pleins de poussière rouge ; de l'électronique,
+pas besoin de clé ; son boîtier orange qui copie les télécommandes. Gero (2.1) ne parle que de matière et de tarif, et
+prend le héros de haut (« Toi, tu as des baskets. ») ; le héros a déjà son plan : « Gero, toi, tu t'occupes de la
+transformer. Moi, j'ai déjà une idée de la voiture que je vais prendre. »
+
+**L'argent.** Chaque somme a une origine. Ce que paient Tata Lili, Omar et les clients de la Cell est l'argent de Geto
+(un objet de l'inventaire, « l'argent pour Geto ») : le héros le rapporte au comptoir, Geto paie sa part. Avant « Le
+Plafond », trois semaines de livraisons (21 soirs à 12 et à 40 euros) paient le retard de loyer : la régie se tait
+parce que c'est vrai. Les « quatre billets » de Geto sont quarante euros. Papy Bocal dit son loyer (450 par mois, le 8)
+et le premier mois se paie, ou se fait à crédit. La première caisse de l'épicerie (320 euros) est dite : de la Cell,
+en liquide.
+
+**Le mur du plan** n'est plus proposé au premier soir : il prend forme à la fin de l'acte 1.
+
+## 12. L'arsenal dans l'histoire
+
+Les armes arrivent avec l'histoire, et chacune dit quelque chose de l'escalade.
+
+- **Acte 1** : les poings, puis ce que la rue laisse traîner (bouteille, planche, tuyau, barre, une canette, un pavé).
+  Le héros n'est pas un soldat : il se défend avec ce qu'il trouve.
+- **2.3, la cour du 29** : le conteneur près du guetteur cache souvent une batte. La première arme « vraie », trouvée la
+  nuit du vol.
+- **2.4, Namek** : près de la baraque, une lame plantée dans la roche, la poignée usée par des mains qui ont tout
+  essayé. Elle ne sort que si le héros porte l'éclat irisé, gagné contre les aliens de la cour : l'éclat chauffe, la
+  lame « chante ». C'est la relique : unique, elle ne casse pas, ne se lance pas, ne se pose pas. Rien n'en est encore
+  expliqué ; c'est une graine pour la suite (ce qui relie la Piccolo, les aliens irisés et Namek).
+- **2.5, l'épicerie** : Papy Bocal laisse sous le comptoir le pistolet de son frère (« prie pour qu'il dorme encore
+  trente ans »), et une boîte de balles. Le premier pistolet n'est pas acheté : il est hérité avec la boutique, et avec
+  ce qu'elle attire.
+- **2.7, la visite** : Youngssef frappe le premier, et la visite tourne au combat. La bande de Geto n'est plus deux
+  guetteurs : un bagarreur, un sabreur, un mitrailleur, une brute. Battus, ils remontent en voiture sans ce qu'ils
+  avaient dans les mains (le katana, la mitraillette restent par terre), et un sac de sport tombe du coffre : un
+  pistolet chromé, un fusil d'assaut, des cartouches. « Geto ne venait pas parler. » C'est l'entrée de l'acte 3 (la
+  vendetta) : les armes les plus dures sont là, mais leurs munitions sont rares.
+

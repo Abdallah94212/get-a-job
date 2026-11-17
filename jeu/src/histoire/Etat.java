@@ -117,7 +117,7 @@ public final class Etat {
         if (montant != 0) {
             notees++;
             journal.add(new Ligne(libelle, montant));
-            while (journal.size() > 120) {
+            while (journal.size() > 800) {
                 journal.remove(0);
             }
         }
@@ -239,7 +239,11 @@ public final class Etat {
     }
 
     /** Une reponse possible a un message : ce qu'on ecrit, et les drapeaux que cela leve dans l'histoire ("-" : aucun). */
+    /** Une reponse possible a un message. Entre parentheses, c'est un geste (ne rien repondre) : rien n'est envoye. */
     public record Reponse(String texte, String drapeaux) {
+        public boolean silencieuse() {
+            return texte.startsWith("(");
+        }
     }
 
     /** Une ligne du releve de compte. */
@@ -269,14 +273,14 @@ public final class Etat {
     private final List<Message> messages = new ArrayList<>();
     private final Map<String, List<Reponse>> attentes = new LinkedHashMap<>();
     private final Set<String> nonLus = new LinkedHashSet<>();
-    private final Set<String> objets = new LinkedHashSet<>();
     private final Set<String> commerces = new LinkedHashSet<>();
     private final Map<String, Float> commandes = new LinkedHashMap<>();
     private final List<String> colis = new ArrayList<>();
     private final List<Ligne> journal = new ArrayList<>();
     private final Deque<String> avis = new ArrayDeque<>();
     private final List<String> notifications = new ArrayList<>();
-    private int loyerDu;
+    private int loyersPayes;
+    private int loyersVus = -1;
 
     public static Article article(String id) {
         return ARTICLES.stream().filter(a -> a.id().equals(id)).findFirst().orElse(null);
@@ -322,7 +326,9 @@ public final class Etat {
         if (possibles == null || rang < 0 || rang >= possibles.size()) {
             return "";
         }
-        messages.add(new Message(de, possibles.get(rang).texte(), true));
+        if (!possibles.get(rang).silencieuse()) {                      // "(Ne rien repondre.)" : un geste, pas un message
+            messages.add(new Message(de, possibles.get(rang).texte(), true));
+        }
         String drapeaux = possibles.get(rang).drapeaux();
         return drapeaux.equals("-") ? "" : drapeaux;
     }
@@ -366,16 +372,17 @@ public final class Etat {
     // ------------------------------------------------------------------ les commandes et les colis
 
     public boolean possede(String objet) {
-        return objets.contains(objet);
+        return inventaire.possede(objet);
     }
 
-    public Set<String> objets() {
-        return objets;
+    /** Les objets achetes qu'on a en poche (la categorie "objets" de l'inventaire, hors objets de l'histoire). */
+    public List<String> objets() {
+        return inventaire.lignes(Inventaire.Categorie.OBJETS).stream().map(l -> l.id).filter(id -> article(id) != null).toList();
     }
 
     /** Vrai si l'objet est deja a soi, en route, ou dans un colis pas encore ouvert. */
     public boolean dejaPris(String objet) {
-        return objets.contains(objet) || commandes.containsKey(objet) || colis.contains(objet);
+        return possede(objet) || commandes.containsKey(objet) || colis.contains(objet);
     }
 
     public boolean enRoute(String objet) {
@@ -414,14 +421,16 @@ public final class Etat {
     /** Ouvre les colis qui attendent a la maison. Renvoie ce qu'ils contenaient. */
     public List<String> ouvrirColis() {
         List<String> ouverts = new ArrayList<>(colis);
-        objets.addAll(colis);
+        for (String o : colis) {
+            inventaire.ajouter(o, 1);                                  // le colis ouvert : l'objet rejoint l'inventaire
+        }
         colis.clear();
         return ouverts;
     }
 
     /** Se sert d'un objet qui ne sert qu'une fois (la lacrymo). Renvoie faux si on ne l'a pas. */
     public boolean utiliser(String objet) {
-        return objets.remove(objet);
+        return inventaire.retirer(objet, 1);
     }
 
     /** Un coup : le gilet en prend la moitie. */
@@ -429,28 +438,96 @@ public final class Etat {
         blesser(possede("gilet") ? degats / 2f : degats, 0f);
     }
 
-    // ------------------------------------------------------------------ les armes trouvees dans la rue
+    // ------------------------------------------------------------------ l'arsenal
 
     /**
-     * Une arme improvisee. degats, portee (pixels), duree du geste (secondes), recul donne a l'ennemi (pixels par
-     * seconde), coups avant de casser (0 : ne casse pas), couleur et longueur du dessin dans la main.
+     * La famille d'une arme : elle decide de ce que fait la touche A. Les armes de contact frappent (une barre ne tire
+     * pas) ; les armes a feu tirent de loin et laissent les poings faire le travail de pres.
      */
-    public record Arme(String id, String nom, float degats, float portee, float duree, float recul, int coups, int couleur,
-                       int longueur, String phrase) {
+    public enum Famille {
+        IMPROVISEE, CONTONDANT, LAME, PISTOLET, MITRAILLETTE, FUSIL;
+
+        public boolean aFeu() {
+            return this == PISTOLET || this == MITRAILLETTE || this == FUSIL;
+        }
+    }
+
+    /**
+     * Une arme. Pour toutes : degats, portee (pixels), duree du geste ou de l'intervalle entre deux tirs (secondes), recul
+     * donne a l'ennemi (pixels par seconde), coups avant de casser (0 : ne casse pas), couleur et longueur du dessin dans
+     * la main. Pour une arme a feu : cadence (tirs par seconde), dispersion (radians, au premier tir), echauffement (ce que
+     * chaque tir ajoute a la dispersion), chargeur, temps de rechargement, munition (l'objet de l'inventaire), automatique
+     * (A maintenu tire en continu), perce (combien de corps la balle traverse). rang : le moment de l'histoire ou elle
+     * devient trouvable (1 : des le debut ; 4 : les missions les plus dures). relique : unique, jamais dupliquee.
+     */
+    public record Arme(String id, String nom, Famille famille, float degats, float portee, float duree, float recul, int coups,
+                       int couleur, int longueur, String phrase, float cadence, float dispersion, float echauffement, int chargeur,
+                       float rechargement, String munition, boolean automatique, int perce, int rang, boolean relique) {
+        /** Une arme de contact (la forme d'avant l'arsenal). */
+        public Arme(String id, String nom, float degats, float portee, float duree, float recul, int coups, int couleur, int longueur,
+                    String phrase) {
+            this(id, nom, Famille.IMPROVISEE, degats, portee, duree, recul, coups, couleur, longueur, phrase, 0, 0, 0, 0, 0, null,
+                    false, 0, 1, false);
+        }
+
+        public boolean aFeu() {
+            return famille.aFeu();
+        }
+
+        /** Le dessin de l'arme dans la main, pour une arme a feu (arme_pistolet...), ou null. */
+        public String dessin() {
+            return aFeu() ? "arme_" + id : null;
+        }
+
+        /** Une arme longue se tient a deux mains, la crosse a l'epaule. */
+        public boolean deuxMains() {
+            return famille == Famille.MITRAILLETTE || famille == Famille.FUSIL;
+        }
+    }
+
+    private static Arme contact(String id, String nom, Famille f, float degats, float portee, float duree, float recul, int coups,
+                                int couleur, int longueur, int rang, boolean relique, String phrase) {
+        return new Arme(id, nom, f, degats, portee, duree, recul, coups, couleur, longueur, phrase, 0, 0, 0, 0, 0, null, false, 0,
+                rang, relique);
+    }
+
+    private static Arme feu(String id, String nom, Famille f, float degats, float portee, float cadence, float dispersion,
+                            float echauffement, int chargeur, float rechargement, String munition, boolean auto, int perce, float recul,
+                            int rang, String phrase) {
+        return new Arme(id, nom, f, degats, portee, 1f / cadence, recul, 0, 0x3A3C44, 8, phrase, cadence, dispersion, echauffement,
+                chargeur, rechargement, munition, auto, perce, rang, false);
     }
 
     public static final List<Arme> ARMES = List.of(
             new Arme("barre", "BARRE DE FER", 28, 40, 0.55f, 160, 0, 0x8A8E98, 18, "Lourde et lente, mais elle couche n'importe qui."),
             new Arme("tuyau", "TUYAU DE PLOMB", 22, 36, 0.45f, 120, 14, 0x9A9488, 15, "Plus leger que la barre. Il finira par plier."),
             new Arme("planche", "PLANCHE CLOUÉE", 18, 34, 0.42f, 90, 6, 0x9C7448, 16, "Elle ne tiendra pas longtemps."),
-            new Arme("bouteille", "BOUTEILLE", 20, 26, 0.32f, 70, 1, 0x3E7A52, 9, "Un seul coup, et elle eclate."));
+            new Arme("bouteille", "BOUTEILLE", 20, 26, 0.32f, 70, 1, 0x3E7A52, 9, "Un seul coup, et elle eclate."),
+            contact("batte", "BATTE DE BASEBALL", Famille.CONTONDANT, 24, 38, 0.44f, 220, 0, 0xC4A06E, 17, 2, false,
+                    "Deux elans : de cote, puis par-dessus. Le second envoie voler."),
+            contact("katana", "KATANA", Famille.LAME, 22, 36, 0.3f, 90, 0, 0xD6DAE2, 20, 3, false,
+                    "Rapide. Trois coupes ; la troisieme souleve."),
+            contact("katana_relique", "KATANA RELIQUE", Famille.LAME, 30, 42, 0.28f, 120, 0, 0xB4A0F0, 22, 4, true,
+                    "La lame chante. Quatre coupes ; la derniere libere une onde."),
+            feu("pistolet", "PISTOLET", Famille.PISTOLET, 14, 230, 3.5f, 0.03f, 0.03f, 8, 1.1f, "balles_9", false, 0, 90, 2,
+                    "Precis, coup par coup. Huit balles."),
+            feu("pistolet_lourd", "PISTOLET LOURD", Famille.PISTOLET, 28, 260, 1.7f, 0.02f, 0.06f, 6, 1.5f, "balles_45", false, 1, 230, 4,
+                    "Lent, brutal : la balle traverse et couche."),
+            feu("mitraillette", "MITRAILLETTE", Famille.MITRAILLETTE, 8, 175, 11f, 0.07f, 0.025f, 25, 1.7f, "balles_9", true, 0, 50, 3,
+                    "A maintenu : une rafale. Elle s'ecarte vite."),
+            feu("fusil", "FUSIL D'ASSAUT", Famille.FUSIL, 18, 320, 7f, 0.035f, 0.015f, 30, 2.1f, "balles_fusil", true, 0, 120, 4,
+                    "Loin et fort. Ses munitions sont rares."));
 
     public static Arme arme(String id) {
         return ARMES.stream().filter(a -> a.id().equals(id)).findFirst().orElse(null);
     }
 
-    private String arme;
-    private int usure;
+    /** Tout ce qu'on a sur soi : livraisons, armes, objets. */
+    private final Inventaire inventaire = new Inventaire();
+
+    public Inventaire inventaire() {
+        return inventaire;
+    }
     /** Les petits et les operations qu'on leur confie : leur argent passe par cette banque-ci, la seule. */
     private final Organisation organisation = new Organisation();
 
@@ -462,20 +539,78 @@ public final class Etat {
 
     /** L'arme en main, ou null : les poings. */
     public Arme armeEnMain() {
-        return arme == null ? null : arme(arme);
+        Inventaire.Ligne l = inventaire.equipee();
+        return l == null ? null : arme(l.id);
     }
 
-    /** Prend une arme : celle qu'on tenait reste par terre. Renvoie l'ancienne, ou null. */
+    /**
+     * Prend une arme : elle va dans le sac et dans la main. Le sac tient trois armes ; au-dela, celle qu'on avait en
+     * main reste la. Renvoie l'arme laissee, ou null si on garde tout.
+     */
     public Arme prendreArme(String id) {
-        Arme ancienne = armeEnMain();
-        arme = id;
-        usure = 0;
-        return ancienne;
+        Arme a = arme(id);
+        if (a != null && a.relique() && inventaire.possede(id)) {      // une relique n'existe qu'une fois
+            return null;
+        }
+        Inventaire.Ligne laissee = inventaire.prendreArme(id, a != null && a.aFeu() ? a.chargeur() : 0);
+        return laissee == null ? null : arme(laissee.id);
     }
 
+    /** Prend une arme la ou l'on est : si le sac est plein, celle qu'on tenait reste par terre ici (avec son usure). */
+    public Arme prendreArme(String id, String carte, float x, float y) {
+        Arme a = arme(id);
+        if (a != null && a.relique() && inventaire.possede(id)) {
+            return null;
+        }
+        Inventaire.Ligne laissee = inventaire.prendreArme(id, a != null && a.aFeu() ? a.chargeur() : 0);
+        if (laissee == null) {
+            return null;
+        }
+        auSol.add(new AuSol(laissee.id, laissee.usure, carte, x, y));
+        return arme(laissee.id);
+    }
+
+    /** Les balles dans le chargeur de l'arme en main (une arme a feu range ce compte dans son usure), ou -1. */
+    public int chargees() {
+        Arme a = armeEnMain();
+        return a == null || !a.aFeu() ? -1 : inventaire.equipee().usure;
+    }
+
+    /** Les balles en reserve pour l'arme en main (dans les poches), ou -1. */
+    public int reserve() {
+        Arme a = armeEnMain();
+        return a == null || !a.aFeu() ? -1 : inventaire.quantite(a.munition());
+    }
+
+    /** Une balle part : renvoie faux si le chargeur est vide. */
+    public boolean tirer() {
+        Arme a = armeEnMain();
+        if (a == null || !a.aFeu() || inventaire.equipee().usure <= 0) {
+            return false;
+        }
+        inventaire.equipee().usure--;
+        return true;
+    }
+
+    /** Recharge l'arme en main avec ce qu'on a en poche. Renvoie le nombre de balles glissees dans le chargeur. */
+    public int recharger() {
+        Arme a = armeEnMain();
+        if (a == null || !a.aFeu()) {
+            return 0;
+        }
+        Inventaire.Ligne l = inventaire.equipee();
+        int n = Math.min(a.chargeur() - l.usure, inventaire.quantite(a.munition()));
+        if (n <= 0) {
+            return 0;
+        }
+        inventaire.consommer(a.munition(), n);
+        l.usure += n;
+        return n;
+    }
+
+    /** L'arme en main sort de l'inventaire (elle a casse, ou on l'a jetee). */
     public void lacherArme() {
-        arme = null;
-        usure = 0;
+        inventaire.lacher();
     }
 
     /** Une arme posee par terre : elle reste ou on l'a laissee, et se ramasse avec son usure. */
@@ -486,30 +621,38 @@ public final class Etat {
 
     /** Lache l'arme en main a cet endroit : elle reste par terre, on peut revenir la chercher. */
     public void poserArme(String carte, float x, float y) {
-        if (arme == null) {
+        Inventaire.Ligne l = inventaire.equipee();
+        if (l == null) {
             return;
         }
-        auSol.add(new AuSol(arme, usure, carte, x, y));
+        poser(l, carte, x, y);
+    }
+
+    /** Pose cette arme du sac par terre (depuis l'inventaire). */
+    public void poser(Inventaire.Ligne l, String carte, float x, float y) {
+        if (l == null || l.fiche().usage() != Inventaire.Usage.EQUIPER || l.fiche().mission()) {
+            return;                                                    // les munitions et la relique ne se posent pas
+        }
+        auSol.add(new AuSol(l.id, l.usure, carte, x, y));
         while (auSol.size() > 12) {                                    // le quartier ne garde pas tout : les plus vieilles partent
             auSol.remove(0);
         }
-        lacherArme();
+        inventaire.enlever(l);
     }
 
     public List<AuSol> auSol() {
         return auSol;
     }
 
-    /** Ramasse une arme posee. Celle qu'on avait en main prend sa place par terre. */
+    /** Ramasse une arme posee : dans le sac, et dans la main. Si le sac est plein, celle qu'on tenait prend sa place par terre. */
     public void ramasser(AuSol posee) {
         if (!auSol.remove(posee)) {
             return;
         }
-        if (arme != null) {
-            auSol.add(new AuSol(arme, usure, posee.carte(), posee.x(), posee.y()));
+        Inventaire.Ligne laissee = inventaire.prendreArme(posee.arme(), posee.usure());
+        if (laissee != null) {
+            auSol.add(new AuSol(laissee.id, laissee.usure, posee.carte(), posee.x(), posee.y()));
         }
-        arme = posee.arme();
-        usure = posee.usure();
     }
 
     /** L'arme a servi : renvoie vrai si elle vient de casser. */
@@ -518,8 +661,9 @@ public final class Etat {
         if (a == null || a.coups() == 0) {
             return false;
         }
-        usure++;
-        if (usure >= a.coups()) {
+        Inventaire.Ligne l = inventaire.equipee();
+        l.usure++;
+        if (l.usure >= a.coups()) {
             lacherArme();
             return true;
         }
@@ -528,7 +672,7 @@ public final class Etat {
 
     public int coupsRestants() {
         Arme a = armeEnMain();
-        return a == null || a.coups() == 0 ? -1 : a.coups() - usure;
+        return a == null || a.coups() == 0 ? -1 : a.coups() - inventaire.equipee().usure;
     }
 
     public boolean fouillee(String id) {
@@ -563,25 +707,61 @@ public final class Etat {
         return COMMERCES.stream().filter(c -> commerces.contains(c.id())).mapToInt(Commerce::recette).sum();
     }
 
+    /**
+     * Le loyer du 12 suit le calendrier, et lui seul : trois mois de retard au debut de l'histoire (la troisieme relance
+     * de la regie), puis un mois de plus le 5 de chaque mois (jours 5, 35, 65...). Ce qui est du, c'est ce qui est
+     * tombe moins ce qui a ete paye : la banque, le telephone, les recapitulatifs lisent tous ce meme chiffre.
+     */
+    public static final int ARRIERES = 3;
+    public static final int JOUR_DU_LOYER = 5;
+
+    public int loyersTombes() {
+        int jour = calendrier.jour();
+        return ARRIERES + (jour >= JOUR_DU_LOYER ? 1 + (jour - JOUR_DU_LOYER) / 30 : 0);
+    }
+
     public int loyerDu() {
-        return loyerDu;
+        return Math.max(0, loyersTombes() - loyersPayes);
     }
 
-    /** Deux mois de retard : la regie coupe le courant, on ne dort plus chez soi. */
+    /** Quatre mois de retard : la regie coupe le courant, on ne dort plus chez soi. */
     public boolean coupe() {
-        return loyerDu >= 2;
+        return loyerDu() >= ARRIERES + 1;
     }
 
+    /** Paie un mois de loyer a la regie. */
     public boolean payerLoyer() {
-        if (loyerDu <= 0 || !payer(LOYER, "LOYER")) {
+        if (loyerDu() <= 0 || !payer(LOYER, "LOYER DU 12 (LA RÉGIE)")) {
             return false;
         }
-        loyerDu--;
-        prevenir(loyerDu == 0 ? "LOYER À JOUR." : "LOYER PAYÉ. IL RESTE " + loyerDu + " MOIS DE RETARD.");
+        loyersPayes++;
+        prevenir(loyerDu() == 0 ? "LOYER À JOUR. LA RÉGIE NE RELANCE PLUS." : "LOYER PAYÉ. IL RESTE " + loyerDu() + " MOIS DE RETARD.");
         return true;
     }
 
-    /** Une mission se termine : les commerces rapportent, et un mois de loyer tombe. */
+    /** Paie tout le retard qu'on peut payer. Renvoie le nombre de mois regles. */
+    public int payerTousLesLoyers() {
+        int n = 0;
+        while (loyerDu() > 0 && payerLoyer()) {
+            n++;
+        }
+        return n;
+    }
+
+    /** Le calendrier a avance : un nouveau mois de loyer est peut-etre tombe. La regie le fait savoir, une fois. */
+    public void majLoyer() {
+        int tombes = loyersTombes();
+        if (loyersVus < 0) {
+            loyersVus = tombes;
+        }
+        if (tombes > loyersVus) {
+            loyersVus = tombes;
+            prevenir(coupe() ? "LA RÉGIE A COUPÉ LE COURANT : " + loyerDu() + " MOIS DE LOYER EN RETARD."
+                    : "NOUVEAU MOIS DE LOYER : " + LOYER + " EUROS POUR LA RÉGIE, À PAYER DEPUIS TON TÉLÉPHONE (BANQUE).");
+        }
+    }
+
+    /** Une mission se termine : les commerces achetes rapportent leur recette. (Le loyer, lui, suit le calendrier.) */
     public void finDeMission() {
         nouvellesPoubelles();
         for (Commerce commerce : COMMERCES) {
@@ -590,9 +770,6 @@ public final class Etat {
                 prevenir("RECETTE : " + commerce.nom() + ", + " + commerce.recette() + " EUROS.");
             }
         }
-        loyerDu++;
-        prevenir(coupe() ? "LOYER : " + loyerDu + " MOIS DE RETARD. LA RÉGIE A COUPÉ LE COURANT CHEZ TOI."
-                : "LOYER : " + LOYER + " EUROS À PAYER, DEPUIS TON TÉLÉPHONE.");
     }
 
     /** Le nombre de mouvements notes depuis le debut (le journal, lui, ne garde que les derniers). */
@@ -617,10 +794,11 @@ public final class Etat {
     }
 
     public void enregistrer(Properties p) {
-        p.setProperty("tel.objets", String.join(",", objets));
         p.setProperty("tel.commerces", String.join(",", commerces));
         p.setProperty("tel.colis", String.join(",", colis));
-        p.setProperty("tel.loyer", Integer.toString(loyerDu));
+        p.setProperty("loyer.payes", Integer.toString(loyersPayes));
+        p.setProperty("journal.notees", Long.toString(notees));
+        p.setProperty("loyer.vus", Integer.toString(loyersVus));
         p.setProperty("tel.nonlus", String.join(",", nonLus));
         p.setProperty("tel.commandes", String.join(SUITE, commandes.entrySet().stream().map(e -> e.getKey() + CHAMP + e.getValue()).toList()));
         p.setProperty("tel.messages", String.join(SUITE, messages.stream().map(m -> m.de() + CHAMP + m.deMoi() + CHAMP + m.texte()).toList()));
@@ -629,8 +807,7 @@ public final class Etat {
         List<String> a = new ArrayList<>();
         attentes.forEach((de, reponses) -> reponses.forEach(r -> a.add(de + CHAMP + r.texte() + CHAMP + r.drapeaux())));
         p.setProperty("tel.attentes", String.join(SUITE, a));
-        p.setProperty("arme", arme == null ? "" : arme);
-        p.setProperty("arme.usure", Integer.toString(usure));
+        inventaire.enregistrer(p);
         p.setProperty("fouillees", String.join(",", fouillees));
         organisation.enregistrer(p);
         calendrier.enregistrer(p);
@@ -639,13 +816,13 @@ public final class Etat {
     }
 
     public void relire(Properties p) {
-        objets.clear(); commerces.clear(); colis.clear(); nonLus.clear(); commandes.clear();
+        commerces.clear(); colis.clear(); nonLus.clear(); commandes.clear();
         messages.clear(); journal.clear(); notifications.clear(); attentes.clear(); avis.clear();
-        objets.addAll(liste(p.getProperty("tel.objets", ""), ","));
         commerces.addAll(liste(p.getProperty("tel.commerces", ""), ","));
         colis.addAll(liste(p.getProperty("tel.colis", ""), ","));
         nonLus.addAll(liste(p.getProperty("tel.nonlus", ""), ","));
-        loyerDu = Integer.parseInt(p.getProperty("tel.loyer", "0"));
+        String ancienDu = p.getProperty("tel.loyer");
+        notees = Long.parseLong(p.getProperty("journal.notees", "0"));
         for (String c : liste(p.getProperty("tel.commandes", ""), SUITE)) {
             String[] m = c.split(CHAMP, -1);
             commandes.put(m[0], Float.parseFloat(m[1]));
@@ -659,17 +836,32 @@ public final class Etat {
             journal.add(new Ligne(m[0], Integer.parseInt(m[1])));
         }
         notifications.addAll(liste(p.getProperty("tel.notifications", ""), SUITE));
+        notees = Math.max(notees, journal.size());
         for (String c : liste(p.getProperty("tel.attentes", ""), SUITE)) {
             String[] m = c.split(CHAMP, -1);
             attentes.computeIfAbsent(m[0], k -> new ArrayList<>()).add(new Reponse(m[1], m[2]));
         }
-        String lue = p.getProperty("arme", "");
-        arme = arme(lue) == null ? null : lue;
-        usure = Integer.parseInt(p.getProperty("arme.usure", "0"));
+        if (!inventaire.relire(p)) {                                   // une partie d'avant l'inventaire : on y range ce qu'elle avait
+            for (String o : liste(p.getProperty("tel.objets", ""), ",")) {
+                inventaire.ajouter(o, 1);
+            }
+            String lue = p.getProperty("arme", "");
+            if (arme(lue) != null) {
+                inventaire.prendreArme(lue, Integer.parseInt(p.getProperty("arme.usure", "0")));
+            }
+            inventaire.prendreMouvements();
+        }
         fouillees.clear();
         fouillees.addAll(liste(p.getProperty("fouillees", ""), ","));
         organisation.relire(p);
         calendrier.relire(p);
+        if (p.getProperty("loyer.payes") != null) {
+            loyersPayes = Integer.parseInt(p.getProperty("loyer.payes"));
+            loyersVus = Integer.parseInt(p.getProperty("loyer.vus", "-1"));
+        } else {                                                        // une partie d'avant : on garde ce qu'elle disait du
+            loyersPayes = Math.max(0, loyersTombes() - (ancienDu == null ? 0 : Integer.parseInt(ancienDu)));
+            loyersVus = -1;
+        }
         auSol.clear();
         for (String c : liste(p.getProperty("ausol", ""), SUITE)) {
             String[] m = c.split(CHAMP, -1);

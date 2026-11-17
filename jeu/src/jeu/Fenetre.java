@@ -285,7 +285,9 @@ public final class Fenetre extends Canvas {
 
     /** Lance le jeu. Argument facultatif : le dossier des ressources. */
     public static void main(String[] args) throws IOException {
-        Sauvegarde sauvegarde = DEMO ? new Sauvegarde(Files.createTempFile("demo", ".properties")) : Sauvegarde.parDefaut();
+        Sauvegarde sauvegarde = DEMO ? new Sauvegarde(Files.createTempFile("demo", ".properties"))
+                : AideDev.ACTIVE ? new Sauvegarde(Path.of(System.getProperty("user.home"), ".get-a-job", "partie_test.properties"))   // AideDev
+                : Sauvegarde.parDefaut();
         if (DEMO) {
             sauvegarde.effacer();
         }

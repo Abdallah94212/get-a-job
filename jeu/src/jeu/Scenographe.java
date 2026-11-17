@@ -1,6 +1,7 @@
 package jeu;
 
 import decor.Acteur;
+import decor.Poses;
 import decor.Rendu;
 import decor.Scene;
 import decor.Texture;
@@ -87,6 +88,31 @@ final class Scenographe {
     private String meteo;
     /** La frappe de cette image a deja servi : elle ne doit pas aussi terminer la replique suivante. */
     private boolean frappeServie;
+    /** Un objet qui passe de main en main ("donne sac_lili 1 geto", "remet sac_lili 1 diallo") : ce qui passe, et ou il en est. */
+    private Plan transfert;
+    private float transfertT;
+    private Texture poseDonneur;
+    private Monde.Habitant donneur;
+    static final float DUREE_TRANSFERT = 0.8f;
+    /** Quelqu'un de la scene au telephone : qui, avec qui, ou en est l'appel ("sonne", "ligne"), depuis quand. */
+    private String appelQui;
+    private String appelAvec;
+    private String appelEtat;
+    private float appelT;
+    private float appelDuree;
+    private int sensAvantAppel;
+    /** Celui a qui le joueur vient de s'adresser (E) : on ne presente quelqu'un qu'au moment de le rencontrer vraiment. */
+    private String interlocuteur;
+
+    /** Le joueur vient d'appuyer sur E devant ce personnage : la scene qui suit est sa rencontre. */
+    void parlerA(String id) {
+        interlocuteur = id;
+    }
+
+    /** Pour les essais : qui est au telephone en ce moment, et l'etat de l'appel ("sonne", "ligne"), ou null. */
+    String appel() {
+        return appelQui == null ? null : appelQui + ":" + appelEtat;
+    }
 
     Scenographe(Ressources res, Monde monde, Progression progression, Reglages reglages, Audio audio, Affichage affichage) {
         this.res = res;
@@ -114,6 +140,15 @@ final class Scenographe {
         mois = new Timelapse(affichage, audio);
         mois.commencer(progression);
         moisCompte = true;
+    }
+
+    private Plan conduiteDemandee;
+
+    /** La conduite demandee par la scene qui vient de finir ("conduite namek suite"), une seule fois, ou null. */
+    Plan prendreConduite() {
+        Plan p = conduiteDemandee;
+        conduiteDemandee = null;
+        return p;
     }
 
     /** Le combat demande par la scene qui vient de finir (une seule fois), ou null. */
@@ -150,6 +185,15 @@ final class Scenographe {
         }
         if (surPlace) {
             monde.piloter(true);
+            java.util.Set<String> participants = new java.util.HashSet<>();
+            for (Plan p : cinematique.plans()) {                       // ceux qui jouent dans la scene
+                switch (p.genre()) {
+                    case DIT, REGARDE, MARCHE, RETIRE, POSE, APPEL -> participants.add(p.mot(0));
+                    case DONNE, REMET -> participants.add(p.mot(2));
+                    default -> { }
+                }
+            }
+            monde.reserver(participants);
         }
     }
 
@@ -263,6 +307,9 @@ final class Scenographe {
                 travelling = null;
             }
         }
+        if ("ligne".equals(appelEtat)) {
+            appelDuree += dt;
+        }
         if (touches.retour() && plan() != null && plan().genre() != Plan.Genre.CHOIX) {
             passer();
             return;
@@ -283,6 +330,13 @@ final class Scenographe {
     }
 
     private void finir() {
+        if (transfert != null) {                                        // un objet a moitie passe d'une main a l'autre : il arrive
+            appliquerTransfert();
+        }
+        if (appelQui != null) {
+            raccrocher(false);
+        }
+        interlocuteur = null;
         scene = null;
         parole.couper();
         audio.parole(false);
@@ -369,6 +423,15 @@ final class Scenographe {
         progression.marquer("+scooter -scooter_gare -location_finie");
     }
 
+    /** Ce qui s'est passe hors de l'ecran (une ellipse) : la scene n'est pas montree, ses effets s'appliquent. */
+    void appliquer(Cinematique ellipse) {
+        jouer(ellipse);
+        passer();
+        if (scene != null) {
+            finir();
+        }
+    }
+
     /** Une erreur a interrompu la scene : on la quitte la ou elle en est, sans rien rejouer. */
     void abandonner() {
         if (scene != null) {
@@ -397,8 +460,20 @@ final class Scenographe {
                 case MESSAGE -> message(plan);
                 case SOIN -> soigner(plan);
                 case LOUE -> louer(plan);
-                case ARME -> progression.etat().prendreArme(plan.mot(0));
+                case ARME -> progression.etat().prendreArme(plan.mot(0), monde.carte(), monde.joueur.x - 10, monde.joueur.y);
                 case TEMPS -> regler(plan);
+                case LOYER -> progression.etat().payerTousLesLoyers();
+                case DONNE, REMET -> {
+                    if (transfert == null || transfert != plan) {
+                        transfert = plan;
+                    }
+                    appliquerTransfert();
+                }
+                case APPEL -> {
+                    if (plan.mot(1).equals("raccroche") && appelQui != null) {
+                        raccrocher(false);
+                    }
+                }
                 case MOIS -> {
                     if (mois == null) {
                         compterLeMois();
@@ -408,6 +483,11 @@ final class Scenographe {
                 case ENCART -> encarts.ouvrir(plan.mot(0), progression);
                 case COMBAT -> {
                     combatDemande = plan;
+                    finir();
+                    return;
+                }
+                case CONDUITE -> {                                      // passer la scene ne passe pas la route
+                    conduiteDemandee = plan;
                     finir();
                     return;
                 }
@@ -440,16 +520,252 @@ final class Scenographe {
      * de lui). "youngssef_boutique" ou "geto_tel" sont les memes personnes que "youngssef" et "geto".
      */
     private boolean presenter(String qui) {
-        if (encarts == null || qui == null || qui.isEmpty() || heros(qui)) {
+        if (encarts == null || qui == null || qui.isEmpty() || heros(qui) || qui.equals(appelAvec)) {
             return false;
         }
         String base = qui.contains("_") ? qui.substring(0, qui.indexOf('_')) : qui;
+        if (!rencontre(qui, base)) {
+            return false;                                              // il parle de loin, ou au telephone : pas encore une rencontre
+        }
         for (String id : new String[] {"presente_" + qui, "presente_" + base}) {
             if (res.campagne.encarts().containsKey(id)) {
                 return encarts.ouvrir(id, progression);
             }
         }
         return false;
+    }
+
+    /**
+     * Vrai si le heros rencontre vraiment ce personnage : il vient de lui adresser la parole (E), ou celui-ci est la,
+     * tout pres de lui, dans la scene jouee sur place.
+     */
+    private boolean rencontre(String qui, String base) {
+        if (interlocuteur != null) {
+            String i = interlocuteur.contains("_") ? interlocuteur.substring(0, interlocuteur.indexOf('_')) : interlocuteur;
+            if (interlocuteur.equals(qui) || i.equals(base)) {
+                return true;
+            }
+        }
+        if (!surPlace) {
+            Acteur a = acteurs.get(qui);                               // une scene dans un autre decor : il y est, face au heros
+            return a != null && carteDecor != null;
+        }
+        Monde.Habitant h = monde.habitant(qui);
+        return h != null && h.acteur.texture != null && Math.abs(h.acteur.x - monde.heros().x) < 56
+                && Math.abs(h.acteur.y - monde.heros().y) < 40;
+    }
+
+    // ------------------------------------------------------------------ les objets de main en main
+
+    /** La position (x, y a l'ecran) de la main de quelqu'un de la scene ; "toi" : le heros. */
+    private float[] main(String qui) {
+        float cam = surPlace ? monde.camX() : camX;
+        Acteur h = surPlace ? monde.heros() : acteurs.getOrDefault("toi", monde.heros());
+        if (qui == null || qui.isEmpty()) {                             // personne : le sol, juste devant le heros
+            return new float[] {h.x - cam + (h.miroir ? -12 : 12), h.y - 4};
+        }
+        Acteur a = heros(qui) ? h : acteur(qui);
+        if (a == null && surPlace) {
+            a = monde.objet(qui);
+        }
+        if (a == null) {
+            a = h;
+        }
+        int haut = a.texture == null ? 40 : a.texture.hauteur();
+        return new float[] {a.x - cam, a.y - haut * 0.45f};
+    }
+
+    private static String sonDe(String objet) {
+        return switch (objet) {
+            case "sac_lili", "sac_omar" -> "sac_papier";
+            case "enveloppe", "sandwich" -> "papier";
+            case "caisses_poulet" -> "caisse";
+            case "sachets" -> "froissement";
+            case "piccolo" -> "feuillage_1";
+            default -> "cles_main";
+        };
+    }
+
+    /**
+     * "donne objet n qui" : celui-la le tend, le heros le prend (il penche vers lui), l'objet passe de l'un a l'autre
+     * et entre dans l'inventaire a l'arrivee. "remet" : l'inverse ; rien a remettre, rien ne se joue.
+     */
+    private boolean transferer(Plan plan, float dt, Touches touches) {
+        histoire.Inventaire inv = progression.etat().inventaire();
+        if (transfert == null) {
+            if (plan.genre() == Plan.Genre.REMET && !inv.possede(plan.mot(0))) {
+                return true;                                           // deja livre : on ne mime pas une remise
+            }
+            transfert = plan;
+            transfertT = 0;
+            audio.jouer(Audio.Bus.EFFETS, sonDe(plan.mot(0)), 0.6f, 0, 1f, 0);
+            monde.imposerPose(Poses.penche(res.image("heros"), 2));    // il tend la main
+            donneur = surPlace ? monde.habitant(plan.mot(2)) : null;
+            if (donneur != null && donneur.acteur.texture != null) {
+                poseDonneur = donneur.acteur.texture;
+                donneur.acteur.texture = Poses.penche(poseDonneur, 2);
+                donneur.sens = donneur.acteur.x < monde.heros().x ? 1 : -1;
+            }
+        }
+        transfertT += dt * (valide(touches) ? 4 : 1);
+        if (transfertT < DUREE_TRANSFERT) {
+            return false;
+        }
+        appliquerTransfert();
+        return true;
+    }
+
+    private void appliquerTransfert() {
+        Plan plan = transfert;
+        transfert = null;
+        if (plan == null) {
+            return;
+        }
+        histoire.Inventaire inv = progression.etat().inventaire();
+        String objet = plan.mot(0);
+        int n = plan.mot(1).isEmpty() ? 1 : plan.mot(1).equals("*") ? inv.quantite(objet) : Integer.parseInt(plan.mot(1));
+        if (plan.genre() == Plan.Genre.DONNE) {
+            if (inv.ajouter(objet, n) > 0) {
+                audio.jouer(Audio.Bus.EFFETS, "remise", 0.55f, 0, 1f, 0);
+                audio.jouer("inv_ajout", 0.45f, 0, 1);
+            }
+        } else if (inv.retirer(objet, Math.min(n, inv.quantite(objet)))) {
+            audio.jouer(Audio.Bus.EFFETS, "remise", 0.55f, 0, 0.9f, 0);
+            audio.jouer("inv_retrait", 0.4f, 0, 1);
+        }
+        monde.imposerPose(null);
+        if (donneur != null && poseDonneur != null) {
+            donneur.acteur.texture = poseDonneur;
+        }
+        donneur = null;
+        poseDonneur = null;
+    }
+
+    /** L'objet en l'air, d'une main a l'autre, sur un petit arc. */
+    private void dessinerTransfert(Rendu rendu) {
+        if (transfert == null) {
+            return;
+        }
+        boolean versHeros = transfert.genre() == Plan.Genre.DONNE;
+        float[] a = main(versHeros ? transfert.mot(2) : "toi");
+        float[] b = main(versHeros ? "toi" : transfert.mot(2));
+        float p = Math.min(1f, transfertT / DUREE_TRANSFERT);
+        float k = p * p * (3 - 2 * p);
+        float x = a[0] + (b[0] - a[0]) * k;
+        float y = a[1] + (b[1] - a[1]) * k - (float) Math.sin(Math.PI * k) * 10;
+        Texture icone = res.image("obj_" + transfert.mot(0));
+        if (icone != null) {
+            rendu.rect(Math.round(x) - 5, Math.round(a[1] > b[1] ? b[1] : a[1]) + 26, 10, 2, 0x000000, 60);
+            rendu.calque(icone, Math.round(x) - icone.largeur() / 2, Math.round(y) - icone.hauteur() / 2);
+        }
+        if (p > 0.85f) {                                                // l'arrivee : un petit eclat dans la main
+            int r = Math.round((p - 0.85f) * 60);
+            rendu.rect(Math.round(b[0]) - r, Math.round(b[1]), r * 2, 1, 0xFFF0C0, 180);
+            rendu.rect(Math.round(b[0]), Math.round(b[1]) - r, 1, r * 2, 0xFFF0C0, 180);
+        }
+    }
+
+    // ------------------------------------------------------------------ le telephone de quelqu'un
+
+    /**
+     * "appel geto sonne grossiste_tel" : son telephone sonne et vibre, il le sort et regarde l'ecran ; "appel geto
+     * decroche" : il le porte a l'oreille et se detourne ; tant qu'il est en ligne, ses repliques et la voix au bout
+     * du fil s'affichent comme un appel ; "appel geto raccroche" : il raccroche et revient vers le heros.
+     */
+    private boolean appeler(Plan plan, float dt, Touches touches) {
+        String qui = plan.mot(0);
+        switch (plan.mot(1)) {
+            case "sonne" -> {
+                if (attente == 0) {
+                    appelQui = qui;
+                    appelAvec = plan.mot(2);
+                    appelEtat = "sonne";
+                    appelT = 0;
+                    audio.jouer("tel_sonnerie", 0.6f, 0.2f, 1);
+                    audio.jouer("vibreur", 0.6f, 0.2f, 1);
+                }
+                appelT += dt;
+                return patienter(1.8f, dt, true, touches);
+            }
+            case "decroche" -> {
+                if (attente == 0) {
+                    appelEtat = "ligne";
+                    appelDuree = 0;
+                    audio.coupe("tel_sonnerie");
+                    audio.jouer("tel_decroche", 0.6f, 0.2f, 1);
+                    Monde.Habitant h = surPlace ? monde.habitant(qui) : null;
+                    if (h != null) {                                   // il se detourne : il parle a quelqu'un d'autre
+                        sensAvantAppel = h.sens;
+                        h.sens = h.acteur.x < monde.heros().x ? -1 : 1;
+                    }
+                }
+                return patienter(0.5f, dt, false, touches);
+            }
+            default -> {
+                if (attente == 0) {
+                    raccrocher(true);
+                }
+                return patienter(0.5f, dt, false, touches);
+            }
+        }
+    }
+
+    private void raccrocher(boolean son) {
+        if (son) {
+            audio.jouer("tel_raccroche", 0.55f, 0.2f, 1);
+        }
+        Monde.Habitant h = surPlace && appelQui != null ? monde.habitant(appelQui) : null;
+        if (h != null) {                                               // il range son telephone et revient vers le heros
+            h.sens = h.acteur.x < monde.heros().x ? 1 : -1;
+        }
+        appelQui = null;
+        appelAvec = null;
+        appelEtat = null;
+    }
+
+    /** Le telephone dans la main de celui qui recoit l'appel : il vibre, ou il est a son oreille. */
+    private void dessinerAppel(Rendu rendu) {
+        if (appelQui == null) {
+            return;
+        }
+        Acteur a = acteur(appelQui);
+        if (a == null || a.texture == null) {
+            return;
+        }
+        float cam = surPlace ? monde.camX() : camX;
+        int cx = Math.round(a.x - cam);
+        int haut = Math.round(a.y) - a.texture.hauteur();
+        boolean gauche = a.miroir;
+        if ("sonne".equals(appelEtat)) {                                // a la main, devant lui, l'ecran allume, qui tremble
+            int tremble = (int) (appelT * 40) % 2;
+            int px = cx + (gauche ? -10 : 6) + tremble;
+            int py = haut + 22;
+            rendu.rect(px, py, 5, 8, 0x14141A, 256);
+            rendu.rect(px + 1, py + 1, 3, 5, (int) (appelT * 6) % 2 == 0 ? 0x9EE6B0 : 0xD8F4FF, 256);
+            for (int k = 0; k < 2; k++) {                               // les ondes de la vibration
+                int o = 3 + k * 3 + (int) (appelT * 8) % 2;
+                rendu.rect(px - o, py + 2, 1, 4, 0xFFFFFF, 120 - k * 40);
+                rendu.rect(px + 5 + o, py + 2, 1, 4, 0xFFFFFF, 120 - k * 40);
+            }
+            String nom = res.campagne.voix(appelAvec).nom();            // au-dessus de lui : qui appelle
+            String ligne = "APPEL : " + nom;
+            int l = affichage.petite().largeur(ligne, 1) + 12;
+            int bx = Math.max(4, Math.min(Rendu.L - l - 4, cx - l / 2));
+            rendu.rect(bx, haut - 16, l, 11, 0x14141A, 230);
+            rendu.rect(bx, haut - 16, 3, 11, 0x3BB273, 256);
+            affichage.petite().ecrire(rendu, ligne, bx + 7, haut - 14, Affichage.BLANC, 1);
+        } else {                                                        // a l'oreille
+            int px = cx + (gauche ? 3 : -6);
+            rendu.rect(px, haut + 6, 3, 7, 0x14141A, 256);
+            rendu.rect(px + 1, haut + 7, 1, 5, 0x5A6A80, 256);
+            if (texte != null && parole.active() && appelAvec != null && appelAvec.equals(dernierQuiParle)) {
+                for (int k = 0; k < 3; k++) {                           // la voix au bout du fil : de petites ondes
+                    int o = 3 + k * 3;
+                    int c = (int) (tempsMs / 90 + k) % 3 == 0 ? 200 : 90;
+                    rendu.rect(px + (gauche ? 3 + o : -o - 1), haut + 7 + k % 2, 1, 4, 0xC8E0FF, c);
+                }
+            }
+        }
     }
 
     /** "temps 32 10:00" : une ellipse dans la scene, l'horloge du quartier la suit (elle ne recule jamais). */
@@ -589,7 +905,7 @@ final class Scenographe {
                 mois = null;
             }
             case ARME -> {
-                progression.etat().prendreArme(plan.mot(0));
+                progression.etat().prendreArme(plan.mot(0), monde.carte(), monde.joueur.x - 10, monde.joueur.y);
                 audio.jouer("ferraille", 0.6f, 0, 1);
             }
             case COMBAT -> {                                           // la scene rend la main : on se bat
@@ -597,7 +913,27 @@ final class Scenographe {
                 finir();
                 return false;
             }
+            case CONDUITE -> {                                         // la scene rend la main : on prend le volant
+                conduiteDemandee = plan;
+                finir();
+                return false;
+            }
             case TEMPS -> regler(plan);
+            case LOYER -> {                                             // tout le retard de loyer est regle, d'un coup
+                if (progression.etat().payerTousLesLoyers() > 0) {
+                    audio.jouer("tel_paye", 0.5f, 0, 1);
+                }
+            }
+            case DONNE, REMET -> {
+                if (!transferer(plan, dt, touches)) {
+                    return false;
+                }
+            }
+            case APPEL -> {
+                if (!appeler(plan, dt, touches)) {
+                    return false;
+                }
+            }
             case MIXAGE -> audio.mixage(plan.mot(0), plan.mot(1).isEmpty() ? 1f : Float.parseFloat(plan.mot(1)));
             case MUSIQUE -> musique = plan.mot(0);
             case METEO -> meteo = plan.mot(0);
@@ -800,6 +1136,8 @@ final class Scenographe {
                 default -> { }
             }
             rendu.bandes(BANDES);
+            dessinerAppel(rendu);
+            dessinerTransfert(rendu);
         }
         if (eclair > 0) {
             rendu.voile(0xFFFFFF, eclair * 0.85f);
@@ -875,6 +1213,28 @@ final class Scenographe {
             return;
         }
         String parle = genre == Plan.Genre.DIT ? plan.mot(0) : null;
+        if (parle != null && "ligne".equals(appelEtat) && (parle.equals(appelQui) || parle.equals(appelAvec))) {
+            boolean distant = parle.equals(appelAvec);                 // la voix au bout du fil, ou celui qui telephone
+            if (distant) {
+                affichage.ecranAppel(rendu, res.campagne.voix(parle).nom(), appelDuree, parole.active(), tempsMs);
+            } else {
+                Texture b = res.image(res.campagne.voix(parle).portrait());
+                affichage.buste(rendu, b, false, true);
+                if (b != null) {                                        // le telephone contre son oreille, et la main qui le tient
+                    int bx = Rendu.L - 14 - b.largeur() + b.largeur() * 3 / 20;
+                    int by = Affichage.BOITE - b.hauteur() + b.hauteur() * 7 / 20;
+                    rendu.rect(bx - 1, by - 1, 12, 26, 0xC8E0FF, 200);
+                    rendu.rect(bx, by, 10, 24, 0x14141A, 256);
+                    rendu.rect(bx + 2, by + 2, 6, 17, 0x2E3E5C, 256);
+                    rendu.rect(bx + 3, by + 3, 2, 6, 0x9EC8FF, 256);
+                    rendu.rect(bx - 3, by + 16, 15, 12, 0x7A5A48, 256);   // la main
+                    rendu.rect(bx - 3, by + 16, 15, 2, 0x8E6C58, 256);
+                }
+            }
+            affichage.dialogueAppel(rendu, res.campagne.voix(parle).nom(), distant, texte.entier(), texte.visible().length(),
+                    texte.complet(), tempsMs);
+            return;
+        }
         boolean herosParle = parle != null && heros(parle);
         String autre = dernierQuiParle != null && !heros(dernierQuiParle) ? dernierQuiParle : null;
         if (parle != null && !herosParle) {
