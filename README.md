@@ -1,9 +1,10 @@
 # GET A JOB — version lite
 
-> 23 h, Bobigny. Le loyer tombe demain : **120 €**. Ton pote Youngssef t'a trouvé un plan :
-> livrer pour le Maître Poulet. Trois commandes, quarante euros chacune.
-> Mais l'avenue n'est pas vide la nuit : des racketteurs font leur ronde.
-> Rentre chez toi avec l'argent **avant 6 h**.
+> Vendredi, 23 h, Le Kremlin-Bicêtre. Trois mois de loyer en retard : **120 €**.
+> À 6 h, la régie coupe le courant. Youngssef, le livreur du Maître Poulet, s'est tordu la cheville :
+> ce soir, ses livraisons sont pour toi. Quarante euros la course.
+> Mais des racketteurs traînent dans l'avenue, et ils visent les livreurs.
+> Trois livraisons. Rentrer **avant l'aube**. Payer.
 
 Un petit beat'em up / jeu de livraison en 2D, en Java Swing, sans aucune bibliothèque externe.
 17 classes, environ 1 270 lignes, deux hiérarchies d'héritage, 15 tests.
@@ -49,6 +50,8 @@ On ne présente pas une liste de fonctionnalités : on raconte **une nuit**.
 ---
 
 ## Architecture
+
+Les vrais diagrammes UML sont dans **[UML.md](UML.md)** : deux diagrammes de classes, trois diagrammes d'états, un diagramme de séquence de la boucle, et la liste des design patterns utilisés. Ci-dessous, le résumé en texte.
 
 ```
 Main ── crée la fenêtre et le Jeu
@@ -150,7 +153,7 @@ Les tests n'ouvrent aucune fenêtre : `Niveau` et `Tournee` ne dépendent pas de
 
 1. **Ouvrir sur l'histoire**, pas sur le code : 23 h, 120 €, trois livraisons, des racketteurs.
 2. **Jouer une partie en direct** : environ 2 minutes. Se faire attraper une fois exprès, pour montrer la perte du sac.
-3. **Montrer le schéma d'héritage**, puis ouvrir `Niveau.mettreAJour` : 3 lignes qui font vivre tout le monde. C'est le polymorphisme.
+3. **Montrer le diagramme de classes** ([UML.md](UML.md)), puis ouvrir `Niveau.mettreAJour` : 3 lignes qui font vivre tout le monde. C'est le polymorphisme.
 4. **Ouvrir `Personnage.deplacer`** : les collisions et le glissement en 10 lignes.
 5. **Ouvrir `Ennemi`** : la machine à états, le `switch` sur `Etat`.
 6. **Dire ce qu'on a coupé** et pourquoi : c'est une preuve de maturité, pas un aveu.
