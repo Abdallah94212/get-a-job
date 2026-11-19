@@ -307,6 +307,9 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
+    state "PATROUILLE : va et vient sur sa ronde, 40 px/s" as PATROUILLE
+    state "POURSUITE : fonce sur le héros, 68 px/s (moins vite que lui)" as POURSUITE
+    state "ETOURDI : ne bouge plus, n'attrape personne" as ETOURDI
     [*] --> PATROUILLE
     PATROUILLE --> POURSUITE : voit le héros (moins de 110 px, même trottoir)
     POURSUITE --> PATROUILLE : le perd de vue
@@ -314,9 +317,6 @@ stateDiagram-v2
     POURSUITE --> ETOURDI : coup de poing ou héros attrapé
     ETOURDI --> PATROUILLE : 2 s après un coup, 1 s après avoir attrapé
 
-    PATROUILLE : va et vient sur sa ronde (40 px/s)
-    POURSUITE : fonce sur le héros (68 px/s, moins vite que lui)
-    ETOURDI : ne bouge plus, ne peut attraper personne
 ```
 
 ### La tournée (`Tournee.Etape`)
