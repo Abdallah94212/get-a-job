@@ -74,7 +74,15 @@ def toutes():
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     import heros_portrait
-    return {"gp_yeux": heros_portrait.portrait("tele")[0].convert("RGBA"),
+    out = {"gp_yeux": heros_portrait.portrait("tele")[0].convert("RGBA"),
             "gp_main": heros_portrait.main(False).convert("RGBA"),
             "gp_choc": heros_portrait.portrait("choc")[0].convert("RGBA"),
-            "gp_lache": heros_portrait.main(True).convert("RGBA"), "gp_affiche": affiche()}
+            "gp_lache": heros_portrait.main(True).convert("RGBA"),
+            "gp_regard": heros_portrait.portrait("regard")[0].convert("RGBA"),
+            "gp_decide": heros_portrait.portrait("decide")[0].convert("RGBA")}
+    import beepers                                                      # la scene des deux beepers, devant la RS6
+    out.update(beepers.toutes())
+    import scene_tele                                                   # le plan large, de dos, devant la tele
+    for nom, img in scene_tele.toutes().items():
+        out[nom] = img.convert("RGBA")
+    return out

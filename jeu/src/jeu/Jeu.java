@@ -17,14 +17,20 @@ public final class Jeu {
     final Sauvegarde sauvegarde;
     final Affichage affichage;
     private Ecran ecran;
+    private final AideDev aideDev = new AideDev(this);                 // AideDev : a supprimer a la fin
     private Runnable surQuitter = () -> { };
     private Runnable surReglages = () -> { };
 
     public Jeu(Path ressources, Sauvegarde sauvegarde, Reglages reglages, boolean muet) throws IOException {
+        this(ressources, sauvegarde, reglages, new Audio(ressources.resolve("sons"), reglages, muet));
+    }
+
+    /** Avec un mixeur donne : un mixeur hors ligne, par exemple, pour mesurer ce qu'on entendrait. */
+    Jeu(Path ressources, Sauvegarde sauvegarde, Reglages reglages, Audio audio) throws IOException {
         this.res = new Ressources(ressources);
         this.sauvegarde = sauvegarde;
         this.reglages = reglages;
-        this.audio = new Audio(ressources.resolve("sons"), reglages, muet);
+        this.audio = audio;
         this.affichage = new Affichage(res);
         ouvrirMenu();
     }
@@ -39,13 +45,71 @@ public final class Jeu {
         return reglages;
     }
 
+    /**
+     * Une image du jeu. Une erreur ne doit jamais figer la fenetre : elle est ecrite dans le journal des incidents,
+     * l'ecran rend la main au joueur, et si elles se repetent on revient au menu (la partie est enregistree).
+     */
     public void maj(float dt, Touches touches) {
-        ecran.maj(dt, touches);
+        try {
+            audio.tic(dt);
+            if (AideDev.ACTIVE && aideDev.maj(dt, touches)) {          // AideDev : a supprimer a la fin
+                return;
+            }
+            ecran.maj(dt, touches);
+        } catch (RuntimeException | StackOverflowError erreur) {
+            incident("maj", erreur);
+        }
     }
 
     public void dessiner(Rendu rendu) {
-        rendu.tramage = reglages.trame;
-        ecran.dessiner(rendu);
+        try {
+            rendu.tramage = reglages.trame;
+            rendu.effacerTextes();
+            ecran.dessiner(rendu);
+            if (AideDev.ACTIVE) {                                      // AideDev : a supprimer a la fin
+                aideDev.dessiner(rendu, affichage);
+            }
+        } catch (RuntimeException | StackOverflowError erreur) {
+            incident("dessin", erreur);
+        }
+    }
+
+    private int incidents;
+    private long dernierIncident;
+    private int rafale;
+
+    /** Le nombre d'erreurs rattrapees depuis le lancement (les essais verifient qu'il reste a zero). */
+    public int incidents() {
+        return incidents;
+    }
+
+    private void incident(String ou, Throwable erreur) {
+        incidents++;
+        long maintenant = System.nanoTime();
+        rafale = maintenant - dernierIncident < 5_000_000_000L ? rafale + 1 : 1;
+        dernierIncident = maintenant;
+        java.io.StringWriter trace = new java.io.StringWriter();
+        erreur.printStackTrace(new java.io.PrintWriter(trace));
+        String ligne = java.time.LocalDateTime.now() + " [" + ou + "] " + trace;
+        System.err.print(ligne);
+        try {
+            java.nio.file.Path dossier = sauvegarde.dossier();
+            java.nio.file.Files.createDirectories(dossier);
+            java.nio.file.Files.writeString(dossier.resolve("incidents.log"), ligne, java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.APPEND);
+        } catch (IOException | RuntimeException ignoree) {
+            // le journal est un confort : on ne fige pas le jeu pour lui
+        }
+        try {
+            if (rafale >= 3) {                                         // l'ecran ne s'en remet pas : retour au menu
+                rafale = 0;
+                ouvrirMenu();
+            } else {
+                ecran.secourir();
+            }
+        } catch (RuntimeException | StackOverflowError encore) {
+            ouvrirMenu();
+        }
     }
 
     /** La partie en cours, ou null quand on est au menu. */
@@ -54,6 +118,7 @@ public final class Jeu {
     }
 
     void ouvrirMenu() {
+        audio.changerDEcran();
         ecran = new EcranMenu(this);
     }
 
@@ -64,6 +129,7 @@ public final class Jeu {
         } catch (IOException erreur) {
             System.err.println("Ancienne partie non effacee : " + erreur.getMessage());
         }
+        audio.changerDEcran();
         ecran = new EcranPartie(this, new Progression(res.campagne), res.campagne.carteDepart(), res.campagne.xDepart(),
                 res.campagne.yDepart());
     }
@@ -75,6 +141,7 @@ public final class Jeu {
             if (!res.carteExiste(partie.carte())) {
                 throw new IOException("carte inconnue " + partie.carte());
             }
+            audio.changerDEcran();
             ecran = new EcranPartie(this, partie.progression(), partie.carte(), partie.x(), partie.y());
         } catch (IOException erreur) {
             System.err.println("Partie illisible : " + erreur.getMessage());

@@ -1,79 +1,142 @@
 package decor;
 
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.font.FontRenderContext;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 /**
- * La police en pixels du jeu : une planche de lettres dessinee par designs/decor/outils.py, et l'ordre des lettres.
- * Tout s'ecrit en capitales, comme sur les enseignes de l'avenue ; la grande police garde les accents.
+ * Les polices du jeu. Le decor est en pixels ; le texte, lui, est net : il est dessine en haute definition par-dessus
+ * l'image (voir Rendu.texte), pour qu'on le lise sans effort.
+ *
+ * Deux familles, libres (SIL Open Font License), dans ressources/polices :
+ * - Atkinson Hyperlegible, pour tout ce qu'on lit : dialogues, objectifs, telephone, notifications. Elle a ete
+ *   dessinee pour etre lue sans fatigue : chaque lettre se distingue de ses voisines, meme petite.
+ * - Barlow Condensed, pour ce qu'on repere d'un coup d'oeil : titres, noms, etiquettes, chiffres. Une signaletique
+ *   de rue, serree, qui va avec les enseignes de l'avenue.
+ *
+ * Les mesures restent en pixels du jeu (480 x 270), pour que les mises en page ne changent pas de logique.
  */
 public final class Police {
-    private final Texture planche;
-    private final String lettres;
-    private final int pas;
+    private static final FontRenderContext MESURE = new FontRenderContext(null, true, true);
+    private static final Map<Path, Font[]> FAMILLES = new HashMap<>();
 
-    private Police(Texture planche, String lettres) {
-        this.planche = planche;
-        this.lettres = lettres;
-        this.pas = planche.largeur() / lettres.length();
+    private final Font corps;
+    private final Font titre;
+    /** La taille du corps, en pixels du jeu ; la hauteur des capitales en decoule. */
+    private final float taille;
+    private final float tailleTitre;
+    private final int interligne;
+
+    private Police(Font corps, Font titre, float taille, float tailleTitre, int interligne) {
+        this.corps = corps;
+        this.titre = titre;
+        this.taille = taille;
+        this.tailleTitre = tailleTitre;
+        this.interligne = interligne;
     }
 
-    /** taille : 5 pour les textes, 3 pour les petites mentions. */
-    public static Police charger(Path dossier, int taille) throws IOException {
-        return new Police(Texture.charger(dossier.resolve("police" + taille + ".png")),
-                Files.readString(dossier.resolve("police" + taille + ".txt"), StandardCharsets.UTF_8));
+    /** taille : 5 pour les textes courants, 3 pour les petites mentions (elles passent en Barlow, plus serree). */
+    public static Police charger(Path dossierInterface, int taille) throws IOException {
+        Font[] f = familles(dossierInterface.resolveSibling("polices"));
+        return taille >= 5 ? new Police(f[0], f[2], 9.2f, 10.2f, 12) : new Police(f[1], f[2], 7.4f, 7.4f, 9);
+    }
+
+    private static Font[] familles(Path dossier) throws IOException {
+        Font[] deja = FAMILLES.get(dossier);
+        if (deja != null) {
+            return deja;
+        }
+        Font[] f = {lire(dossier.resolve("AtkinsonHyperlegible-Regular.ttf")), lire(dossier.resolve("BarlowCondensed-Medium.ttf")),
+            lire(dossier.resolve("BarlowCondensed-SemiBold.ttf")), lire(dossier.resolve("AtkinsonHyperlegible-Bold.ttf"))};
+        FAMILLES.put(dossier, f);
+        return f;
+    }
+
+    private static Font lire(Path fichier) throws IOException {
+        try {
+            return Font.createFont(Font.TRUETYPE_FONT, fichier.toFile());
+        } catch (FontFormatException erreur) {
+            throw new IOException("Police illisible : " + fichier, erreur);
+        }
     }
 
     /** Hauteur d'une ligne, interligne compris. */
     public int ligne() {
-        return planche.hauteur() + 1;
+        return interligne;
+    }
+
+    /** La police a employer : le corps du texte, ou les titres quand on ecrit en grand. */
+    private Font police(int echelle) {
+        return polices.computeIfAbsent(echelle, e -> e >= 2 ? titre.deriveFont(tailleTitre * e * Rendu.F) : corps.deriveFont(taille * Rendu.F));
+    }
+
+    /** Les polices a chaque taille et les largeurs deja mesurees : on ne les recalcule pas a chaque image. */
+    private final java.util.Map<Integer, Font> polices = new java.util.HashMap<>();
+    private final java.util.Map<String, Integer> largeurs = new java.util.HashMap<>();
+    private Font titreCorps;
+
+    private Font titreCorps() {
+        if (titreCorps == null) {
+            titreCorps = titre.deriveFont(tailleTitre * Rendu.F);
+        }
+        return titreCorps;
+    }
+
+    private int mesurer(String cle, Font f, String texte) {
+        Integer deja = largeurs.get(cle);
+        if (deja != null) {
+            return deja;
+        }
+        if (largeurs.size() > 4000) {
+            largeurs.clear();
+        }
+        int l = (int) Math.ceil(f.getStringBounds(propre(texte), MESURE).getWidth() / Rendu.F);
+        largeurs.put(cle, l);
+        return l;
+    }
+
+    private float hauteurCapitales(int echelle) {
+        return (echelle >= 2 ? tailleTitre * echelle * 0.7f : taille * 0.72f);
     }
 
     public int largeur(String texte, int echelle) {
-        return Math.max(0, propre(texte).length() * pas - 1) * echelle;
+        return mesurer(echelle + "|" + texte, police(echelle), texte);
     }
 
-    /** Ramene un texte aux lettres que la police connait : capitales, guillemets droits, accents retires s'il le faut. */
+    /** Le texte tel qu'on l'affiche : les guillemets et les espaces typographiques sont gardes ; la casse aussi. */
     public String propre(String texte) {
-        String t = texte.toUpperCase(Locale.FRENCH).replace('’', '\'').replace('«', '"').replace('»', '"')
-                .replace("…", "...").replace("Œ", "OE").replace("Æ", "AE").replace(' ', ' ');
-        StringBuilder sortie = new StringBuilder(t.length());
-        for (int i = 0; i < t.length(); i++) {
-            char c = t.charAt(i);
-            if (lettres.indexOf(c) < 0) {
-                String nu = Normalizer.normalize(String.valueOf(c), Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-                c = nu.length() == 1 && lettres.indexOf(nu.charAt(0)) >= 0 ? nu.charAt(0) : ' ';
-            }
-            sortie.append(c);
-        }
-        return sortie.toString();
+        return texte.replace(' ', ' ').replace("...", "…");
     }
 
-    /** Ecrit le texte, son coin haut gauche en (x, y). Renvoie la largeur ecrite. */
+    /** Ecrit le texte, le haut de ses capitales en y. Renvoie la largeur ecrite. */
     public int ecrire(Rendu rendu, String texte, int x, int y, int rvb, int echelle) {
         String t = propre(texte);
-        for (int n = 0; n < t.length(); n++) {
-            int rang = lettres.indexOf(t.charAt(n));
-            for (int j = 0; j < planche.hauteur(); j++) {
-                for (int i = 0; i < pas - 1; i++) {
-                    if ((planche.pixels()[j * planche.largeur() + rang * pas + i] >>> 24) < 128) {
-                        continue;
-                    }
-                    for (int a = 0; a < echelle; a++) {
-                        for (int b = 0; b < echelle; b++) {
-                            rendu.point(x + (n * pas + i) * echelle + a, y + j * echelle + b, rvb);
-                        }
-                    }
-                }
-            }
-        }
+        rendu.texte(t, x, y + hauteurCapitales(echelle), police(echelle), rvb, false);
         return largeur(texte, echelle);
+    }
+
+    /** Pareil, avec une ombre douce dessous : pour le texte pose directement sur le decor. */
+    public int ecrireOmbre(Rendu rendu, String texte, int x, int y, int rvb, int echelle) {
+        String t = propre(texte);
+        rendu.texte(t, x, y + hauteurCapitales(echelle), police(echelle), rvb, true);
+        return largeur(texte, echelle);
+    }
+
+    /** En lettres de titre (Barlow), a la taille du corps : les noms, les etiquettes. */
+    public int ecrireTitre(Rendu rendu, String texte, int x, int y, int rvb) {
+        String t = propre(texte);
+        rendu.texte(t, x, y + tailleTitre * 0.7f, titreCorps(), rvb, false);
+        return largeurTitre(texte);
+    }
+
+    public int largeurTitre(String texte) {
+        return mesurer("t|" + texte, titreCorps(), texte);
     }
 
     public void ecrireCentre(Rendu rendu, String texte, int centreX, int y, int rvb, int echelle) {

@@ -72,19 +72,68 @@ final class Affichage {
         rendu.rect(10, BOITE, 1, 66, SOMBRE, 256);
         rendu.rect(Rendu.L - 11, BOITE, 1, 66, SOMBRE, 256);
         if (nom != null) {
-            int largeur = police.largeur(nom, 1) + 16;
+            int largeur = police.largeurTitre(nom) + 16;
             int x = nomAGauche ? 18 : Rendu.L - 18 - largeur;
-            rendu.rect(x, BOITE - 12, largeur, 13, ORANGE, 256);
-            rendu.rect(x + 2, BOITE - 10, largeur - 4, 1, 0xFFB070, 256);
-            police.ecrire(rendu, nom, x + 8, BOITE - 10, ENCRE, 1);
+            rendu.rect(x, BOITE - 13, largeur, 14, ORANGE, 256);
+            police.ecrireTitre(rendu, nom, x + 8, BOITE - 10, ENCRE);
         }
-        int y = BOITE + 9;
-        for (String ligne : debut(police.couper(police.propre(entier), Rendu.L - 56), lettres)) {
-            police.ecrire(rendu, ligne, 26, y, nom == null ? GRIS : BLANC, 1);
-            y += 12;
+        int y = BOITE + 10;
+        for (String ligne : debut(police.couper(police.propre(Casse.phrase(entier)), Rendu.L - 60), lettres)) {
+            police.ecrire(rendu, ligne, 28, y, nom == null ? GRIS : BLANC, 1);
+            y += 14;                                                   // un interligne large : on lit sans effort
         }
         if (complet && tempsMs / 400 % 2 == 0) {
             fleche(rendu, Rendu.L - 30, BOITE + 54, BLANC);
+        }
+    }
+
+    static final int BLEU_APPEL = 0x4A7BD8;
+
+    /**
+     * La boite d'une replique au telephone : un onglet bleu avec un combine, le nom suivi de "au telephone" ; la voix
+     * au bout du fil (distant) s'ecrit en bleu pale, entre guillemets : elle n'est pas dans la piece.
+     */
+    void dialogueAppel(Rendu rendu, String nom, boolean distant, String entier, int lettres, boolean complet, long tempsMs) {
+        rendu.rect(10, BOITE, Rendu.L - 20, 66, distant ? 0x10141E : ENCRE, 240);
+        rendu.rect(10, BOITE, Rendu.L - 20, 1, BLEU_APPEL, 256);
+        rendu.rect(10, BOITE + 65, Rendu.L - 20, 1, SOMBRE, 256);
+        rendu.rect(10, BOITE, 1, 66, SOMBRE, 256);
+        rendu.rect(Rendu.L - 11, BOITE, 1, 66, SOMBRE, 256);
+        String onglet = distant ? "AU TÉLÉPHONE : " + nom : nom + " · AU TÉLÉPHONE";
+        int largeur = police.largeurTitre(onglet) + 26;
+        int x = Rendu.L - 18 - largeur;                                 // sous celui qui parle, a droite : le heros n'est pas dans cet appel
+        rendu.rect(x, BOITE - 13, largeur, 14, BLEU_APPEL, 256);
+        rendu.rect(x + 6, BOITE - 10, 4, 8, ENCRE, 256);                // le combine
+        rendu.rect(x + 7, BOITE - 9, 2, 5, 0xC8E0FF, 256);
+        police.ecrireTitre(rendu, onglet, x + 16, BOITE - 10, BLANC);
+        int y = BOITE + 10;
+        String t = distant ? "« " + entier + " »" : entier;
+        for (String ligne : debut(police.couper(police.propre(Casse.phrase(t)), Rendu.L - 60), lettres + (distant ? 2 : 0))) {
+            police.ecrire(rendu, ligne, 28, y, distant ? 0xB8CCF0 : BLANC, 1);
+            y += 14;
+        }
+        if (complet && tempsMs / 400 % 2 == 0) {
+            fleche(rendu, Rendu.L - 30, BOITE + 54, BLANC);
+        }
+    }
+
+    /** A la place d'un visage, pour la voix au bout du fil : l'ecran d'un appel en cours, sa duree, la voix qui ondule. */
+    void ecranAppel(Rendu rendu, String nom, float duree, boolean parle, long tempsMs) {
+        int l = 104;
+        int h = 72;
+        int x = Rendu.L - 14 - l;
+        int y = BOITE - h - 16;
+        rendu.rect(x - 1, y - 1, l + 2, h + 2, 0x2A2A36, 256);
+        rendu.rect(x, y, l, h, 0x0E1220, 245);
+        rendu.rect(x + 6, y + 7, 4, 4, (tempsMs / 500) % 2 == 0 ? 0x3BB273 : 0x1E5A3A, 256);
+        petite.ecrire(rendu, "APPEL EN COURS", x + 14, y + 6, GRIS, 1);
+        police.ecrire(rendu, police.propre(nom), x + 6, y + 18, BLANC, 1);
+        int s = Math.round(duree);
+        petite.ecrire(rendu, String.format("%02d:%02d", s / 60, s % 60), x + 6, y + 32, SOMBRE, 1);
+        for (int k = 0; k < 16; k++) {                                  // l'onde de la voix
+            double v = parle ? Math.abs(Math.sin(tempsMs / 70.0 + k * 1.7) * Math.sin(tempsMs / 190.0 + k)) : 0.08;
+            int bh = 1 + (int) Math.round(v * 14);
+            rendu.rect(x + 6 + k * 6, y + 58 - bh, 3, bh, BLEU_APPEL, parle ? 230 : 120);
         }
     }
 
@@ -110,12 +159,12 @@ final class Affichage {
 
     /** Un texte centre sur fond noir : les cartons de recit. */
     void carton(Rendu rendu, String entier, int lettres, int y, int couleur) {
-        List<String> lignes = police.couper(police.propre(entier), 360);
-        int depart = y - lignes.size() * 6;
+        List<String> lignes = police.couper(police.propre(Casse.phrase(entier)), 360);
+        int depart = y - lignes.size() * 7;
         List<String> visibles = debut(lignes, lettres);
         for (int i = 0; i < visibles.size(); i++) {
             int gauche = (Rendu.L - police.largeur(lignes.get(i), 1)) / 2;
-            police.ecrire(rendu, visibles.get(i), gauche, depart + i * 13, couleur, 1);
+            police.ecrire(rendu, visibles.get(i), gauche, depart + i * 15, couleur, 1);
         }
     }
 

@@ -99,21 +99,33 @@ class ParcoursTest {
         nouvellePartie();
         Progression progression = robot.partie().progression();
         Set<String> scenesVues = new HashSet<>();
+        int apresLeMois = -1;
         for (int tour = 0; tour < 500 && !progression.terminee(); tour++) {
             robot.laisserPasser();
             if (progression.terminee()) {
                 break;
             }
             Mission mission = progression.courante();
+            if (mission.id().equals("2.7") && apresLeMois < 0) {          // le mois vient de passer : il a ete gagne pour de vrai
+                histoire.Etat etat = progression.etat();
+                apresLeMois = etat.argent();
+                assertTrue(etat.organisation().bilans().size() > 20, "des dizaines d'operations ont tourne");
+                assertTrue(etat.organisation().totalLabo() >= 900, "Gero a ete paye");
+                assertTrue(etat.organisation().totalFrais() >= histoire.Mois.LOYER_EPICERIE, "le loyer de l'epicerie est passe dans les frais");
+            }
             faireLesSecondaires();
-            assertFalse(robot.partie().enScene() || robot.partie().auBilan());
+            assertFalse(robot.partie().enScene() || robot.partie().auBilan(), mission.id() + " " + progression.etape() + " " + robot.partie().positionScene());
             String objectif = mission.id() + ", objectif " + (progression.etape() + 1) + " : " + progression.objectif().texte();
-            assertTrue(robot.avancerVersObjectif(), "impossible d'avancer : " + objectif);
+            boolean ok = robot.avancerVersObjectif();
+            assertTrue(ok, "impossible d'avancer : " + objectif + " | carte " + robot.partie().monde().carte() + " debut "
+                    + progression.debutJoue() + " scene " + robot.partie().positionScene() + " encart " + robot.partie().encartOuvert()
+                    + " combat " + robot.partie().combat().actif() + " cible " + robot.partie().monde().cible());
             scenesVues.add(mission.id());
         }
         robot.laisserPasser();
         assertTrue(progression.terminee(), "la campagne doit pouvoir se terminer");
-        assertEquals(9, scenesVues.size(), "chaque mission a ete jouee");
+        assertEquals(12, scenesVues.size(), "chaque mission a ete jouee");
+        assertTrue(apresLeMois > 7000 && apresLeMois < 14000, "un mois d'affaires rapporte autour de 10 000 euros : " + apresLeMois);
         for (String lieu : List.of("metro", "garage", "namek", "labo", "epicerie")) {
             assertTrue(progression.lieuOuvert(lieu), lieu + " doit etre ouvert a la fin");
         }
@@ -132,7 +144,10 @@ class ParcoursTest {
             }
             String objectif = progression.courante().id() + ", objectif " + (progression.etape() + 1) + ", carte "
                     + robot.partie().monde().carte();
-            assertTrue(robot.marcherVersObjectif(), "impossible d'y aller a pied : " + objectif);
+            assertTrue(robot.marcherVersObjectif(), "impossible d'y aller a pied : " + objectif + " | DBG x " + robot.partie().monde().joueur.x
+                    + " y " + robot.partie().monde().joueur.y + " cible " + robot.partie().monde().cible() + " libre " + robot.partie().libre()
+                    + " combat " + robot.partie().combat().actif() + " hab " + robot.partie().monde().habitants().stream()
+                    .map(h -> h.figurant.id() + "@" + (int) h.acteur.x + "," + (int) h.acteur.y + ":" + h.reaction + " o" + (int) h.origine + "," + (int) h.origineY + " r" + h.enRoute + " b" + h.bulle).toList());
         }
         robot.laisserPasser();
         assertTrue(progression.terminee(), "la campagne se termine en marchant, sans jamais se poser sur une cible");
@@ -154,7 +169,7 @@ class ParcoursTest {
         int etape = progression.etape();
         String carte = robot.partie().monde().carte();
         robot.frapper(KeyEvent.VK_ESCAPE);
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 5; i++) {
             robot.frapper(KeyEvent.VK_DOWN);
         }
         robot.frapper(KeyEvent.VK_E);
@@ -401,6 +416,9 @@ class ParcoursTest {
         EcranPartie partie = robot.partie();
         partie.monde().aller("avenue_bas", 600, 200);
         robot.images(3);
+        robot.laisserPasser();                                         // descendre dans la rue termine la premiere mission
+        partie.monde().aller("avenue_bas", 600, 200);
+        robot.images(3);
         assertTrue(audio.ambiancesCourantes().containsKey("amb_pluie"), "dehors, la pluie tombe sur la chaussee");
         assertTrue(audio.ambiancesCourantes().containsKey("amb_rue_mouillee"));
         assertTrue(audio.ambiancesCourantes().containsKey("amb_foule"), "devant le Maitre Poulet, on entend du monde");
@@ -428,9 +446,9 @@ class ParcoursTest {
         Ressources res = robot.jeu.res;
         List<String> sons = new ArrayList<>(List.of("amb_pluie", "amb_gouttiere", "amb_rue_mouillee", "amb_rue", "amb_foule",
                 "amb_pluie_toit", "amb_pluie_vitre", "amb_frigo", "amb_courant", "amb_machine", "amb_bouillon", "amb_ventilation",
-                "amb_metro", "amb_vent", "amb_neon", "scooter", "voix", "objet", "objectif", "mission", "nouvelle_mission", "ui_deplace",
-                "ui_valide", "ui_retour", "ui_refus", "porte", "porte_ouvre", "porte_lourde", "clochette", "rideau_fer", "metal",
-                "outils", "metro_annonce", "vibreur", "mus_menu", "mus_rue", "mus_labo"));
+                "amb_metro", "amb_vent", "amb_neon", "scooter", "v_heros", "objet", "objectif", "mission", "nouvelle_mission", "ui_deplace",
+                "ui_valide", "ui_retour", "ui_refus", "porte", "porte_ouvre", "porte_lourde", "clochette", "rideau_fer", "ferraille",
+                "outil", "metro_annonce", "vibreur", "mus_menu", "mus_rue", "mus_labo"));
         for (String sol : List.of("pas_mouille_1", "pas_mouille_2", "pas_mouille_3", "pas_dur_1", "pas_dur_2", "pas_dur_3", "pas_dur_4",
                 "pas_bois_1", "pas_bois_2", "pas_bois_3", "pas_bois_4")) {
             sons.add(sol);
@@ -497,7 +515,7 @@ class ParcoursTest {
         nouvellePartie();
         robot.laisserPasser();
         EcranPartie partie = robot.partie();
-        partie.progression().restaurer(robot.jeu.res.campagne.rang("2.3"), 2, Set.of(), true);
+        partie.progression().restaurer(robot.jeu.res.campagne.rang("2.4"), 2, Set.of(), true);
         partie.monde().aller("namek", 230, 240);
         robot.images(30 * 52);
         assertEquals(0, partie.progression().etape(), "apres 50 secondes, la recolte recommence au premier plant");

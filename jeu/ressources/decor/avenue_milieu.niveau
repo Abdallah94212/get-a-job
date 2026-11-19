@@ -10,6 +10,7 @@ texture buisson buisson.png
 texture cagettes cagettes.png
 texture camionnette camionnette.png
 texture ciel ciel.png
+texture conteneur conteneur.png
 texture dechets dechets.png
 texture devant_poteau devant_poteau.png
 texture drapeau_cafe drapeau_cafe.png
@@ -19,6 +20,7 @@ texture drapeau_muscu drapeau_muscu.png
 texture etiq_e___entrer_dans_l_epicerie etiq_e___entrer_dans_l_epicerie.png
 texture etiq_e___entrer_dans_le_garage etiq_e___entrer_dans_le_garage.png
 texture etiq_e___entrer_dans_le_labo etiq_e___entrer_dans_le_labo.png
+texture etiq_e___passer_par_le_hall_du_29 etiq_e___passer_par_le_hall_du_29.png
 texture etiq_garage_omar etiq_garage_omar.png
 texture etiq_la_laverie etiq_la_laverie.png
 texture etiq_la_salle etiq_la_salle.png
@@ -121,6 +123,7 @@ image abri_vitre 2 3258 166 1.000 0 1.00
 image pub_krousty 2 3320 154 1.000 0 1.00
 image halo_orange 4 3177 59 1.000 1 0.30
 zone 39 3042 3168 etiq_le_cafe
+porte 3177 3201 202 cour 60 240 0 etiq_e___passer_par_le_hall_du_29
 image facade_19 1 3336 -234 1.000 0 1.00
 image sol_cour 1 3630 156 1.000 0 1.00
 image muret 1 3630 92 1.000 0 1.00
@@ -169,10 +172,10 @@ image buisson 1 3718 165 1.000 0 0.80
 image buisson 1 3758 165 1.000 0 0.80
 image buisson 1 3798 165 1.000 0 0.80
 image parking 2 3634 162 1.000 0 1.00
-zone 88 3630 4078 etiq_le_parking
+zone 89 3630 4078 etiq_le_parking
 image facade_20 1 4078 -176 1.000 0 1.00
 image drapeau_muscu 1 4080 92 1.000 0 1.00
-zone 91 4078 4204 etiq_la_salle
+zone 92 4078 4204 etiq_la_salle
 image facade_21 1 4414 -154 1.000 0 1.00
 image facade_22 1 4750 -176 1.000 0 1.00
 image facade_23 1 5002 -176 1.000 0 1.00
@@ -470,6 +473,8 @@ image poubelle 2 1898 166 1.000 0 1.00
 image dechets 2 1602 168 1.000 0 1.00
 image poubelle 2 332 166 1.000 0 1.00
 image poubelle 2 4534 166 1.000 0 1.00
+image conteneur 2 1628 152 1.000 0 1.00
+image conteneur 2 4109 152 1.000 0 1.00
 image velo 2 414 183 1.000 0 1.00
 image velo 2 1314 183 1.000 8 1.00
 image velo 2 2214 183 1.000 0 1.00
@@ -486,6 +491,8 @@ porte 5222 5254 270 avenue_haut 46 210 1 -
 repere abri 3288 192
 repere cafe 3098 192
 repere epicerie 1478 192
+repere fouille0 1641 194
+repere fouille1 4122 194
 repere garage 2529 192
 repere hall29 3189 192
 repere labo 1165 192

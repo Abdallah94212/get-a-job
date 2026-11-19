@@ -4,8 +4,10 @@ import decor.Rendu;
 
 /** La page des options, la meme dans le menu principal et dans la pause. */
 final class PageOptions {
-    private static final String[] NOMS = {"MUSIQUE", "AMBIANCES", "EFFETS SONORES", "TRAME À L'ANCIENNE", "AFFICHAGE",
-        "VITESSE DU TEXTE", "RETOUR"};
+    private static final String[] NOMS = {"VOLUME GÉNÉRAL", "MUSIQUE", "AMBIANCES", "EFFETS SONORES", "VOIX", "INTERFACE",
+        "TRAME À L'ANCIENNE", "AFFICHAGE", "VITESSE DU TEXTE", "RETOUR"};
+    private static final int VOLUMES = 6;
+    private static final int PAS = 13;
 
     private final Jeu jeu;
     private int choix;
@@ -29,13 +31,27 @@ final class PageOptions {
         if (pas == 0) {
             return false;
         }
+        if (choix < VOLUMES) {
+            int[] v = volumes(r);
+            int nouveau = touches.valider() ? (v[choix] + 1) % 11 : Reglages.borne(v[choix] + pas, 0, 10);
+            switch (choix) {
+                case 0 -> r.general = nouveau;
+                case 1 -> r.musique = nouveau;
+                case 2 -> r.ambiance = nouveau;
+                case 3 -> r.effets = nouveau;
+                case 4 -> r.voix = nouveau;
+                default -> r.interfaceSon = nouveau;
+            }
+            jeu.reglagesChanges();
+            Audio.Bus[] bus = {Audio.Bus.INTERFACE, Audio.Bus.MUSIQUE, Audio.Bus.AMBIANCE, Audio.Bus.EFFETS, Audio.Bus.VOIX,
+                Audio.Bus.INTERFACE};
+            jeu.audio.jouer(bus[choix], echantillon(choix), 0.8f, 0, 1, 0);   // on entend tout de suite ce qu'on regle
+            return false;
+        }
         switch (choix) {
-            case 0 -> r.musique = touches.valider() ? (r.musique + 1) % 11 : Reglages.borne(r.musique + pas, 0, 10);
-            case 1 -> r.ambiance = touches.valider() ? (r.ambiance + 1) % 11 : Reglages.borne(r.ambiance + pas, 0, 10);
-            case 2 -> r.effets = touches.valider() ? (r.effets + 1) % 11 : Reglages.borne(r.effets + pas, 0, 10);
-            case 3 -> r.trame = !r.trame;
-            case 4 -> r.taille = Math.floorMod(r.taille + pas, Reglages.TAILLES.length);
-            case 5 -> r.vitesseTexte = Math.floorMod(r.vitesseTexte + pas, Reglages.VITESSES.length);
+            case 6 -> r.trame = !r.trame;
+            case 7 -> r.taille = Math.floorMod(r.taille + pas, Reglages.TAILLES.length);
+            case 8 -> r.vitesseTexte = Math.floorMod(r.vitesseTexte + pas, Reglages.VITESSES.length);
             default -> {
                 if (touches.valider()) {
                     choix = 0;
@@ -49,16 +65,33 @@ final class PageOptions {
         return false;
     }
 
+    private static int[] volumes(Reglages r) {
+        return new int[] {r.general, r.musique, r.ambiance, r.effets, r.voix, r.interfaceSon};
+    }
+
+    /** Le son qui fait entendre le volume qu'on vient de changer : une voix pour les voix, une flaque pour les
+     * ambiances, un accord pour la musique : chacun joue sur le bus qu'il regle. */
+    private static String echantillon(int choix) {
+        return switch (choix) {
+            case 1 -> "chapitre";
+            case 2 -> "pas_flaque";
+            case 3 -> "porte_ferme";
+            case 4 -> "v_heros";
+            default -> "ui_valide";
+        };
+    }
+
     void dessiner(Rendu rendu, int x, int y) {
         Reglages r = jeu.reglages;
         Affichage a = jeu.affichage;
         a.police().ecrire(rendu, "OPTIONS", x, y, Affichage.ORANGE, 2);
-        String[] valeurs = {null, null, null, r.trame ? "OUI" : "NON", Reglages.TAILLES[r.taille], Reglages.VITESSES[r.vitesseTexte], ""};
-        int[] volumes = {r.musique, r.ambiance, r.effets};
+        String[] valeurs = {null, null, null, null, null, null, r.trame ? "OUI" : "NON", Reglages.TAILLES[r.taille],
+            Reglages.VITESSES[r.vitesseTexte], ""};
+        int[] volumes = volumes(r);
         for (int i = 0; i < NOMS.length; i++) {
-            int ligne = y + 28 + i * 15;
+            int ligne = y + 26 + i * PAS + (i >= VOLUMES ? 4 : 0);
             Menus.ligne(rendu, a, NOMS[i], x + 14, ligne, i == choix, true);
-            if (i < 3) {
+            if (i < VOLUMES) {
                 for (int k = 0; k < 10; k++) {
                     rendu.rect(x + 150 + k * 7, ligne + 2, 5, 7, k < volumes[i] ? Affichage.ORANGE : Affichage.SOMBRE, 256);
                 }
@@ -66,6 +99,6 @@ final class PageOptions {
                 a.police().ecrire(rendu, valeurs[i], x + 150, ligne, Affichage.GRIS, 1);
             }
         }
-        a.petite().ecrire(rendu, "GAUCHE, DROITE : CHANGER   ECHAP : RETOUR", x, y + 138, Affichage.GRIS, 1);
+        a.petite().ecrire(rendu, "GAUCHE, DROITE : CHANGER   ECHAP : RETOUR", x, y + 26 + NOMS.length * PAS + 10, Affichage.GRIS, 1);
     }
 }

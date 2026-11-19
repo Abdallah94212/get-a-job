@@ -15,7 +15,9 @@ public final class Campagne {
     }
 
     private final Map<String, Voix> voix = new LinkedHashMap<>();
-    private final Map<String, Float> timbres = new LinkedHashMap<>();
+    private final Map<String, Vocal> vocaux = new LinkedHashMap<>();
+    private final Map<String, Encart> encarts = new LinkedHashMap<>();
+    private final List<Fermeture> fermetures = new ArrayList<>();
     private final List<Chapitre> chapitres = new ArrayList<>();
     private final List<Mission> missions = new ArrayList<>();
     private final Map<String, Cinematique> cinematiques = new LinkedHashMap<>();
@@ -83,13 +85,34 @@ public final class Campagne {
         return new Voix(id.toUpperCase(), null);
     }
 
-    /** La hauteur de voix d'un personnage pour le petit son des dialogues : 1 est la voix moyenne. */
-    public float timbre(String id) {
-        return timbres.getOrDefault(id, 1f);
+    /**
+     * La voix d'un personnage : sa banque de syllabes (ressources/sons/voix/banque), sa hauteur relative a la banque,
+     * son debit (1 : normal, plus : plus vite) et l'ecart de sa melodie (1 : normal, plus : plus chantant).
+     */
+    public record Vocal(String banque, float hauteur, float debit, float melodie) {
     }
 
-    void accorder(String id, float hauteur) {
-        timbres.put(id, hauteur);
+    /** La voix de ce personnage. Sans reglage : le heros a la sienne, les autres celle d'un passant. */
+    public Vocal vocal(String id) {
+        Vocal v = vocaux.get(id);
+        if (v != null) {
+            return v;
+        }
+        return id.startsWith("toi") ? new Vocal("heros", 1f, 1f, 1f) : new Vocal("homme", 1f, 1f, 1f);
+    }
+
+    /** Les encarts qui expliquent les objets et les mecaniques, par identifiant. */
+    public Map<String, Encart> encarts() {
+        return encarts;
+    }
+
+    /** Les portes fermees a certains moments de l'histoire. */
+    public List<Fermeture> fermetures() {
+        return fermetures;
+    }
+
+    void donnerVocal(String id, Vocal vocal) {
+        vocaux.put(id, vocal);
     }
 
     void donnerVoix(String id, String nom, String portrait) {
@@ -188,11 +211,15 @@ public final class Campagne {
     }
 
     /** La carte ou se trouve la cible d'un objectif, ou null si la cible n'existe pas. */
+    /** Les objectifs du telephone ne sont dans aucun lieu : on les fait d'ou l'on est. */
+    public static final String TELEPHONE = "telephone";
+
     public String carteDe(Objectif objectif) {
         return switch (objectif.genre()) {
             case PARLER -> figurants.containsKey(objectif.cible()) ? figurants.get(objectif.cible()).lieu().carte() : null;
             case AGIR, ATTEINDRE -> points.containsKey(objectif.cible()) ? points.get(objectif.cible()).lieu().carte() : null;
             case ALLER -> objectif.cible();
+            case DELEGUER, ENCAISSER -> TELEPHONE;
         };
     }
 

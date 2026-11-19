@@ -22,6 +22,7 @@ public final class Ressources {
     final Police police;
     final Police petite;
     final Campagne campagne;
+    private final Path racine;
     private final Path cartes;
     private final Path images;
     private final Map<String, Scene> scenes = new HashMap<>();
@@ -30,7 +31,13 @@ public final class Ressources {
     private boolean getoEnnemi;
 
     /** racine : le dossier "ressources", avec ses sous-dossiers decor, interface et histoire. */
+    /** Le dossier des ressources. */
+    public Path dossier() {
+        return racine;
+    }
+
     public Ressources(Path racine) throws IOException {
+        this.racine = racine;
         cartes = racine.resolve("decor");
         images = racine.resolve("interface");
         police = Police.charger(images, 5);

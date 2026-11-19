@@ -22,12 +22,38 @@ public final class Mission {
     private Lieu repli;
     private String meteo = "sec";
     private String musique;
+    private int jour;
+    private int heure;
+    private String ellipse;
+
+    /** La scene de ce qui s'est passe hors de l'ecran avant la mission (des semaines de travail, des paiements), ou null. */
+    public String ellipse() {
+        return ellipse;
+    }
+
+    public void ellipser(String scene) {
+        ellipse = scene;
+    }
 
     public Mission(String id, String titre, String lieu, String personnages) {
         this.id = id;
         this.titre = titre;
         this.lieu = lieu;
         this.personnages = personnages;
+    }
+
+    /** Quand la mission commence : le jour (1 = le premier vendredi) et l'heure en minutes ; jour 0 si non dit. */
+    public int jour() {
+        return jour;
+    }
+
+    public int heure() {
+        return heure;
+    }
+
+    public void dater(int jourDit, int minutes) {
+        jour = jourDit;
+        heure = minutes;
     }
 
     public String id() {

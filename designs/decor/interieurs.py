@@ -425,8 +425,8 @@ def epicerie():
 def garage():
     """L'atelier d'Omar : la RS6 sous sa bache, le pont, l'etabli ou traine le Flipper Zero orange."""
     rng = random.Random(341)
-    t = piece(760, (104, 104, 110), (64, 64, 70))
-    _neons(t, (80, 260, 440, 620))
+    t = piece(840, (104, 104, 110), (64, 64, 70))
+    _neons(t, (80, 260, 440, 620, 790))
     t.rect(60, 132, 200, 138, (150, 140, 120))                        # l'etabli
     t.rect(64, 138, 196, SOL_INT + 6, (80, 76, 72))
     t.rect(64, 70, 196, 124, (60, 62, 70))
@@ -448,7 +448,80 @@ def garage():
     t.rect(696, 102, 744, 136, VITRE)
     t.texte(696, 84, "BUREAU", (60, 62, 70), 5)
     t.rect(700, 150, 740, 156, (150, 140, 120))
+    # la petite porte du fond, celle qui ne ferme plus depuis deux ans : elle donne sur la cour du 29
+    t.rect(776, 100, 808, SOL_INT, FER)
+    t.rect(779, 103, 805, SOL_INT, (64, 64, 72))
+    t.rect(799, 140, 802, 146, (150, 150, 156))
+    t.rect(803, 103, 805, SOL_INT, (40, 40, 48))                       # elle baille, de travers
+    t.rect(778, 88, 806, 96, (200, 60, 50))
+    t.texte(782, 90, "SORTIE", (240, 230, 220), 3)
     t.grain(4, 342)
+    return t.img
+
+
+def cour():
+    """La cour derriere le garage d'Omar, de nuit : on y entre par le porche du 29, a gauche. Des murs de brique et des
+    fenetres allumees, une gouttiere, du linge qu'on a oublie, les grands conteneurs, et au fond a droite l'arriere du
+    garage : un mur de tole et la petite porte qui ne ferme plus, entrouverte sur un filet de lumiere froide."""
+    rng = random.Random(529)
+    t = Toile(600, 270, (14, 14, 22, 255))
+    for y in range(0, 52):                                             # le ciel entre les toits, un peu orange par la ville
+        k = y / 52
+        t.rect(0, y, 600, y + 1, (int(18 + 26 * k), int(18 + 18 * k), int(30 + 16 * k)))
+    for _ in range(18):
+        t.point(rng.randrange(600), rng.randrange(40), (120, 120, 140))
+    # les murs de brique, l'immeuble du 29 a gauche, le suivant au fond
+    t.rect(0, 30, 600, SOL_INT, BRIQUE)
+    for y in range(34, SOL_INT, 6):
+        decal = 0 if (y // 6) % 2 else 7
+        t.ligne([(0, y), (599, y)], BRIQUE_J)
+        for x in range(decal, 600, 14):
+            t.point(x, y + 3, BRIQUE_J)
+    for x0, y0, allume in ((90, 52, True), (160, 52, False), (230, 52, True), (90, 108, False), (160, 108, True),
+                           (300, 46, False), (370, 46, True), (300, 104, True), (370, 104, False)):
+        t.rect(x0, y0, x0 + 34, y0 + 40, (40, 36, 40))
+        t.rect(x0 + 3, y0 + 3, x0 + 31, y0 + 37, (226, 186, 112) if allume else VITRE)
+        if allume:
+            t.rect(x0 + 3, y0 + 3, x0 + 31, y0 + 12, (196, 150, 90))
+            t.rect(x0 + 16, y0 + 3, x0 + 18, y0 + 37, (150, 110, 70))
+        t.rect(x0 - 2, y0 + 40, x0 + 36, y0 + 43, (120, 110, 104))
+    t.ligne([(130, 60), (290, 66)], (60, 58, 62))                      # une corde a linge, et ce qu'on a oublie dessus
+    for x, c in ((160, (180, 60, 60)), (190, (200, 200, 190)), (230, (60, 90, 140))):
+        t.rect(x, 61, x + 14, 78, c)
+    t.rect(268, 30, 272, SOL_INT, (60, 62, 70))                        # la gouttiere
+    t.rect(266, SOL_INT - 6, 280, SOL_INT, (60, 62, 70))
+    # le porche du 29, a gauche : une voute sombre, une applique
+    t.rect(6, 92, 50, SOL_INT, (20, 18, 24))
+    t.ellipse(6, 76, 50, 110, (20, 18, 24))
+    t.rect(52, 100, 58, 106, (250, 220, 150))
+    t.texte(14, 82, "29", (150, 140, 130), 5)
+    # l'arriere du garage : la tole ondulee, la petite porte entrouverte
+    t.rect(440, 60, 600, SOL_INT, (88, 92, 100))
+    for x in range(440, 600, 6):
+        t.ligne([(x, 60), (x, SOL_INT - 1)], (70, 74, 82))
+    t.rect(440, 56, 600, 60, (60, 62, 70))
+    t.texte(470, 70, "GARAGE OMAR", (150, 154, 160), 5)
+    t.rect(520, 104, 554, SOL_INT, FER)                                # le chambranle
+    t.rect(523, 107, 551, SOL_INT, (52, 56, 64))
+    t.poly([(523, 107), (544, 111), (544, SOL_INT - 2), (523, SOL_INT)], (70, 74, 84))   # le battant, entrouvert
+    t.rect(544, 107, 551, SOL_INT, (150, 210, 230))                    # le filet de lumiere froide
+    t.rect(538, 140, 541, 146, (150, 150, 156))                        # la poignee
+    t.rect(522, 92, 552, 100, (200, 60, 50))
+    t.texte(526, 94, "PRIVE", (240, 230, 220), 3)
+    # le sol : des paves mouilles, des flaques qui renvoient les fenetres
+    t.rect(0, SOL_INT, 600, 270, (46, 46, 54))
+    for y in range(SOL_INT + 6, 270, 8):
+        for x in range((y // 8) % 2 * 8, 600, 16):
+            t.rect(x, y, x + 14, y + 6, (52, 52, 60))
+    for x0, y0, x1, y1 in ((120, 200, 200, 212), (300, 232, 380, 246), (470, 210, 520, 220)):
+        t.ellipse(x0, y0, x1, y1, (34, 40, 56))
+        t.ligne([(x0 + 10, (y0 + y1) // 2), (x0 + 30, (y0 + y1) // 2)], (120, 110, 90))
+    # ce qui traine : un velo sans roue, des cagettes, une chaise cassee
+    t.rect(330, 158, 372, 162, (60, 60, 66))
+    t.ellipse(356, 152, 376, 172, (30, 30, 34))
+    for k in range(3):
+        t.rect(400, 168 - k * 9, 426, 176 - k * 9, (124, 108, 88))
+    t.grain(4, 530)
     return t.img
 
 

@@ -1,0 +1,33 @@
+# GET A JOB, carte cour, acte 3. Fichier genere par designs/decor/avenue.py : ne pas modifier a la main.
+texture aide aide.png
+texture conteneur conteneur.png
+texture etiq_e___pousser_la_petite_porte etiq_e___pousser_la_petite_porte.png
+texture etiq_e___ressortir_par_le_hall_du_29 etiq_e___ressortir_par_le_hall_du_29.png
+texture etiq_l_arriere_du_garage etiq_l_arriere_du_garage.png
+texture etiq_la_cour_du_29 etiq_la_cour_du_29.png
+texture halo_chaud halo_chaud.png
+texture halo_froid halo_froid.png
+texture int_cour int_cour.png
+texture joueur joueur.png
+joueur joueur
+aide aide
+nuit 26 26 40
+image int_cour 1 0 0 1.000 0 1.00
+image halo_chaud 4 26 72 1.000 1 0.40
+image halo_froid 4 473 65 1.000 1 0.35
+zone 3 0 440 etiq_la_cour_du_29
+zone 4 440 600 etiq_l_arriere_du_garage
+porte 0 44 270 avenue_milieu 3189 192 0 etiq_e___ressortir_par_le_hall_du_29
+limites 10 590 204 266
+depart 50 240
+porte 516 556 270 garage 760 240 0 etiq_e___pousser_la_petite_porte
+image conteneur 2 196 176 1.000 0 1.00
+image conteneur 2 236 180 1.000 0 1.00
+image conteneur 2 470 174 1.000 0 1.00
+solide 196 200 262 208
+repere fouille_a 208 222
+repere fouille_arme 250 224
+repere fouille_c 483 220
+repere guetteur 380 232
+repere porche 60 240
+repere porte_garage 536 238

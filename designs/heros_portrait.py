@@ -124,6 +124,22 @@ def buste(d, expression="tele"):
     if expression == "tele":
         d.trait([(224, 183), (240, 184), (256, 182)], (110, 60, 60), 1.6)                   # la bouche, fermee
         d.trait([(232, 190), (248, 190)], PEAU_O, 1.4)
+    elif expression == "regard":                                       # un sourire en coin : il se moque de lui-meme
+        d.trait([(224, 185), (240, 185), (252, 181), (259, 176)], (110, 60, 60), 1.7)
+        d.trait([(258, 181), (261, 184)], PEAU_O, 1.2)                 # la fossette
+        d.trait([(232, 191), (246, 191)], PEAU_O, 1.4)
+    elif expression.startswith("hesite"):                              # la bouche tiree sur le cote : "hmm..."
+        cote = -1 if expression.endswith("g") else 1
+        d.trait([(240 - 14 * cote, 184), (240 + 2 * cote, 183), (240 + 12 * cote, 186)], (110, 60, 60), 1.6)
+        d.trait([(240 + 14 * cote, 181), (240 + 17 * cote, 185)], PEAU_O, 1.1)                 # la joue qui se gonfle
+        d.trait([(232, 191), (248, 191)], PEAU_O, 1.4)
+        d.forme([(288, 126), (292, 134), (288, 139), (284, 134)], (190, 214, 244), 1, 1)        # une goutte, a la tempe
+    elif expression == "decide":                                       # la machoire serree, le coin de la bouche qui remonte
+        d.trait([(223, 183), (240, 185), (254, 181)], (100, 52, 54), 1.9)
+        d.trait([(254, 181), (258, 178)], (100, 52, 54), 1.3)
+        d.trait([(232, 191), (248, 191)], PEAU_O, 1.4)
+        d.trait([(204, 172), (210, 182)], PEAU_O, 1)                   # le muscle de la machoire
+        d.trait([(276, 172), (270, 182)], PEAU_O, 1)
     else:                                                              # la bouche s'ouvre toute seule : il ne s'en rend pas compte
         d.ovale(231, 176, 249, 193, (84, 38, 46), 1.3)
         d.forme([(235, 187), (245, 187), (243, 191), (237, 191)], (150, 76, 76))            # la langue, a peine
@@ -155,7 +171,60 @@ def buste(d, expression="tele"):
     d.forme([(170, 107), (190, 119), (240, 125), (290, 119), (310, 107), (288, 114), (240, 119), (192, 114)], VISIERE_O)
     d.trait([(176, 102), (304, 102)], (150, 114, 78), 1.2)
     d.trait(visiere + [visiere[0]], ENCRE, 1.5)
-    if True:
+    if expression == "regard":
+        # il fait glisser ses lunettes au bout du nez : la seule fois du jeu ou l'on voit ses yeux, et c'est nous qu'il regarde
+        for cx in (214, 266):
+            d.forme([(cx - 17, 151), (cx - 8, 146), (cx + 8, 146), (cx + 17, 150), (cx + 9, 155), (cx - 9, 155)], (246, 244, 238), 0, 1)
+            d.ovale(cx - 6.5, 144, cx + 6.5, 157, (70, 46, 36))          # l'iris, droit vers nous
+            d.ovale(cx - 2.8, 147.5, cx + 2.8, 153.3, (12, 10, 14))
+            d.ovale(cx + 1, 148, cx + 3.6, 150.6, (255, 255, 255))       # le reflet
+            # la paupiere tombe sur le haut de l'iris : un regard mi-clos, pas surpris
+            d.forme([(cx - 20, 151), (cx - 9, 147.6), (cx + 9, 147.6), (cx + 20, 149), (cx + 20, 140), (cx - 20, 140)], PEAU)
+            d.trait([(cx - 18, 151), (cx - 9, 147.6), (cx + 9, 147.6), (cx + 18, 149)], ENCRE, 2.4)
+            d.trait([(cx - 11, 156), (cx + 10, 156)], PEAU_O, 1)
+            d.trait([(cx - 14, 144.5), (cx + 12, 144)], PEAU_O, 0.9)    # le pli de la paupiere
+        d.forme([(194, 135), (216, 135), (233, 141), (232, 145), (214, 140), (195, 140)], CHEVEUX)              # sourcil gauche, bas
+        d.forme([(248, 139), (262, 128), (284, 130), (286, 134), (264, 133), (249, 143)], CHEVEUX)              # sourcil droit, leve
+        for x0 in (202, 246):                                          # les lunettes, au bout du nez
+            d.ovale(x0, 162, x0 + 32, 173, (14, 14, 22), 1.2)
+            d.trait([(x0 + 6, 165), (x0 + 13, 164)], (110, 116, 136), 1)
+        d.trait([(234, 166), (246, 166)], (120, 120, 136), 1.4)
+        d.trait([(202, 166), (184, 150)], (120, 120, 136), 1.2)
+        d.trait([(278, 166), (296, 150)], (90, 90, 104), 1.2)
+    elif expression == "decide":
+        # les lunettes remontees d'un doigt : on ne voit plus ses yeux, juste un eclat sur le verre
+        sourcil = [(194, 138), (232, 143), (232, 148), (194, 143)]
+        d.forme(sourcil, CHEVEUX)
+        d.forme(miroir(sourcil), CHEVEUX)
+        for x0 in (194, 244):
+            d.ovale(x0, 144, x0 + 42, 162, (14, 14, 22), 1.2)
+            d.trait([(x0 + 8, 158), (x0 + 22, 146)], (230, 236, 255), 1.6)    # l'eclat, en diagonale
+            d.trait([(x0 + 14, 159), (x0 + 24, 150)], (120, 130, 160), 1)
+        d.trait([(236, 152), (244, 152)], (120, 120, 136), 1.4)
+        d.trait([(194, 152), (182, 148)], (120, 120, 136), 1.2)
+        d.trait([(286, 152), (298, 148)], (90, 90, 104), 1.2)
+    elif expression.startswith("hesite"):
+        # il regarde une main, puis l'autre : un sourcil monte du cote qu'il regarde, et dans le verre noir, le reflet
+        # de ce qu'il tient (vert pour le beeper, orange pour le boitier) glisse vers ce cote-la
+        cote = -1 if expression.endswith("g") else 1
+        reflet = (120, 220, 140) if cote < 0 else (255, 150, 50)
+        haut = [(196, 133), (213, 126), (232, 131)]
+        bas = [(196, 140), (232, 144), (232, 147), (196, 144)]
+        if cote < 0:
+            d.trait(haut, CHEVEUX, 2.6)
+            d.forme(miroir(bas), CHEVEUX)
+        else:
+            d.forme(bas, CHEVEUX)
+            d.trait(miroir(haut), CHEVEUX, 2.6)
+        for x0 in (194, 244):
+            d.ovale(x0, 144, x0 + 42, 162, (14, 14, 22), 1.2)
+            cx = x0 + 21 + 10 * cote
+            d.ovale(cx - 7, 148, cx + 7, 158, reflet)
+            d.ovale(cx - 3, 150, cx + 2, 154, tuple(min(255, c + 70) for c in reflet))
+        d.trait([(236, 152), (244, 152)], (120, 120, 136), 1.4)
+        d.trait([(194, 152), (182, 148)], (120, 120, 136), 1.2)
+        d.trait([(286, 152), (298, 148)], (90, 90, 104), 1.2)
+    else:
         # les sourcils, fronces, puis les petites lunettes noires ovales, sans monture
         if expression == "tele":                                       # les sourcils, fronces
             sourcil = [(196, 136), (232, 142), (232, 146), (196, 141)]
@@ -241,15 +310,35 @@ def main(serree=False):
     return pc98.convertir(net, L, H, couleurs=16, trame=26, saturation=1.1, contraste=1.08)
 
 
+def decor_manga(d, orange):
+    """Le fond des moments ou il nous parle : du noir, et des lignes de fuite de manga qui convergent sur lui."""
+    import math
+    import random
+    d.forme([(0, 0), (480, 0), (480, 270), (0, 270)], (16, 14, 22))
+    rng = random.Random(41)
+    for k in range(150):
+        a = rng.random() * 2 * math.pi
+        r0 = rng.uniform(110, 170)
+        e = rng.uniform(0.6, 2.6)
+        c = (54, 50, 70) if rng.random() > 0.12 else orange
+        x0, y0 = 240 + math.cos(a) * r0, 140 + math.sin(a) * r0 * 0.75
+        d.trait([(x0, y0), (240 + math.cos(a) * 420, 140 + math.sin(a) * 320)], c, e)
+
+
 def portrait(expression="tele"):
     """Le plan complet, a la taille du jeu : 480 x 270, 16 couleurs tramees. expression : "tele" (calme) ou "choc"
     (les sourcils hauts, la bouche qui s'ouvre, le reflet qui envahit les verres). Il garde toujours ses lunettes."""
     d = Dessin((104, 78, 62))
-    decor(d)
-    d.s, d.dy = 1.22, -22
+    face = expression in ("regard", "decide")
+    if face:
+        decor_manga(d, (150, 70, 26) if expression == "decide" else (90, 50, 40))
+        d.s, d.dy = 1.42, -40                                          # plus pres : il est a un bras de nous
+    else:
+        decor(d)
+        d.s, d.dy = 1.22, -22
     buste(d, expression)
     net = d.img.resize((L, H), Image.LANCZOS)
-    return pc98.convertir(net, L, H, couleurs=16, trame=26, saturation=1.1, contraste=1.08), d.img
+    return pc98.convertir(net, L, H, couleurs=24 if face else 16, trame=22 if face else 26, saturation=1.1, contraste=1.08), d.img
 
 
 def ecran(img, nom, texte):

@@ -44,7 +44,7 @@ class RueQuiSEteintTest {
         assertEquals(2, progression.etapeDeLaRue());
         aller("2.2");
         assertEquals(2, progression.etapeDeLaRue());
-        aller("2.3");
+        aller("2.4");
         assertEquals(3, progression.etapeDeLaRue());
     }
 
@@ -53,7 +53,7 @@ class RueQuiSEteintTest {
         aller("0.1");
         Scene rue = res.carte("avenue_bas");
         int[] debut = rue.textures.get("ciel").pixels().clone();
-        aller("2.3");
+        aller("2.4");
         assertEquals(3, res.carte("avenue_bas").etape());
         assertFalse(java.util.Arrays.equals(debut, rue.textures.get("ciel").pixels()), "le ciel doit avoir change de couleurs");
         aller("0.1");

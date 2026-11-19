@@ -22,14 +22,17 @@ final class EcranMenu implements Ecran {
         "Le Kremlin-Bicêtre, avenue de Fontainebleau. Un jeune du quartier, seul, parti de rien. Un soir, devant sa télé, "
             + "quelque chose bascule. Il n'a plus qu'un but : inscrire son nom dans la légende.",
         "Tout en bas de l'avenue, le Maître Poulet. Tout en haut, la tour de la Krousty Corp. Chaque mission ouvre un lieu de plus.",
-        "Cette version contient le prologue et les actes 1 et 2, en neuf missions. Les actes 3 à 7 sont en cours d'écriture.",
+        "Cette version contient le prologue et les actes 1 et 2, en dix missions. Les actes 3 à 7 sont en cours d'écriture.",
     };
     private static final String[] CREDITS = {
         "HISTOIRE, DÉCORS ET PERSONNAGES : PROJET GET A JOB, EPITECH.",
         "MEUBLES ET PLANTES : PH64 PIXEL PACK, STACY KENDRA LOVE, PURPLEHEART, NARCISSIST INTERACTIVE. CC-BY 4.0.",
         "MUSIQUES, CC0 : TSORTHAN GROVE, OMFGDUDE ET QUBODUP, JOTH, GENA SEALOV, MUTANTLEG, ADIUTORIUM, YD.",
-        "SONS, CC0 : RUBBERDUCK, KRESIEK, OGREBANE, IGNASD, ALXL, GBOXMIKEFOZZY, BMACZERO. CC-BY-SA 4.0 : GREGOR QUENDEL.",
+        "SONS, CC0 : RUBBERDUCK, KENNEY, LALEKSIC, KRESIEK, OGREBANE, IGNASD, ALXL, GBOXMIKEFOZZY, BMACZERO, AQUINN, HAELDB, ARTISTICDUDE, MIKEASK, BART, ZANE LITTLE MUSIC.",
+        "SONS, CC-BY-SA 4.0 : GREGOR QUENDEL, VOICEBOSCH. CC-BY 3.0 : JALASTRAM, CONGUSBONGUS, DKLON.",
+        "VOIX DES PERSONNAGES : SYNTHÈSE FAITE POUR LE JEU, SANS DOUBLAGE.",
         "PALETTE : ENDESGA 32, PAR ENDESGA. ARBRES, CC0 : KARSIORI.",
+        "POLICES, SIL OPEN FONT LICENSE : ATKINSON HYPERLEGIBLE (BRAILLE INSTITUTE), BARLOW CONDENSED (JEREMY TRIBBY).",
     };
 
     private final Jeu jeu;
@@ -154,14 +157,14 @@ final class EcranMenu implements Ecran {
             case HISTOIRE -> dessinerHistoire(rendu);
             case OPTIONS -> {
                 rendu.rect(0, 0, Rendu.L, Rendu.H, 0x000000, 150);
-                rendu.cadre(90, 50, 300, 170);
-                options.dessiner(rendu, 104, 62);
+                rendu.cadre(90, 34, 300, 206);
+                options.dessiner(rendu, 104, 44);
             }
             case COMMANDES -> {
                 rendu.rect(0, 0, Rendu.L, Rendu.H, 0x000000, 150);
-                rendu.cadre(70, 40, 340, 190);
-                Menus.commandes(rendu, affichage, 84, 52);
-                affichage.petite().ecrire(rendu, "ECHAP : RETOUR", 84, 218, Affichage.GRIS, 1);
+                rendu.cadre(70, 30, 340, 214);
+                Menus.commandes(rendu, affichage, 84, 40);
+                affichage.petite().ecrire(rendu, "ECHAP : RETOUR", 84, 232, Affichage.GRIS, 1);
             }
             default -> dessinerPresentation(rendu);
         }
@@ -171,8 +174,8 @@ final class EcranMenu implements Ecran {
     }
 
     private void dessinerAccueil(Rendu rendu) {
-        for (int x = 0; x < 250; x += 10) {                              // un voile sombre qui s'efface vers la droite
-            rendu.rect(x, 0, 10, Rendu.H, 0x08080E, 210 - x * 3 / 4);
+        for (int x = 0; x < 300; x += 6) {                               // un voile sombre qui s'efface vers la droite
+            rendu.rect(x, 0, 6, Rendu.H, 0x08080E, Math.max(0, 246 - x * x / 560));
         }
         affichage.police().ecrire(rendu, "GET A JOB", 30, 30, 0x7A3A08, 5);
         affichage.police().ecrire(rendu, "GET A JOB", 28, 28, Affichage.ORANGE, 5);
@@ -241,17 +244,17 @@ final class EcranMenu implements Ecran {
                 affichage.police().ecrire(rendu, ligne, 54, y, Affichage.BLANC, 1);
                 y += 11;
             }
-            y += 7;
+            y += 5;
         }
         affichage.police().ecrire(rendu, "CRÉDITS", 54, y, Affichage.ORANGE, 1);
-        y += 13;
+        y += 12;
         for (String credit : CREDITS) {                                  // en petits caracteres, comme au dos d'une boite de jeu
             for (String ligne : affichage.petite().couper(affichage.petite().propre(credit), 372)) {
                 affichage.petite().ecrire(rendu, ligne, 54, y, Affichage.GRIS, 1);
                 y += 8;
             }
-            y += 2;
+            y += 1;
         }
-        affichage.petite().ecrire(rendu, "ECHAP : RETOUR", 54, 244, Affichage.GRIS, 1);
+        affichage.petite().ecrire(rendu, "ECHAP : RETOUR", 54, Math.max(244, y + 3), Affichage.GRIS, 1);
     }
 }

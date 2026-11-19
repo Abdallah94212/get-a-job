@@ -27,6 +27,15 @@ public final class Sauvegarde {
         return new Sauvegarde(Path.of(System.getProperty("user.home"), ".get-a-job", "partie.properties"));
     }
 
+    public Path fichier() {
+        return fichier;
+    }
+
+    /** Le dossier de la partie : le journal des incidents y est ecrit a cote. */
+    public Path dossier() {
+        return fichier.toAbsolutePath().getParent();
+    }
+
     public boolean existe() {
         return Files.isRegularFile(fichier);
     }
@@ -42,7 +51,18 @@ public final class Sauvegarde {
         p.setProperty("etape", Integer.toString(progression.etape()));
         p.setProperty("facultatifs", String.join(",", progression.facultatifsFaits()));
         p.setProperty("debut", Boolean.toString(progression.debutJoue()));
+        p.setProperty("mission.notees", Long.toString(progression.noteesDebut()));
+        p.setProperty("mission.argent", Integer.toString(progression.argentDebut()));
         p.setProperty("drapeaux", String.join(",", progression.drapeaux()));
+        Etat etat = progression.etat();
+        p.setProperty("sante", Float.toString(etat.sante()));
+        p.setProperty("endurance", Float.toString(etat.endurance()));
+        p.setProperty("argent", Integer.toString(etat.argent()));
+        p.setProperty("location", Float.toString(etat.location()));
+        p.setProperty("scooter.carte", etat.scooterCarte() == null ? "" : etat.scooterCarte());
+        p.setProperty("scooter.x", Float.toString(etat.scooterX()));
+        p.setProperty("scooter.y", Float.toString(etat.scooterY()));
+        etat.enregistrer(p);
         p.setProperty("carte", carte);
         p.setProperty("x", Float.toString(x));
         p.setProperty("y", Float.toString(y));
@@ -78,6 +98,15 @@ public final class Sauvegarde {
             Progression progression = new Progression(campagne);
             progression.restaurer(rang, Integer.parseInt(p.getProperty("etape", "0")), facultatifs,
                     Boolean.parseBoolean(p.getProperty("debut", "false")), drapeaux);
+            // une partie d'avant la sante et l'argent reprend en pleine forme, les poches vides
+            progression.etat().restaurer(Float.parseFloat(p.getProperty("sante", "100")), Float.parseFloat(p.getProperty("endurance", "100")),
+                    Integer.parseInt(p.getProperty("argent", "0")), Float.parseFloat(p.getProperty("location", "0")),
+                    p.getProperty("scooter.carte", ""), Float.parseFloat(p.getProperty("scooter.x", "0")),
+                    Float.parseFloat(p.getProperty("scooter.y", "0")));
+            progression.etat().relire(p);
+            progression.reparerInventaire();                           // une vieille partie : ce qu'elle avait deja en poche
+            progression.reprendreDebut(Long.parseLong(p.getProperty("mission.notees", Long.toString(progression.etat().notees()))),
+                    Integer.parseInt(p.getProperty("mission.argent", Integer.toString(progression.etat().argent()))));
             String carte = p.getProperty("carte");
             if (carte == null || carte.isBlank()) {
                 throw new IOException("Sauvegarde sans carte");

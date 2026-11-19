@@ -3,6 +3,7 @@ package jeu;
 import decor.Acteur;
 import decor.Joueur;
 import decor.Porte;
+import decor.Poses;
 import decor.Rendu;
 import decor.Scene;
 import histoire.Figurant;
@@ -34,13 +35,34 @@ public final class Monde {
     static final class Habitant {
         final Figurant figurant;
         final Acteur acteur;
-        final float origine;
+        float origine;
+        float origineY;
         int sens = 1;
+        // sa vie quand personne ne lui parle (voir Vie)
+        boolean passant;
+        float vitesse = 20;
+        float sortieX;
+        boolean enRoute;
+        float cibleX;
+        float cibleY;
+        float pause;
+        String bulle;
+        float bulleReste;
+        float bulleRepos = 8;
+        float bousculeRepos;
+        String reaction;
+        float reactionReste;
+        Habitant partenaire;
+        float causeReste;
+        int sujet;
+        int tour = -1;
+        int coups;
 
         Habitant(Figurant figurant, Acteur acteur) {
             this.figurant = figurant;
             this.acteur = acteur;
             this.origine = acteur.x;
+            this.origineY = acteur.y;
             this.sens = figurant.miroir() ? -1 : 1;
         }
     }
@@ -57,11 +79,35 @@ public final class Monde {
     private long tempsMs;
     private float chemin;
     private boolean scenePilote;
+    private boolean choc;
+    private float tremblement;
+    private final java.util.Random secousses = new java.util.Random(5);
+    private boolean court;
+    /** Le saut du heros : sa hauteur au-dessus du sol (z), sa vitesse vers le haut, et l'instant ou il retombe. */
+    private float z;
+    private float vz;
+    private float reception;
+    private boolean vientDAtterrir;
+    static final float IMPULSION = 165f;
+    static final float PESANTEUR = 560f;
+    private final Vie vie;
+    private boolean pluie;
 
     public Monde(Ressources res, Progression progression) {
         this.res = res;
         this.progression = progression;
         this.heros = new Acteur("toi", null, 0, 0);
+        this.vie = new Vie(this, res, progression);
+    }
+
+    /** La vie du quartier : les routines, les passants, les reactions. */
+    Vie vie() {
+        return vie;
+    }
+
+    /** Le temps qu'il fait dehors : sous la pluie, il y a moins de monde. */
+    void meteo(boolean pleut) {
+        pluie = pleut;
     }
 
     public String carte() {
@@ -93,6 +139,55 @@ public final class Monde {
         return null;
     }
 
+    /**
+     * Une scene se joue ici avec ces personnages : les autres, trop pres du heros ou d'eux, s'ecartent a pied pour lui
+     * laisser la place (on ne les fait pas disparaitre), et reviennent ensuite.
+     */
+    void reserver(java.util.Set<String> participants) {
+        List<float[]> centres = new ArrayList<>();
+        centres.add(new float[] {joueur.x, joueur.y});
+        for (Habitant h : habitants) {
+            if (participants.contains(h.figurant.id())) {
+                centres.add(new float[] {h.acteur.x, h.acteur.y});
+            }
+        }
+        for (Habitant h : habitants) {
+            if (participants.contains(h.figurant.id()) || h.figurant.id().startsWith("scooter") || h.acteur.texture == null
+                    || h.figurant.garde()) {
+                continue;
+            }
+            float[] proche = null;
+            for (float[] c : centres) {
+                if (Math.abs(h.acteur.x - c[0]) < 90 && (proche == null || Math.abs(h.acteur.x - c[0]) < Math.abs(h.acteur.x - proche[0]))) {
+                    proche = c;
+                }
+            }
+            if (proche == null) {
+                continue;
+            }
+            float loin = h.acteur.x < proche[0] ? -1 : 1;
+            float cible = proche[0] + loin * 110;
+            if (scene.bloque(cible, h.acteur.y, 5) || cible < scene.xMin + 6 || cible > scene.xMax - 6) {
+                cible = proche[0] - loin * 110;
+            }
+            h.reaction = "ecarte";
+            h.reactionReste = 9f;
+            h.cibleX = cible;
+            h.cibleY = h.acteur.y;
+            h.partenaire = null;
+        }
+    }
+
+    /** Une arme tombee la (lancee) : elle reste par terre, on peut la ramasser. */
+    void poserAuSol(histoire.Etat.AuSol a) {
+        progression.etat().auSol().add(a);
+    }
+
+    /** Un objet pose dans le decor (les caisses, la chambre froide...), ou null. */
+    Acteur objet(String id) {
+        return points.get(id);
+    }
+
     /** L'acteur du heros : une cinematique jouee sur place peut le deplacer elle-meme. */
     Acteur heros() {
         return heros;
@@ -106,6 +201,11 @@ public final class Monde {
         } else if (!parLaScene && scenePilote) {
             joueur.x = heros.x;
             joueur.y = heros.y;
+            for (Habitant h : habitants) {                             // la scene les a places : c'est leur nouvelle place
+                h.origine = h.acteur.x;
+                h.origineY = h.acteur.y;
+                h.enRoute = false;
+            }
         }
         scenePilote = parLaScene;
     }
@@ -123,6 +223,122 @@ public final class Monde {
         return progression.drapeau("charge");
     }
 
+    /** L'image tremble un instant : un coup, une chute. */
+    void trembler(float force) {
+        tremblement = Math.max(tremblement, force);
+    }
+
+    /** Le heros a un scooter gare quelque part, qui l'attend. */
+    boolean scooterGare() {
+        return progression.drapeau("scooter_gare") && progression.etat().scooterCarte() != null;
+    }
+
+    /** Saute, s'il a les pieds par terre, a pied et sans les caisses dans les bras. Renvoie vrai s'il saute. */
+    boolean sauter() {
+        if (z > 0 || reception > 0 || enScooter() || charge() || scenePilote) {
+            return false;
+        }
+        vz = IMPULSION;
+        z = 0.01f;
+        return true;
+    }
+
+    /** Un elan horizontal pendant qu'il est en l'air : un coup de pied saute qui avance, une projection. */
+    private float elanX;
+    private boolean projete;
+
+    /** Projete : un coup trop fort le souleve et l'envoie en arriere ; il retombera au sol. */
+    void projeter(float vx, float vzInitial) {
+        if (enScooter()) {
+            return;
+        }
+        z = Math.max(z, 0.01f);
+        vz = vzInitial;
+        elanX = vx;
+        projete = true;
+    }
+
+    /** Un elan en l'air, vers l'avant (le coup de pied saute). */
+    void elancer(float vx) {
+        elanX = vx;
+    }
+
+    /** L'attaque plongeante : il tombe d'un coup, vers l'avant. */
+    void plonger(float vx) {
+        vz = Math.min(vz, -330f);
+        elanX = vx;
+    }
+
+    /** Vrai s'il a ete projete et n'a pas encore touche le sol. */
+    boolean projete() {
+        return projete;
+    }
+
+    float vitesseVerticale() {
+        return vz;
+    }
+
+    /** Vrai tant qu'il est en l'air (un coup a hauteur d'homme passe dessous). */
+    boolean enLAir() {
+        return z > 6;
+    }
+
+    float hauteurDuSaut() {
+        return z;
+    }
+
+    /** Vrai une fois, a l'image ou il retombe. */
+    boolean prendreAtterrissage() {
+        boolean a = vientDAtterrir;
+        vientDAtterrir = false;
+        return a;
+    }
+
+    /** Vrai une fois, a l'image ou il retombe d'une projection (il tombe au lieu de se recevoir). */
+    boolean prendreChute() {
+        if (projete && z <= 0) {
+            projete = false;
+            return true;
+        }
+        return false;
+    }
+
+    /** Le saut avance : il monte, ralentit, retombe ; on peut encore se diriger en l'air. */
+    private void sauterUnPeu(float dt) {
+        reception = Math.max(0, reception - dt);
+        if (z <= 0 && vz <= 0) {
+            return;
+        }
+        z += vz * dt;
+        vz -= PESANTEUR * dt;
+        if (elanX != 0) {                                              // l'elan le porte, sauf un mur
+            float nx = joueur.x + elanX * dt;
+            if (!scene.bloque(nx, joueur.y, Joueur.RAYON) && nx > scene.xMin + 4 && nx < scene.xMax - 4) {
+                joueur.x = nx;
+                heros.x = nx;
+            } else {
+                elanX = 0;
+            }
+        }
+        if (z <= 0) {
+            z = 0;
+            vz = 0;
+            elanX = 0;
+            reception = 0.12f;                                           // il plie les genoux en se recevant
+            vientDAtterrir = true;
+        }
+    }
+
+    /** Vrai a l'image ou le scooter vient de heurter un obstacle a pleine vitesse. */
+    boolean choc() {
+        return choc;
+    }
+
+    /** Vrai si le heros court vraiment (la touche est tenue et il lui reste du souffle). */
+    boolean court() {
+        return court;
+    }
+
     /** Le chemin parcouru par le joueur a la derniere image, pour le bruit des pas. */
     float chemin() {
         return chemin;
@@ -137,35 +353,63 @@ public final class Monde {
         carte = nom;
         joueur.x = x;
         joueur.y = y;
+        joueur.stopper();
         heros.x = x;
         heros.y = y;
         camX = cibleCamera();
         peupler();
     }
 
+    /** Un petit de l'equipe parti sur une operation n'est pas a la boutique (ni son scooter devant). */
+    private boolean libre(Figurant figurant) {
+        if (figurant.membre() == null || !progression.drapeau("organisation")) {
+            return true;
+        }
+        histoire.Organisation.Membre m = progression.etat().organisation().membre(figurant.membre());
+        return m == null || m.libre();
+    }
+
     /** Remet dans la carte les personnages et les objets que l'histoire y place en ce moment. */
     public void peupler() {
         Map<String, Habitant> avant = new HashMap<>();
+        List<Habitant> passants = new ArrayList<>();
         for (Habitant h : habitants) {
             avant.put(h.figurant.id(), h);
+            if (h.passant) {
+                passants.add(h);                                       // les passants de la rue continuent leur chemin
+            }
         }
         habitants.clear();
         points.clear();
         for (Figurant figurant : res.campagne.figurants().values()) {
-            if (figurant.lieu().carte().equals(carte) && progression.present(figurant)) {
+            if (figurant.lieu().carte().equals(carte) && progression.present(figurant) && libre(figurant)) {
                 float[] p = res.position(figurant.lieu());
                 Acteur acteur = new Acteur(figurant.id(), res.image(figurant.image()), p[0], p[1]);
                 acteur.pas = figurant.amplitude() > 0 ? res.image(figurant.image() + "_2") : null;
                 Habitant habitant = new Habitant(figurant, acteur);
                 Habitant ancien = avant.get(figurant.id());
-                if (ancien != null) {                                  // il etait deja la : il garde sa place et son regard
+                if (ancien != null) {                                  // il etait deja la : il garde sa place, son regard, son humeur
                     acteur.x = ancien.acteur.x;
                     acteur.y = ancien.acteur.y;
                     habitant.sens = ancien.sens;
+                    habitant.reaction = ancien.reaction;
+                    habitant.reactionReste = ancien.reactionReste;
+                    habitant.enRoute = ancien.enRoute;
+                    habitant.cibleX = ancien.cibleX;
+                    habitant.cibleY = ancien.cibleY;
+                    habitant.coups = ancien.coups;
+                    habitant.origine = ancien.origine;               // sa place, y compris celle qu'une scene lui a donnee
+                    habitant.origineY = ancien.origineY;
+                    habitant.pause = ancien.pause;
+                    habitant.bulle = ancien.bulle;
+                    habitant.bulleReste = ancien.bulleReste;
+                    habitant.bulleRepos = ancien.bulleRepos;
+                    habitant.bousculeRepos = ancien.bousculeRepos;
                 }
                 habitants.add(habitant);
             }
         }
+        habitants.addAll(passants);
         for (Point point : res.campagne.points().values()) {
             if (point.lieu().carte().equals(carte) && point.image() != null && (progression.attendue(Objectif.Genre.AGIR, point.id())
                     || progression.attendue(Objectif.Genre.ATTEINDRE, point.id()))) {
@@ -176,26 +420,58 @@ public final class Monde {
                 points.put(point.id(), objet);
             }
         }
+        if (carte.equals("appartement") && !progression.etat().colis().isEmpty()) {     // une commande est arrivee
+            points.put("colis", new Acteur("colis", res.image("colis"), 74, 212));
+        }
+        if (scooterGare() && progression.etat().scooterCarte().equals(carte) && !enScooter()) {
+            Acteur scooter = new Acteur("scooter_gare", res.image("scooter_gare"), progression.etat().scooterX(),
+                    progression.etat().scooterY());
+            points.put("scooter_gare", scooter);
+        }
         habiller();
     }
 
-    /** Le dessin et la vitesse du heros, selon qu'il marche, conduit le scooter ou porte des caisses. */
+    /**
+     * Le dessin et la vitesse du heros, selon qu'il marche, conduit le scooter ou porte des caisses.
+     * Blesse, il marche moins vite ; charge et a bout de souffle, il se traine.
+     */
     private void habiller() {
+        histoire.Etat etat = progression.etat();
+        if (poseImposee != null && !enScooter()) {
+            heros.texture = poseImposee;
+            heros.pas = poseImposee;
+            return;
+        }
         if (enScooter()) {
             heros.texture = res.image("heros_scooter");
             heros.pas = res.image("heros_scooter_2");
             joueur.marche = 170;
             joueur.course = 240;
+            joueur.reprise = 420;
+            joueur.frein = 900;
         } else if (charge()) {
             heros.texture = res.image("heros_charge");
             heros.pas = res.image("heros_charge_2");
-            joueur.marche = 62;
-            joueur.course = 62;
+            joueur.marche = etat.endurance() <= 0f ? 36 : 62;
+            joueur.course = joueur.marche;
+            joueur.reprise = Joueur.REPRISE;
+            joueur.frein = Joueur.REPRISE;
+        } else if (z > 0) {                                             // en l'air : les jambes ecartees, le corps tendu
+            heros.texture = Poses.penche(res.image("heros_2"), vz > 0 ? 1 : -1);
+            heros.pas = heros.texture;
+            return;
+        } else if (reception > 0) {                                     // il se recoit, les genoux plies
+            heros.texture = Poses.tasse(res.image("heros"), 0.88f);
+            heros.pas = heros.texture;
+            return;
         } else {
             heros.texture = res.image("heros");
             heros.pas = res.image("heros_2");
-            joueur.marche = Joueur.MARCHE;
-            joueur.course = Joueur.COURSE;
+            float allure = etat.blesse() ? 0.85f : 1f;
+            joueur.marche = Joueur.MARCHE * allure;
+            joueur.course = Joueur.COURSE * allure;
+            joueur.reprise = Joueur.REPRISE;
+            joueur.frein = Joueur.REPRISE;
         }
     }
 
@@ -211,16 +487,25 @@ public final class Monde {
         habiller();
         float x0 = joueur.x;
         float y0 = joueur.y;
-        joueur.avancer(scene, dx, dy, court, dt);
+        boolean bouge = dx != 0 || dy != 0;
+        boolean scooter = enScooter();
+        // le souffle : courir en coute, porter aussi ; le scooter n'en demande pas (c'est pour ca qu'on le loue)
+        boolean aPied = progression.etat().respirer(bouge && !scooter, court && bouge && !scooter && !charge(), charge(), dt);
+        this.court = scooter ? court : aPied;
+        joueur.avancer(scene, dx, dy, this.court, dt);
+        sauterUnPeu(dt);
+        choc = scooter && joueur.choc > 150f;
         chemin = (float) Math.hypot(joueur.x - x0, joueur.y - y0);
         bouger(dt);
         camX += (cibleCamera() - camX) * Math.min(1f, dt * 6f);
+        tremblement = Math.max(0f, tremblement - dt * 18f);
     }
 
     private void bouger(float dt) {
+        vie.maj(dt, pluie);
         for (Habitant habitant : habitants) {
             Figurant f = habitant.figurant;
-            if (f.amplitude() > 0) {
+            if (f.amplitude() > 0 && habitant.reaction == null) {
                 habitant.acteur.x += habitant.sens * f.vitesse() * dt;
                 if (Math.abs(habitant.acteur.x - habitant.origine) > f.amplitude()) {
                     habitant.sens = habitant.acteur.x > habitant.origine ? -1 : 1;
@@ -232,9 +517,19 @@ public final class Monde {
 
     /** Le temps passe sans que le joueur bouge : pendant un dialogue, une pause. Les patrouilles, elles, continuent. */
     void attendre(float dt) {
+        if (z > 0) {                                                     // une scene, un telephone : il retombe sur ses pieds
+            z = 0;
+            vz = 0;
+        }
+        elanX = 0;
+        projete = false;
+        vie.ecarter(dt);                                              // pendant une scene, seuls ceux qu'on a ecartes bougent
         tempsMs += Math.round(dt * 1000);
         chemin = 0;
-        joueur.enMouvement = false;
+        choc = false;
+        court = false;
+        joueur.stopper();
+        progression.etat().respirer(false, false, false, dt);
     }
 
     private boolean aPortee(float x, float y) {
@@ -251,22 +546,129 @@ public final class Monde {
                 }
             }
         }
+        Acteur colis = points.get("colis");
+        if (colis != null && aPortee(colis.x, colis.y)) {
+            return new Cible(Objectif.Genre.AGIR, "colis", "E : OUVRIR LE COLIS", null);
+        }
+        Acteur gare = points.get("scooter_gare");
+        if (gare != null && aPortee(gare.x, gare.y)) {
+            return new Cible(Objectif.Genre.AGIR, "scooter_gare", "E : REMONTER SUR LE SCOOTER", null);
+        }
+        boolean roule = enScooter();
         Habitant proche = null;
+        Habitant passant = null;
         for (Habitant habitant : habitants) {
             if (habitant.acteur.texture == null) {
                 continue;
             }
+            if (habitant.passant) {                                    // un passant ne prend jamais la place d'une porte
+                if (!roule && aPortee(habitant.acteur.x, habitant.acteur.y) && habitant.reaction == null) {
+                    passant = habitant;
+                }
+                continue;
+            }
             boolean attendu = progression.attendue(Objectif.Genre.PARLER, habitant.figurant.id());
-            boolean bavard = habitant.figurant.repliques().stream().anyMatch(r -> progression.verifie(r.condition()));
+            if (roule && !attendu) {
+                continue;                                              // en roulant, on ne bavarde pas : on descend d'abord
+            }
+            boolean bavard = habitant.figurant.service() != null
+                    || habitant.figurant.repliques().stream().anyMatch(r -> progression.verifie(r.condition()));
             if (aPortee(habitant.acteur.x, habitant.acteur.y) && (attendu || bavard) && (proche == null || attendu)) {
                 proche = habitant;
+            }
+        }
+        if (proche != null && progression.attendue(Objectif.Genre.PARLER, proche.figurant.id())) {
+            return new Cible(Objectif.Genre.PARLER, proche.figurant.id(), "E : PARLER À " + proche.figurant.nom(), null);
+        }
+        if (!enScooter() && armeAuSol() != null) {                     // une arme posee par terre, la ou on l'a laissee
+            return new Cible(Objectif.Genre.AGIR, AU_SOL, "E : RAMASSER " + histoire.Etat.arme(armeAuSol().arme()).nom(), null);
+        }
+        if (!enScooter()) {                                            // une poubelle qu'on n'a pas encore fouillee
+            for (Map.Entry<String, float[]> r : scene.reperes.entrySet()) {
+                if (r.getKey().startsWith("fouille") && !progression.etat().fouillee(r.getKey()) && aPortee(r.getValue()[0], r.getValue()[1])) {
+                    return new Cible(Objectif.Genre.AGIR, FOUILLE + r.getKey(), "E : FOUILLER LA POUBELLE", null);
+                }
             }
         }
         if (proche != null) {
             return new Cible(Objectif.Genre.PARLER, proche.figurant.id(), "E : PARLER À " + proche.figurant.nom(), null);
         }
+        float[] lit = carte.equals("appartement") ? scene.reperes.get("lit") : null;
+        if (lit != null && aPortee(lit[0], lit[1]) && (progression.etat().sante() < histoire.Etat.SANTE_MAX
+                || progression.etat().endurance() < progression.etat().enduranceMax())) {
+            return new Cible(Objectif.Genre.AGIR, "dormir", "E : DORMIR", null);
+        }
         Porte porte = scene.porteEn(joueur.x, joueur.y);
-        return porte == null ? null : new Cible(Objectif.Genre.ALLER, porte.cible(), null, porte);
+        if (porte != null) {
+            return new Cible(Objectif.Genre.ALLER, porte.cible(), null, porte);   // a scooter aussi : on le gare devant
+        }
+        if (roule && joueur.vitesse() < ARRET_SCOOTER) {
+            return new Cible(Objectif.Genre.AGIR, DESCENDRE, "E : DESCENDRE DU SCOOTER", null);
+        }
+        if (passant != null) {
+            return new Cible(Objectif.Genre.PARLER, passant.figurant.id(), "E : PARLER À " + passant.figurant.nom(), null);
+        }
+        return null;
+    }
+
+    /** On peut descendre du scooter quand il roule a moins de cette vitesse : presque arrete. */
+    static final float ARRET_SCOOTER = 70f;
+    static final String DESCENDRE = "descendre_scooter";
+    static final String FOUILLE = "fouille:";
+    static final String AU_SOL = "ausol";
+
+    /** L'arme posee par terre a portee du heros, ou null. */
+    histoire.Etat.AuSol armeAuSol() {
+        for (histoire.Etat.AuSol a : progression.etat().auSol()) {
+            if (a.carte().equals(carte) && Math.abs(joueur.x - a.x()) <= 16 && Math.abs(joueur.y - a.y()) <= 14) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Ou poser le pied en descendant du scooter garé en (x, y) : a cote de lui, cote trottoir d'abord, jamais dans un mur
+     * ni dans un obstacle. Renvoie {x, y}, ou la place du scooter elle-meme s'il n'y a rien de mieux.
+     */
+    float[] placePourDescendre(float x, float y) {
+        float[][] essais = {{0, -14}, {0, 14}, {-16, 0}, {16, 0}, {-16, -12}, {16, -12}, {0, -24}};
+        for (float[] e : essais) {
+            if (!scene.bloque(x + e[0], y + e[1], Joueur.RAYON) && scene.porteEn(x + e[0], y + e[1]) == null) {
+                return new float[] {x + e[0], y + e[1]};
+            }
+        }
+        return new float[] {x, y};
+    }
+
+    /** Le heros est repousse (un coup recu) : de dx pixels, s'il n'y a pas de mur. */
+    void repousser(float dx) {
+        if (!scene.bloque(joueur.x + dx, joueur.y, Joueur.RAYON)) {
+            joueur.x += dx;
+            heros.x = joueur.x;
+        }
+    }
+
+    /** Le dessin impose au heros par le combat (un coup, une garde), ou null. */
+    private decor.Texture poseImposee;
+
+    void imposerPose(decor.Texture pose) {
+        poseImposee = pose;
+        if (pose != null) {
+            heros.texture = pose;
+            heros.pas = pose;
+        } else {
+            habiller();
+        }
+    }
+
+    /** Le joueur est pose ici sans changer de carte (il descend du scooter). */
+    void poser(float x, float y) {
+        joueur.x = x;
+        joueur.y = y;
+        joueur.stopper();
+        heros.x = x;
+        heros.y = y;
     }
 
     /** Le point a atteindre que le joueur vient d'approcher, ou null. */
@@ -300,6 +702,9 @@ public final class Monde {
      * sinon la porte a prendre pour s'en approcher. Null si aucun chemin n'y mene.
      */
     float[] direction(Objectif objectif) {
+        if (objectif.genre() == Objectif.Genre.DELEGUER || objectif.genre() == Objectif.Genre.ENCAISSER) {
+            return new float[] {joueur.x, joueur.y - 60};                  // ca se passe au telephone, la ou l'on est
+        }
         String but = res.campagne.carteDe(objectif);
         if (but == null) {
             return null;
@@ -349,7 +754,10 @@ public final class Monde {
             heros.x = joueur.x;
             heros.y = joueur.y;
             heros.miroir = !joueur.versDroite;
-            heros.marche = joueur.enMouvement;
+            heros.marche = joueur.enMouvement && z <= 0;
+            heros.hauteur = Math.round(z);                              // en l'air : l'ombre reste au sol
+        } else {
+            heros.hauteur = 0;
         }
         tous.add(heros);
         tous.addAll(enPlus);
@@ -357,6 +765,30 @@ public final class Monde {
     }
 
     void dessiner(Rendu rendu, List<Acteur> enPlus) {
-        rendu.dessiner(scene, Math.round(camX), tempsMs, acteurs(enPlus));
+        int secousse = tremblement > 0.3f ? Math.round((secousses.nextFloat() * 2 - 1) * tremblement) : 0;
+        rendu.dessiner(scene, Math.round(camX) + secousse, tempsMs, acteurs(enPlus));
+        porte(rendu, Math.round(camX) + secousse);
+    }
+
+    /**
+     * Ce que le heros porte a la main pendant une livraison : le premier sac de l'inventaire, dans la main de devant
+     * (les caisses de poulet, elles, se voient deja dans sa pose de porteur).
+     */
+    private void porte(Rendu rendu, int cam) {
+        histoire.Inventaire inv = progression.etat().inventaire();
+        if (heros.texture == null || inv.possede("caisses_poulet") || poseImposee != null && !scenePilote) {
+            return;
+        }
+        for (histoire.Inventaire.Ligne l : inv.lignes(histoire.Inventaire.Categorie.LIVRAISONS)) {
+            decor.Texture t = res.image("tenu_" + l.id);
+            if (t == null) {
+                continue;
+            }
+            boolean gauche = heros.miroir;
+            int hx = Math.round(heros.x) - cam + (enScooter() ? (gauche ? -14 : 10) : (gauche ? -9 : 4));
+            int hy = Math.round(heros.y) - (enScooter() ? 30 : 24) + (heros.marche && (tempsMs / 160) % 2 == 0 ? 1 : 0);
+            rendu.calque(t, hx, hy);
+            return;
+        }
     }
 }

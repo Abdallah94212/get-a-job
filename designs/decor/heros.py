@@ -88,6 +88,54 @@ def profil(pas=False, charge=False):
     return t.img
 
 
+# ---------------------------------------------------------------- le combat
+# Les poses de combat sont plus larges (34 pixels) pour laisser la place au bras et a la jambe tendus ; le corps reste
+# au centre, au meme endroit que dans la pose de marche (le jeu centre chaque dessin sur les pieds du personnage).
+MAIN_ARME = (27, 15)                                                   # ou le jeu accroche l'arme, dans la pose "frappe"
+
+
+def combat(geste):
+    """garde, poing, pied, frappe (avec une arme), touche (il encaisse). Toile de 34 x 48, tourne vers la droite."""
+    corps = profil()
+    t = Toile(34, 48)
+    t.img.paste(corps, (6, 0), corps)
+    ox = 6
+    r = lambda x0, y0, x1, y1, c: t.rect(x0 + ox, y0, x1 + ox, y1, c)
+    r(8, 19, 12, 30, TEE)                                              # on efface le bras le long du corps
+    r(4, 21, 6, 31, TEE_O)
+    r(8, 30, 13, 33, PANT)
+    if geste == "garde":                                               # les poings devant le visage
+        t.ligne([(ox + 11, 19), (ox + 16, 23)], TEE_C, 2)
+        r(15, 17, 19, 21, NOIR)
+        r(16, 17, 18, 18, PEAU)
+    elif geste == "poing":                                             # le bras tendu, tout droit
+        r(11, 19, 22, 22, TEE_C)
+        r(11, 21, 22, 22, TEE)
+        r(22, 18, 27, 23, NOIR)                                        # le poing, dans sa mitaine
+        r(26, 19, 27, 22, PEAU)                                        # les phalanges
+        t.ligne([(ox + 28, 19), (ox + 28, 22)], (255, 255, 255))      # le choc, un trait
+    elif geste == "pied":                                              # la jambe arriere au sol, l'autre lancee
+        r(3, 32, 17, 48, (0, 0, 0, 0))
+        t.poly([(ox + 4, 32), (ox + 10, 32), (ox + 8, 44), (ox + 2, 44)], PANT_O)
+        t.rect(ox + 1, 44, ox + 9, 47, BASKET)
+        t.rect(ox + 1, 47, ox + 9, 48, SEMELLE)
+        t.poly([(ox + 9, 31), (ox + 16, 31), (ox + 27, 33), (ox + 27, 38), (ox + 14, 38)], PANT)   # la jambe tendue
+        t.rect(ox + 15, 33, ox + 21, 36, CUIR)
+        t.rect(ox + 26, 31, ox + 28, 39, BASKET)                       # la semelle de face, vers l'ennemi
+        t.rect(ox + 27, 31, ox + 28, 39, SEMELLE)
+        t.ligne([(ox + 11, 20), (ox + 7, 26)], TEE_C, 2)               # le bras en arriere, pour l'equilibre
+    elif geste == "frappe":                                            # le bras leve en avant : l'arme est dessinee par le jeu
+        t.ligne([(ox + 11, 19), (ox + 19, 16)], TEE_C, 2)
+        t.ligne([(ox + 19, 16), (ox + 21, 15)], TEE_C, 2)
+        r(19, 13, 23, 18, NOIR)
+    elif geste == "touche":                                            # il encaisse : le buste part en arriere
+        t2 = Toile(34, 48)
+        t2.img.paste(t.img.rotate(8, center=(17, 44)), (0, 0))
+        t = t2
+        t.ligne([(ox + 9, 20), (ox + 5, 15)], TEE_C, 2)
+    return t.img
+
+
 def assis(cigarette=True):
     """Affale sur le canape, de profil, les jambes allongees, une cigarette entre les doigts (toile de 34 x 40)."""
     t = Toile(34, 40)
