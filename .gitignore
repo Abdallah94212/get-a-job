@@ -18,3 +18,5 @@ bin/
 .project
 .settings/
 .factorypath
+# notes personnelles pour Claude (liens prives, preparation de la soutenance)
+CLAUDE.local.md
