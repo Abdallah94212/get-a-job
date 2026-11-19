@@ -11,3 +11,10 @@ decor-apercu/
 # sauvegardes de partie
 jeu/*.sav
 .osgrep
+# fichiers generes par VS Code et son extension Java (la configuration partagee de .vscode/ reste versionnee)
+bin/
+*.class
+.classpath
+.project
+.settings/
+.factorypath
