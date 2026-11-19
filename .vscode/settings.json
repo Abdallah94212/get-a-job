@@ -1,19 +1,11 @@
 {
-    // Le projet Java : les sources du jeu, les essais, et JUnit (seule bibliotheque, pour les essais).
-    "java.project.sourcePaths": ["jeu/src", "jeu/tests"],
-    "java.project.referencedLibraries": ["jeu/lib/**/*.jar"],
-    "java.project.outputPath": "jeu/build/vscode",
+    // Le projet Java : les sources du jeu, les tests, et JUnit (seule bibliotheque, pour les tests).
+    "java.project.sourcePaths": ["src", "tests"],
+    "java.project.referencedLibraries": ["lib/**/*.jar"],
+    "java.project.outputPath": "build/vscode",
     "files.encoding": "utf8",
     "files.exclude": {
-        "**/__pycache__": true,
-        "**/.osgrep": true,
-        "jeu/build": true,
-        "jeu/build-essais": true
-    },
-    "search.exclude": {
-        "jeu/ressources/**/*.png": true,
-        "jeu/ressources/sons": true,
-        "designs/assets": true,
-        "designs/outputs": true
+        "build": true,
+        "build-tests": true
     }
 }

@@ -1,22 +1,12 @@
 # fichiers generes ou propres a une machine
-jeu/build/
-jeu/build-essais/
-__pycache__/
-*.pyc
-.osgrep/
-.DS_Store
-# hors du jeu actuel : un ancien projet et des apercus video
-blockside/
-decor-apercu/
-# sauvegardes de partie
-jeu/*.sav
-.osgrep
-# fichiers generes par VS Code et son extension Java (la configuration partagee de .vscode/ reste versionnee)
-bin/
+build/
+build-tests/
 *.class
+.DS_Store
+.idea/
+bin/
 .classpath
 .project
 .settings/
-.factorypath
-# notes personnelles pour Claude (liens prives, preparation de la soutenance)
+# notes personnelles pour Claude
 CLAUDE.local.md
