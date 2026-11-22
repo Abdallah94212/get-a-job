@@ -16,6 +16,13 @@ public final class Sauvegarde {
     public record Partie(Progression progression, String carte, float x, float y) {
     }
 
+    /**
+     * La version de l'ordre des objectifs. 2 : le remboursement de Youngssef est devenu un objectif de la mission 1.2,
+     * insere juste apres Geto (avant, c'etait une option) : une partie de version 1 enregistree plus loin dans la 1.2
+     * voit ses etapes decalees d'un cran a la relecture.
+     */
+    static final int FORMAT = 2;
+
     private final Path fichier;
 
     public Sauvegarde(Path fichier) {
@@ -47,6 +54,7 @@ public final class Sauvegarde {
     public void enregistrer(Progression progression, String carte, float x, float y) throws IOException {
         Properties p = new Properties();
         Mission mission = progression.courante();
+        p.setProperty("format", Integer.toString(FORMAT));
         p.setProperty("mission", mission == null ? "" : mission.id());
         p.setProperty("etape", Integer.toString(progression.etape()));
         p.setProperty("facultatifs", String.join(",", progression.facultatifsFaits()));
@@ -95,8 +103,14 @@ public final class Sauvegarde {
                     drapeaux.add(nom);
                 }
             }
+            int etape = Integer.parseInt(p.getProperty("etape", "0"));
+            if (Integer.parseInt(p.getProperty("format", "1")) < 2 && mission.equals("1.2") && etape >= 1) {
+                // avant la version 2, l'objectif 1 de la 1.2 etait deja le metro : on decale d'un cran, sauf si
+                // Youngssef n'a pas encore ete rembourse et qu'on n'est pas encore parti (on doit d'abord le payer)
+                etape = etape == 1 && !drapeaux.contains("youngssef_paye") ? 1 : etape + 1;
+            }
             Progression progression = new Progression(campagne);
-            progression.restaurer(rang, Integer.parseInt(p.getProperty("etape", "0")), facultatifs,
+            progression.restaurer(rang, etape, facultatifs,
                     Boolean.parseBoolean(p.getProperty("debut", "false")), drapeaux);
             // une partie d'avant la sante et l'argent reprend en pleine forme, les poches vides
             progression.etat().restaurer(Float.parseFloat(p.getProperty("sante", "100")), Float.parseFloat(p.getProperty("endurance", "100")),

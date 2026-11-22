@@ -6,13 +6,16 @@ Projet de jeu Epitech. L'auteur écrit en français : réponds en français.
 ## Commandes
 
 - Lancer le jeu : `bash jeu/lancer.sh` (compile dans `jeu/build`, lance `jeu.Fenetre ressources` depuis `jeu/`).
-- Avec l'aide au test (touche M ou F2) : `bash jeu/dev/lancer.sh`. Partie à part : `~/.get-a-job/partie_test.properties`.
-- Tous les tests : `bash jeu/tester.sh` (JUnit 5, sans fenêtre). État au 19/11/2026 : 204 tests, 0 échec.
+- Avec le menu M du développeur (M ou F2 : aller au début d'une mission, valider l'objectif en cours) :
+  `bash jeu/dev/lancer.sh`, ou F5 dans VS Code. Partie à part : `~/.get-a-job/partie_test.properties`.
+  Après un changement de `campagne.txt`, refaire ses raccourcis : `bash jeu/dev/raccourcis.sh`.
+- Tous les tests : `bash jeu/tester.sh` (JUnit 5, sans fenêtre). État au 19/11/2026 : 211 tests, 0 échec.
 - Un seul test, depuis `jeu/` :
   `javac -d build-essais -cp lib/junit-platform-console-standalone-1.10.2.jar src/*/*.java tests/*/*.java`
   puis `java -Djava.awt.headless=true -jar lib/junit-platform-console-standalone-1.10.2.jar execute --class-path build-essais --select-class jeu.CombatArsenalTest`
   (nom de classe avec son paquet ; `--select-method jeu.Classe#methode` pour une méthode).
-- VS Code : `.vscode/launch.json` (configurations « GET A JOB »), `.vscode/tasks.json` (« Lancer le jeu », « Lancer les tests »).
+- VS Code : `.vscode/launch.json` (« GET A JOB (menu M, développeur) » par défaut, « GET A JOB »), `.vscode/tasks.json`
+  (« Lancer le jeu avec le menu M », « Lancer le jeu », « Lancer les tests », « Refaire les raccourcis du menu M »).
 
 ## Architecture
 

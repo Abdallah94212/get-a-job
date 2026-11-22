@@ -84,6 +84,8 @@ final class Scenographe {
     private String carteFin;
     private float xFin;
     private float yFin;
+    /** "joueur <carte> scooter x y" : la scene rend la main a cote du scooter gare dans cette carte, s'il y est. */
+    private boolean finPresDuScooter;
     private String musique;
     private String meteo;
     /** La frappe de cette image a deja servi : elle ne doit pas aussi terminer la replique suivante. */
@@ -173,6 +175,7 @@ final class Scenographe {
         texte = null;
         attente = 0;
         carteFin = null;
+        finPresDuScooter = false;
         musique = null;
         meteo = null;
         dernierQuiParle = null;
@@ -222,6 +225,11 @@ final class Scenographe {
 
     float yFin() {
         return yFin;
+    }
+
+    /** Vrai si la scene veut rendre la main a cote du scooter gare (il est bien dans la carte de fin). */
+    boolean finPresDuScooter() {
+        return finPresDuScooter;
     }
 
     /** La musique que la scene impose, ou null pour laisser celle du lieu. */
@@ -782,10 +790,17 @@ final class Scenographe {
         return etiquette < 0 ? scene.plans().size() : etiquette;
     }
 
+    /**
+     * "joueur <carte> <x> <y>" : ou la scene rend la main. "joueur <carte> scooter <x> <y>" : a cote du scooter, s'il est
+     * gare dans cette carte (on retrouve son scooter la ou on l'a laisse) ; sinon en (x, y).
+     */
     private void placer(Plan plan) {
         carteFin = plan.mot(0);
-        xFin = res.abscisse(carteFin, plan.mot(1));
-        yFin = Float.parseFloat(plan.mot(2));
+        boolean scooter = plan.mot(1).equals("scooter");
+        int k = scooter ? 2 : 1;
+        xFin = res.abscisse(carteFin, plan.mot(k));
+        yFin = Float.parseFloat(plan.mot(k + 1));
+        finPresDuScooter = scooter && progression.drapeau("scooter_gare") && carteFin.equals(progression.etat().scooterCarte());
     }
 
     private void suivant() {
@@ -1171,7 +1186,14 @@ final class Scenographe {
             } else if (image != null) {
                 rendu.calque(image, (Rendu.L - image.largeur()) / 2, (Rendu.H - image.hauteur()) / 2);
             }
-            if (plan.mot(8).startsWith("parle")) {
+            if (plan.mot(8).startsWith("parle") && plan.mot(9).equals("buste")) {
+                // "... parle:ton buste | texte" : le heros parle par-dessus l'image, son buste et sa boite a l'ecran (il
+                // commente ce qu'on regarde, la fresque par exemple), au lieu des grands sous-titres
+                String dit = affichage.police().propre(plan.texte());
+                int visibles = Math.min(dit.length(), lettresVisibles(attente));
+                affichage.buste(rendu, res.image(res.campagne.voix("toi").portrait()), true, true);
+                affichage.dialogue(rendu, res.campagne.voix("toi").nom(), true, dit, visibles, visibles >= dit.length(), tempsMs);
+            } else if (plan.mot(8).startsWith("parle")) {
                 parler(rendu, plan.texte(), attente);
             } else if (!plan.texte().isEmpty()) {
                 List<String> lignes = affichage.police().couper(affichage.police().propre(plan.texte()), Rendu.L - 40);
