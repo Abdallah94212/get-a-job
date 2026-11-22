@@ -74,6 +74,7 @@ Dans VS Code, avec l'extension *Extension Pack for Java*, les tâches « Lancer 
 │   └── obstacles.txt      rectangles au sol que les personnages ne peuvent pas traverser
 ├── lib/                   JUnit 5 (console standalone), pour les tests uniquement
 ├── lancer.sh, tester.sh   compilation, lancement et tests
+├── presentation/          diaporama du reveal, version PDF et discours
 └── UML.md                 diagrammes UML du projet
 ```
 
@@ -141,3 +142,10 @@ Les diagrammes de classes, d'états et de séquence sont dans **[UML.md](UML.md)
 | `TourneeTest` | 6 | Début de la nuit, paiement d'une livraison, client non payé sans commande, victoire, défaite à 6 h, défaite sans vies |
 
 Les tests utilisent les vraies classes du jeu. Ils simulent le clavier et font avancer le temps par pas de 1/60 s, comme la boucle de jeu.
+
+---
+
+## Présentation
+
+Le diaporama du reveal se trouve dans [presentation/](presentation/) : [get-a-job-reveal.pptx](presentation/get-a-job-reveal.pptx), avec les notes d'oral, sa version [PDF](presentation/get-a-job-reveal.pdf) et le [discours](presentation/DISCOURS.md).
+Les diapositives 1 à 14 présentent l'univers et les mécaniques du jeu complet. La diapositive 15 introduit cette version, qui sert à la démonstration.
