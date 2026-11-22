@@ -144,6 +144,7 @@ public final class LecteurCampagne {
         String suite = null;
         String musique = null;
         String objet = null;
+        int argent = 0;
         StringBuilder condition = new StringBuilder();
         for (int i = 2; i < args.length; i++) {
             if (args[i].equals("pression")) {
@@ -162,12 +163,17 @@ public final class LecteurCampagne {
                 if (!Inventaire.connu(objet)) {
                     throw new IllegalArgumentException("objet inconnu " + objet);
                 }
+            } else if (args[i].startsWith("argent:")) {               // rembourser : il faut avoir la somme sur soi
+                argent = Integer.parseInt(args[i].substring(7));
+                if (argent <= 0) {
+                    throw new IllegalArgumentException("somme invalide " + args[i]);
+                }
             } else {
                 throw new IllegalArgumentException("option inconnue " + args[i]);
             }
         }
         return new Objectif(Objectif.Genre.valueOf(args[0].toUpperCase()), args[1], texte, facultatif, pression, suite,
-                condition.toString().trim(), musique, objet);
+                condition.toString().trim(), musique, objet, argent);
     }
 
     /** "22:00" ou "22h" : en minutes depuis minuit. */

@@ -13,7 +13,9 @@ Lancer le jeu : `bash jeu/lancer.sh`. Lancer les tests : `bash jeu/tester.sh`.
 Ouvrir le dossier racine du dépôt (celui de ce fichier). Il faut un JDK (17 ou plus) et l'extension
 « Extension Pack for Java », que VS Code propose à l'ouverture (`.vscode/extensions.json`).
 
-- Lancer le jeu : panneau « Exécuter et déboguer », configuration **GET A JOB** (ou **GET A JOB (aide au test)**).
-  Le jeu démarre depuis `jeu/`, où il trouve le dossier `ressources`.
-- Sans l'extension : `Terminal › Exécuter la tâche…` propose « Lancer le jeu » et « Lancer les tests ».
+- Lancer le jeu : F5, ou le panneau « Exécuter et déboguer ». Par défaut, **GET A JOB (menu M, développeur)** :
+  M (ou F2) ouvre le menu pour aller au début de n'importe quelle mission ou valider l'objectif en cours, sur une
+  partie de test à part. **GET A JOB** lance le jeu normal. Le jeu démarre depuis `jeu/`, où il trouve `ressources`.
+- Sans l'extension : `Terminal › Exécuter la tâche…` propose « Lancer le jeu avec le menu M (développeur) »,
+  « Lancer le jeu », « Lancer les tests » et « Refaire les raccourcis du menu M ».
 - Les sources sont dans `jeu/src`, les essais dans `jeu/tests`, JUnit dans `jeu/lib` (`.vscode/settings.json`).

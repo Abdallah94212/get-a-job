@@ -2,6 +2,15 @@
     "version": "2.0.0",
     "tasks": [
         {
+            // Le menu M (ou F2) : aller au debut de n'importe quelle mission, valider l'objectif en cours, outils de test.
+            "label": "Lancer le jeu avec le menu M (développeur)",
+            "type": "shell",
+            "command": "bash jeu/dev/lancer.sh",
+            "options": { "cwd": "${workspaceFolder}" },
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": []
+        },
+        {
             "label": "Lancer le jeu",
             "type": "shell",
             "command": "bash jeu/lancer.sh",
@@ -15,6 +24,14 @@
             "command": "bash jeu/tester.sh",
             "options": { "cwd": "${workspaceFolder}" },
             "group": { "kind": "test", "isDefault": true },
+            "problemMatcher": []
+        },
+        {
+            // Apres un changement de campagne.txt : refait les parties de debut de mission utilisees par le menu M.
+            "label": "Refaire les raccourcis du menu M",
+            "type": "shell",
+            "command": "bash jeu/dev/raccourcis.sh",
+            "options": { "cwd": "${workspaceFolder}" },
             "problemMatcher": []
         }
     ]

@@ -176,6 +176,11 @@ final class EcranPartie implements Ecran {
         return encarts.courant();
     }
 
+    /** Le refus affiche en ce moment en bas de l'ecran (une porte fermee, un objet ou une somme qui manque), ou null. */
+    String refusAffiche() {
+        return refusReste > 0 ? refus : null;
+    }
+
     boolean encartOuvert() {
         return encarts.ouvert();
     }
@@ -239,7 +244,7 @@ final class EcranPartie implements Ecran {
 
     // ------------------------------------------------------------------ AideDev : a supprimer a la fin
 
-    /** Valide l'objectif en cours comme si on l'avait fait (en donnant l'objet qu'il demande, s'il en faut un). */
+    /** Valide l'objectif en cours comme si on l'avait fait (en donnant l'objet ou la somme qu'il demande, s'il en faut). */
     void devObjectifSuivant() {
         Objectif o = progression.objectif();
         if (o == null) {
@@ -247,6 +252,9 @@ final class EcranPartie implements Ecran {
         }
         if (o.objet() != null && !progression.etat().inventaire().possede(o.objet())) {
             progression.etat().inventaire().ajouter(o.objet(), 3);
+        }
+        if (o.argent() > progression.etat().argent()) {               // rembourser sans la somme : on la donne
+            progression.etat().gagner(o.argent() - progression.etat().argent(), "AIDE AU TEST");
         }
         if (mode != Mode.JEU) {
             passer(Mode.JEU);
@@ -759,6 +767,24 @@ final class EcranPartie implements Ecran {
         }
     }
 
+    /** Un scooter gare a moins de cette distance de la bouche de metro compte comme le scooter avec lequel on est venu. */
+    static final float PRES_DU_METRO = 320f;
+
+    /**
+     * On descend dans le metro depuis la rue : on note si le heros est venu en scooter (il roulait en arrivant a la
+     * porte, ou il vient de le garer juste devant). La scene du retour de Crimee le lit pour le faire ressortir a cote de
+     * son scooter, au lieu de le poser devant le Maître Poulet. Un drapeau, donc enregistre avec la partie.
+     */
+    private void noterVenueAuMetro(String destination) {
+        if (!destination.equals("metro") || !monde.dehors()) {
+            return;                                                    // on reprend la ligne depuis Crimee : rien a noter
+        }
+        histoire.Etat etat = progression.etat();
+        boolean garePres = progression.drapeau("scooter_gare") && monde.carte().equals(etat.scooterCarte())
+                && Math.abs(etat.scooterX() - monde.joueur.x) < PRES_DU_METRO;
+        progression.marquer(monde.enScooter() || garePres ? "+metro_en_scooter" : "-metro_en_scooter");
+    }
+
     /** On remonte sur le scooter gare. Si sa location est finie, on la reprend d'abord (5 euros, payes par telephone). */
     private void remonter() {
         if (progression.drapeau("location_finie")) {
@@ -965,6 +991,13 @@ final class EcranPartie implements Ecran {
             jeu.audio.jouer("ui_refus", 0.6f, 0, 1);
             return;
         }
+        int sous = progression.argentManquant(cible.genre(), cible.id());
+        if (sous > 0) {                                                // rembourser sans la somme : on ne fait pas semblant non plus
+            refus = "IL TE MANQUE " + sous + " EUROS POUR LE REMBOURSER.";
+            refusReste = 3f;
+            jeu.audio.jouer("ui_refus", 0.6f, 0, 1);
+            return;
+        }
         if (cible.genre() == Objectif.Genre.PARLER) {
             scenographe.parlerA(cible.id());                           // c'est une vraie rencontre : il peut se presenter
         }
@@ -1056,6 +1089,7 @@ final class EcranPartie implements Ecran {
             return;
         }
         String depart = monde.carte();
+        noterVenueAuMetro(porte.cible());
         garerDevantSiDedans(porte.cible());
         monde.aller(porte.cible(), porte.arriveeX(), porte.arriveeY());
         sonorisation.porte(depart, porte.cible());
@@ -1138,6 +1172,10 @@ final class EcranPartie implements Ecran {
         if (scenographe.carteFin() != null) {
             garerDevantSiDedans(scenographe.carteFin());
             monde.aller(scenographe.carteFin(), scenographe.xFin(), scenographe.yFin());
+            if (scenographe.finPresDuScooter()) {                      // on retrouve son scooter : on se tient a cote
+                float[] pied = monde.placePourDescendre(progression.etat().scooterX(), progression.etat().scooterY());
+                monde.poser(pied[0], pied[1]);
+            }
             zone = null;
         }
         if (!aJouer.isEmpty()) {

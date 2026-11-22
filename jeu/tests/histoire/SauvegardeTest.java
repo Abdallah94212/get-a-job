@@ -78,4 +78,32 @@ class SauvegardeTest {
         Files.writeString(fichier, "mission=m1\netape=0\ncarte=rue\n");
         assertThrows(IOException.class, () -> abimee.charger(campagne));
     }
+
+    /**
+     * Une partie enregistree avant que le remboursement de Youngssef devienne un objectif de la 1.2 (format 1) : ses
+     * etapes sont decalees d'un cran, sauf si l'on n'etait pas encore parti et qu'on ne l'avait pas paye.
+     */
+    @Test
+    void unePartieDAvantLeRemboursementObligatoireReprendAuBonObjectif() throws IOException {
+        Campagne vraie = LecteurCampagne.lire(Path.of("ressources", "histoire", "campagne.txt"));
+        Path fichier = dossier.resolve("ancienne.properties");
+        Sauvegarde ancienne = new Sauvegarde(fichier);
+        String lieu = "carte=avenue_bas\nx=600\ny=210\n";
+
+        Files.writeString(fichier, "mission=1.2\netape=1\ndrapeaux=part_youngssef\n" + lieu);
+        Progression pasPaye = ancienne.charger(vraie).progression();
+        assertEquals(1, pasPaye.etape(), "pas encore parti, pas paye : on doit d'abord rembourser");
+        assertTrue(pasPaye.objectif().texte().contains("12 EUROS À YOUNGSSEF"));
+
+        Files.writeString(fichier, "mission=1.2\netape=1\ndrapeaux=youngssef_paye\n" + lieu);
+        assertEquals(2, ancienne.charger(vraie).progression().etape(), "deja paye (l'ancienne option) : direction le metro");
+
+        Files.writeString(fichier, "mission=1.2\netape=6\ndrapeaux=youngssef_paye\n" + lieu);
+        Progression loin = ancienne.charger(vraie).progression();
+        assertEquals(7, loin.etape(), "plus loin dans la 1.2 : le meme objectif qu'avant");
+        assertEquals("caisses", loin.objectif().cible());
+
+        Files.writeString(fichier, "format=2\nmission=1.2\netape=1\ndrapeaux=part_youngssef\n" + lieu);
+        assertEquals(1, ancienne.charger(vraie).progression().etape(), "une partie au nouveau format n'est pas touchee");
+    }
 }

@@ -40,7 +40,7 @@ La partie s'enregistre toute seule à chaque objectif, à chaque porte et quand 
 |---|---|---|---|
 | 0.1 Ce soir-là | Chez toi | L'introduction, le courrier de la régie, descendre dans la rue | |
 | 1.1 Le scooter de Youngssef | Bas et milieu de l'avenue | Faire les deux livraisons de Youngssef sur son scooter | Le garage |
-| 1.2 La viande de Bidoche | Maître Poulet, ligne 7, Crimée | La course de Geto, la scène de la rame, Bidoche, Soul, la Cell Perfect | Le métro |
+| 1.2 La viande de Bidoche | Maître Poulet, ligne 7, Crimée | La paie de Geto, rembourser ses 12 euros à Youngssef (obligatoire avant le métro), la scène de la rame, Bidoche, Soul, la Cell Perfect. Venu au métro en scooter, on ressort à la station à côté de lui ; venu à pied, au Maître Poulet | Le métro |
 | 1.3 Livreur de Verte | Labo, milieu de l'avenue | La marchandise chez Gero, trois livraisons sans se faire voir | Le labo |
 | 1.4 Le plafond | Maître Poulet | Réclamer sa part, quitter Geto, le beeper du SDF | |
 | 2.1 Le chimiste | Labo, banc | Savoir ce que veut Gero, demander le boîtier du mécano à Youngssef | |

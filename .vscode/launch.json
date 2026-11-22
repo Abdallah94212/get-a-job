@@ -2,22 +2,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            // Le jeu, comme jeu/lancer.sh : lance depuis jeu/ pour que le dossier ressources soit trouve.
+            // Pour le developpeur (F5) : le jeu avec le menu M (ou F2) pour aller au debut de n'importe quelle mission
+            // et valider l'objectif en cours. La partie de test est enregistree a part (~/.get-a-job/partie_test.properties).
+            "type": "java",
+            "name": "GET A JOB (menu M, développeur)",
+            "request": "launch",
+            "mainClass": "jeu.Fenetre",
+            "args": "ressources",
+            "vmArgs": "-Dgaj.dev=true",
+            "cwd": "${workspaceFolder}/jeu"
+        },
+        {
+            // Le jeu normal, comme jeu/lancer.sh : lance depuis jeu/ pour que le dossier ressources soit trouve.
             "type": "java",
             "name": "GET A JOB",
             "request": "launch",
             "mainClass": "jeu.Fenetre",
             "args": "ressources",
-            "cwd": "${workspaceFolder}/jeu"
-        },
-        {
-            // Avec l'aide au test (M ou F2) et la partie de test a part, comme jeu/dev/lancer.sh.
-            "type": "java",
-            "name": "GET A JOB (aide au test)",
-            "request": "launch",
-            "mainClass": "jeu.Fenetre",
-            "args": "ressources",
-            "vmArgs": "-Dgaj.dev=true",
             "cwd": "${workspaceFolder}/jeu"
         }
     ]

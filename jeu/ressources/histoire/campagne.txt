@@ -25,8 +25,9 @@
 #       quand <jour> <hh:mm>   le jour (1 = le premier vendredi) et l'heure ; plus de 6 h apres la mission d'avant : on se
 #                              reveille chez soi ; l ecran du temps qui passe montre ce qui est arrive entre-temps
 #       meteo pluie|sec      musique <theme>      chrono <secondes>      furtive      repli <carte> <repere> <dx> <y>
-#       objectif <parler|agir|aller|atteindre> <cible> [pression] [si +d -d] [avec:<objet>] [musique:<theme>] [-> scene] | <TEXTE>
+#       objectif <parler|agir|aller|atteindre> <cible> [pression] [si +d -d] [avec:<objet>] [argent:<n>] [musique:<theme>] [-> scene] | <TEXTE>
 #           avec:<objet> : il faut l'avoir dans l'inventaire (une livraison : le sac) ; sinon l'objectif ne compte pas
+#           argent:<n> : il faut avoir n euros sur soi (rembourser) ; sinon l'objectif ne compte pas. La scene paie.
 #       option   ... (meme forme)                            objectif secondaire, faisable a tout moment de la mission
 #
 # LES SCENES
@@ -292,7 +293,10 @@ resume | Le grossiste de Geto ne le livre plus. Il te faut traverser Paris en m�
 meteo pluie
 ouvre metro
 objectif parler geto -> geto_viande | VA TE FAIRE PAYER AU MAÎTRE POULET
-objectif aller metro -> rame_depart | REMONTE L'AVENUE À PIED JUSQU'AU MÉTRO, TOUT EN HAUT
+# Geto paie les deux livraisons, dont la moitie revient a Youngssef. On ne part pas a Paris avec l'argent du petit :
+# l'objectif ne compte que si on a les 12 euros sur soi, et la scene les lui donne vraiment (argent -12).
+objectif parler youngssef argent:12 -> part_youngssef | AVANT LE MÉTRO : RENDS SES 12 EUROS À YOUNGSSEF, AU BANC
+objectif aller metro -> rame_depart | REMONTE L'AVENUE JUSQU'AU MÉTRO, TOUT EN HAUT
 objectif atteindre rame_milieu musique:mus_tension -> rame_tension | DANS LA RAME : TROUVE UNE PLACE, AU MILIEU
 objectif parler frotteur musique:mus_tension -> frotteur | DANS LA RAME : INTERVIENS
 objectif parler femme_assise -> femme | DANS LA RAME : LA FEMME À L'ÉCHARPE ROUGE VEUT TE PARLER
@@ -301,7 +305,6 @@ objectif agir caisses -> caisses | PRENDS LES CAISSES DE POULET, DEVANT LA CHAMB
 objectif aller metro -> retour | REPRENDS LA LIGNE 7 VERS LE KREMLIN-BICÊTRE
 objectif parler geto -> geto_caisses | RAPPORTE LA VIANDE À OLD GETO
 objectif agir chambre_froide avec:caisses_poulet -> colis | RANGE LES CAISSES DANS L'ARRIÈRE-BOUTIQUE, AU FOND
-option parler youngssef si +part_youngssef -> part_youngssef | DONNE SA PART À YOUNGSSEF, AU BANC
 option parler diallo si +course_lili -> lili_courses | MONTE LES COURSES DE TATA LILI, AU NUMÉRO 9
 option parler sdf si +sandwich avec:sandwich -> sandwich_sdf | DONNE LE SANDWICH DE BIDOCHE AU SDF, EN BAS DE L'AVENUE
 
@@ -763,13 +766,18 @@ son papier
 dit geto | L'argent de Bidoche est dans l'enveloppe. Tu ne la comptes pas.
 donne enveloppe 1 geto
 
+# Le remboursement : obligatoire en 1.2 avant le metro (l'objectif exige les 12 euros sur soi). L'argent sort vraiment
+# du compte, et le drapeau part_youngssef (sa part, encore due) tombe en meme temps : on ne peut pas payer deux fois.
 cinematique part_youngssef
 dit youngssef:surpris | Il a payé ? Sans râler ?
 dit toi | Douze. Tiens.
 argent -12 | LA PART DE YOUNGSSEF
 son objet
-dit youngssef:joie | T'es réglo, toi. Ça se fait plus, ici.
 drapeau -part_youngssef +youngssef_paye
+dit youngssef:joie | T'es réglo, toi. Ça se fait plus, ici.
+dit youngssef | Et tu rentres pas ? T'as la tête de quelqu'un qui repart.
+dit toi | Geto m'envoie à Crimée. Par la 7.
+dit youngssef | À cette heure-ci... Si tu veux monter jusqu'au métro, le scooter est là. Cinq euros, comme tout le monde.
 
 cinematique rame_depart
 son metro_signal 0.7
@@ -953,8 +961,17 @@ effet normal
 mixage normal 2
 meteo pluie
 musique silence
+# Venu au metro en scooter (drapeau pose en franchissant la bouche de metro depuis la rue, EcranPartie.noterVenueAuMetro) :
+# on ressort a la station, la ou il est gare (l'arrivee de la porte du metro). Venu a pied : on redescend jusqu'au
+# Maitre Poulet, comme avant.
+si +metro_en_scooter scooter
 noir | UNE HEURE DU MATIN. TU REDESCENDS L'AVENUE À PIED, LES CAISSES DANS LES BRAS.
 joueur avenue_bas @poulet+50 200
+saut fin
+etiquette scooter
+noir | UNE HEURE DU MATIN. TU REMONTES À LA SURFACE, LES CAISSES DANS LES BRAS. LE SCOOTER T'ATTEND LÀ OÙ TU L'AS LAISSÉ.
+joueur avenue_haut scooter 502 204
+etiquette fin
 
 cinematique geto_caisses
 dit geto | Te voilà. Bidoche t'a pas trop fait parler ?
@@ -1018,12 +1035,16 @@ dit gero | Trois. Pas un de plus. Je compte tout. Le café, le parking, la salle
 choix | C'est toi qui la fabriques ? -> fais | (Prendre les sachets et partir.) -> part
 etiquette fais
 dit gero | Je la transforme. La plante arrive de loin. Je la reçois, je la cuis, elle devient ça.
+# ce que le heros a vraiment appris : la fin de l'acte 1 (fin_acte1) ne se souvient que de cela
+drapeau +gero_transforme
 choix | De loin, d'où ? -> ou | Geto te paie combien ? -> combien
 etiquette ou
 dit gero | Namek. C'est comme ça qu'ils appellent l'endroit. Six heures de route et une douane. Ne me demande pas pourquoi « Namek ».
+drapeau +namek_entendu
 saut fin
 etiquette combien
 dit gero | Moins que ce qu'il paie le transport. C'est le transport qui coûte. Pas moi.
+drapeau +transport_cher
 etiquette fin
 dit gero:menace | Maintenant, va. Et ne reviens pas avec des questions.
 etiquette part
@@ -1094,17 +1115,25 @@ etiquette plus
 dit geto:rire | Tout le monde veut plus, petit.
 etiquette plafond
 dit geto:menace | Toi, t'es livreur. Tu resteras livreur. Les faibles livrent, les forts encaissent. C'est pas moi qui ai fait le monde comme ça.
-choix | (Poser les clés de l'arrière-boutique sur le comptoir.) -> cles | Alors cherche un autre livreur. -> autre
-etiquette cles
-son cles
+dit geto | Demain, sept heures. Le poulet attend pas.
+# La demission : ce n'est pas une reponse a Geto, c'est la decision du heros. Son visage en manga, plein ecran : la
+# lassitude (gp_yeux), le doute (gp_regard), puis la decision (gp_decide).
 musique silence
+mixage sourdine 1.2
+gros_plan gp_yeux 3.2 1.0 1.03 240 150 - coupe parle:fatigue | J'en ai marre...
+gros_plan gp_yeux 4.6 1.03 1.06 240 150 - - parle:fatigue | Les livraisons. Les courses. Les problèmes des autres...
+gros_plan gp_yeux 3.6 1.06 1.09 240 150 - - parle:colere | Et lui, derrière son comptoir, qui compte.
+gros_plan gp_regard 3.4 1.0 1.03 240 150 - coupe parle:doute | Je peux pas faire ça indéfiniment. C'est toujours la même chose.
+gros_plan gp_decide 2.6 1.0 1.06 240 152 secousse coupe parle:menace | C'est fini.
+gros_plan gp_decide 4.4 1.06 1.16 240 152 - - parle:menace | J'arrête de travailler pour Old Geto.
+mixage normal 0.6
+son cles
 argent +40 | DERNIÈRE PAIE DE GETO
 recit | TU PRENDS LES QUATRE BILLETS. TU POSES LES CLÉS DE L'ARRIÈRE-BOUTIQUE À LEUR PLACE.
-saut sort
-etiquette autre
-dit geto | J'en trouverai un demain. Il y en a toujours un.
-etiquette sort
+dit geto:surpris | Qu'est-ce que tu fais ?
+dit toi | Trouve-toi un autre livreur.
 dit geto:menace | Tu reviendras. Ils reviennent tous.
+dit toi | Non.
 drapeau +parti_de_chez_geto
 
 cinematique sdf_appel
@@ -1130,13 +1159,71 @@ donne beeper 1 sdf
 drapeau +beeper
 encart beeper_vert
 
+# Le tournant de l'acte 1 : le heros ne subit plus. Pour la premiere fois, il parle au joueur (le quatrieme mur : gp_regard,
+# il nous regarde par-dessus ses lunettes). Il ne se souvient que de ce qu'il a vraiment entendu : le mecano (omar_paie,
+# toujours joue) et Gero (selon ses reponses : +gero_transforme, +namek_entendu, +transport_cher). La fresque (gp_mur)
+# porte le plan : chaque photo cadree tour a tour, son buste et sa voix par-dessus ("parle:ton buste").
 cinematique fin_acte1
 carte appartement 380
-musique mus_souvenir
-acteur toi heros 417 214
-attend 1.5
-gros_plan gp_mur | LE LABO. LE GARAGE. LA VOITURE SOUS LA BÂCHE. L'ÉPICERIE À CÉDER. LE MAÎTRE POULET, BARRÉ.
+musique silence
+acteur toi heros @plan 214
 attend 1.2
+gros_plan gp_regard 2.8 1.0 1.02 240 150 - coupe parle:fatigue | Bon...
+gros_plan gp_regard 2.8 1.02 1.04 240 150 - - parle:insolent | J'ai un plan.
+gros_plan gp_regard 4.0 1.04 1.08 240 150 - - parle:insolent | Quoi ? Oui, toi. Trois semaines que tu me regardes livrer du poulet.
+gros_plan gp_regard 3.4 1.08 1.10 240 150 - - parle:rire | Tu croyais que je t'avais pas vu ?
+gros_plan gp_regard 3.6 1.10 1.12 240 150 - - parle:insolent | Reste. C'est maintenant que ça devient intéressant.
+carton | LE SOIR DES LIVRAISONS | LE GARAGE D'OMAR
+musique mus_souvenir
+mixage sourdine 1.0
+carte garage 300
+effet gris
+acteur mecano p_mecano @mecano 212
+dit mecano | Ces voitures-là, c'est que de l'électronique. Pas besoin de clé : un signal, elle s'ouvre.
+dit mecano:rire | Mon boîtier orange, là, il copie n'importe quelle télécommande.
+dit mecano | Le patron la sort une nuit par mois. Elle revient les pneus pleins de poussière rouge.
+retire mecano
+carton | LE SOIR DES SACHETS | LE LABO DE GERO
+carte labo 312
+acteur gero p_gero @gero 206
+si -gero_transforme gero_court
+dit gero | Je la transforme. La plante arrive de loin. Je la reçois, je la cuis, elle devient ça.
+si +namek_entendu namek
+si +transport_cher transport
+saut gero_fin
+etiquette namek
+dit gero | Namek. Six heures de route et une douane.
+saut gero_fin
+etiquette transport
+dit gero | C'est le transport qui coûte. Pas moi.
+saut gero_fin
+etiquette gero_court
+dit gero | Trois. Pas un de plus. Je compte tout.
+etiquette gero_fin
+retire gero
+effet normal
+mixage normal 0.6
+musique silence
+carte appartement 380
+acteur toi heros @plan 214
+attend 0.8
+gros_plan gp_mur 3.4 1.0 1.0 240 135 - coupe parle:insolent buste | Alors. Regarde bien, je t'explique une seule fois.
+gros_plan gp_mur 4.0 1.0 2.2 220 63 - coupe parle:insolent buste | Le garage. Le boîtier orange du mécano : ça, c'est la clé. De toutes les voitures.
+gros_plan gp_mur 4.0 2.2 2.4 350 86 - coupe parle:insolent buste | La voiture sous la bâche. Une nuit par mois, elle part loin.
+si -gero_transforme labo_court
+gros_plan gp_mur 4.2 2.2 2.4 90 73 - coupe parle:insolent buste | Le labo. Gero ne fait rien pousser : il transforme ce qui arrive de loin.
+gros_plan gp_mur 4.4 2.0 1.4 220 75 - - parle:insolent buste | Une plante qui arrive de loin. Une voiture qui revient de loin. Il manque juste quelqu'un entre les deux.
+saut labo_fin
+etiquette labo_court
+gros_plan gp_mur 4.2 2.2 2.4 90 73 - coupe parle:insolent buste | Le labo. Gero compte ses sachets un par un. Un homme qui compte, ça s'achète.
+etiquette labo_fin
+gros_plan gp_regard 3.0 1.0 1.03 240 150 - coupe parle:rire | Tu vois où je veux en venir ? Non ? Moi si.
+gros_plan gp_mur 4.0 2.2 2.4 120 186 - coupe parle:insolent buste | L'épicerie à céder, au milieu de l'avenue. Il faut bien une vitrine.
+gros_plan gp_mur 3.8 2.2 2.4 280 176 - coupe parle:menace buste | Et Geto. « Les faibles livrent », il a dit.
+gros_plan gp_decide 3.0 1.0 1.06 240 152 secousse coupe parle:menace | On va voir qui livre, maintenant.
+gros_plan gp_mur 4.0 2.6 2.8 400 195 - coupe parle:insolent buste | Ça, tout en haut ? Pas encore. Faut bien te garder une surprise.
+gros_plan gp_mur 4.6 2.0 1.0 240 135 - - parle:insolent buste | Première étape : Gero. Deuxième : le boîtier du mécano.
+gros_plan gp_regard 3.2 1.0 1.04 240 150 - coupe parle:insolent | Et toi, tu restes là. Ça commence.
 carton | FIN DE L'ACTE 1 | LA RUE
 joueur appartement 380 214
 

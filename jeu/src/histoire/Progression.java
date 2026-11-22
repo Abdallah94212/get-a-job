@@ -231,6 +231,12 @@ public final class Progression {
         return objectif != null && objectif.objet() != null && !etat.inventaire().possede(objectif.objet()) ? objectif.objet() : null;
     }
 
+    /** Ce qui manque en poche pour faire cet objectif maintenant (rembourser quelqu'un), ou 0 s'il ne demande rien. */
+    public int argentManquant(Objectif.Genre genre, String cible) {
+        Objectif objectif = trouver(genre, cible);
+        return objectif == null ? 0 : Math.max(0, objectif.argent() - etat.argent());
+    }
+
     /**
      * Remet l'inventaire d'accord avec l'histoire, a la reprise d'une partie : les objets que les drapeaux disent en
      * poche (le beeper, le boitier), et les livraisons deja remises par une scene de cette mission mais pas encore
@@ -302,6 +308,9 @@ public final class Progression {
         Objectif objectif = trouver(genre, cible);
         if (objectif == null || objectif.objet() != null && !etat.inventaire().possede(objectif.objet())) {
             return null;                                               // pas de livraison sans la marchandise
+        }
+        if (objectif.argent() > etat.argent()) {
+            return null;                                               // pas de remboursement sans l'argent
         }
         Mission mission = courante();
         if (objectif.facultatif()) {
