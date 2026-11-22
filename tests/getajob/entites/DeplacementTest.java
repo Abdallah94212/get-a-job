@@ -1,11 +1,15 @@
-package getajob;
+package getajob.entites;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.event.KeyEvent;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import getajob.monde.Niveau;
+import getajob.moteur.Clavier;
 
 /** Les déplacements du héros : le clavier, la vitesse, les obstacles, les bords de la rue. */
 class DeplacementTest {

@@ -1,7 +1,11 @@
-package getajob;
+package getajob.ecrans;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+
+import getajob.moteur.Clavier;
+import getajob.moteur.Jeu;
+import getajob.moteur.Ressources;
 
 /**
  * Un écran du jeu : le titre, un récit, ou la partie. Le jeu n'en affiche qu'un à la fois ; passer de l'un à l'autre,

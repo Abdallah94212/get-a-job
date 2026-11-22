@@ -1,7 +1,10 @@
-package getajob;
+package getajob.entites;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+
+import getajob.monde.Niveau;
+import getajob.moteur.Camera;
 
 /**
  * Un racketteur. Il fait des allers-retours sur sa portion d'avenue ; s'il voit le héros d'assez près, il le poursuit.
@@ -14,8 +17,11 @@ public class Ennemi extends Personnage {
 
     private static final double VITESSE_PATROUILLE = 40;
     private static final double VITESSE_POURSUITE = 68;      // moins vite que le héros (95) : on peut toujours le semer
-    private static final double PORTEE_DE_VUE = 110;
-    private static final double DUREE_ETOURDI = 2.0;
+    private static final double PORTEE_DE_VUE = 110;          // en x
+    private static final double HAUTEUR_DE_VUE = 40;          // en y : il ne voit que sur son trottoir
+    private static final double DUREE_ETOURDI = 2.0;          // après un coup de poing
+    private static final double PAUSE_APRES_ATTRAPE = 1.0;    // le temps que le héros s'enfuie
+    private static final double RECUL = 22;                   // en pixels, sous un coup de poing
 
     private final double debutRonde;
     private final double finRonde;
@@ -33,7 +39,7 @@ public class Ennemi extends Personnage {
     @Override
     public void mettreAJour(double dt, Niveau niveau) {
         Joueur joueur = niveau.joueur();
-        boolean leVoit = Math.abs(joueur.x() - x) < PORTEE_DE_VUE && Math.abs(joueur.y() - y) < 40;
+        boolean leVoit = Math.abs(joueur.x() - x) < PORTEE_DE_VUE && Math.abs(joueur.y() - y) < HAUTEUR_DE_VUE;
         // la machine à états : ce qu'il fait dépend de son état, et chaque état dit quand on en sort
         switch (etat) {
             case PATROUILLE -> {
@@ -80,14 +86,14 @@ public class Ennemi extends Personnage {
     public void recevoirCoup(boolean venantDeLaGauche, Niveau niveau) {
         etat = Etat.ETOURDI;
         etourdi = DUREE_ETOURDI;
-        deplacer(venantDeLaGauche ? 22 : -22, 0, niveau);
+        deplacer(venantDeLaGauche ? RECUL : -RECUL, 0, niveau);
         versDroite = !venantDeLaGauche;                       // il fait face à celui qui l'a frappé
     }
 
     /** Il vient d'attraper le héros : il s'arrête un instant (le temps que le héros s'enfuie). */
     public void apresAvoirAttrape() {
         etat = Etat.ETOURDI;
-        etourdi = 1.0;
+        etourdi = PAUSE_APRES_ATTRAPE;
     }
 
     public boolean peutAttraper() {

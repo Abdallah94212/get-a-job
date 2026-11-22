@@ -1,8 +1,11 @@
-package getajob;
+package getajob.entites;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+
+import getajob.monde.Niveau;
+import getajob.moteur.Camera;
 
 /**
  * Tout ce qui existe dans la rue : le héros, les racketteurs, les clients. C'est la classe mère de tous les objets du jeu.
@@ -39,12 +42,20 @@ public abstract class Entite {
         return contact().intersects(autre.contact());
     }
 
-    /** Dessine l'image debout sur ses pieds : centrée en x, le bas de l'image en y. La caméra décale tout le monde. */
+    /** Dessine l'image debout sur ses pieds. */
     public void dessiner(Graphics2D g, Camera camera) {
         BufferedImage img = image();
-        int ecranX = (int) Math.round(x) - img.getWidth() / 2 - camera.x();
-        int ecranY = (int) Math.round(y) - img.getHeight();
-        g.drawImage(img, ecranX, ecranY, null);
+        g.drawImage(img, ecranX(img, camera), ecranY(img), null);
+    }
+
+    /** Bord gauche de l'image à l'écran : centrée sur les pieds, décalée par la caméra (passage du monde à l'écran). */
+    protected int ecranX(BufferedImage img, Camera camera) {
+        return (int) Math.round(x) - img.getWidth() / 2 - camera.x();
+    }
+
+    /** Bord haut de l'image à l'écran : le bas de l'image touche le sol, en y. */
+    protected int ecranY(BufferedImage img) {
+        return (int) Math.round(y) - img.getHeight();
     }
 
     /** Pose l'entité ailleurs (le début de la partie, les tests). */

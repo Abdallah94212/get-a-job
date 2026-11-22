@@ -1,4 +1,9 @@
-package getajob;
+package getajob.monde;
+
+import getajob.entites.Client;
+import getajob.entites.Ennemi;
+import getajob.entites.Joueur;
+import getajob.moteur.Ressources;
 
 /**
  * Les règles de la nuit. Le Niveau dit OÙ sont les choses ; la Tournee dit CE QUI COMPTE :

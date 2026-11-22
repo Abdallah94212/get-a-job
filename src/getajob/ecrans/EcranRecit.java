@@ -1,8 +1,11 @@
-package getajob;
+package getajob.ecrans;
 
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.util.List;
+
+import getajob.moteur.Clavier;
+import getajob.moteur.Jeu;
 
 /**
  * Un écran de récit : un titre, puis des phrases qui apparaissent une à une sur fond noir.

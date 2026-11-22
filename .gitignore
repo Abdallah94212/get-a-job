@@ -8,5 +8,3 @@ bin/
 .classpath
 .project
 .settings/
-# notes personnelles pour Claude
-CLAUDE.local.md

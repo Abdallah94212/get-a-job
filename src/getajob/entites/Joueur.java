@@ -1,9 +1,14 @@
-package getajob;
+package getajob.entites;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+
+import getajob.monde.Niveau;
+import getajob.moteur.Camera;
+import getajob.moteur.Clavier;
+import getajob.moteur.Ressources;
 
 /**
  * Le héros. Il marche au clavier, repousse les racketteurs (Espace), porte une commande et gagne de l'argent.
@@ -15,6 +20,8 @@ public class Joueur extends Personnage {
     private static final double DUREE_COUP = 0.22;          // la pose du coup de poing
     private static final double RECHARGE_COUP = 0.45;       // délai avant de pouvoir refrapper
     private static final double INTOUCHABLE = 1.5;          // après avoir été touché
+    private static final double DUREE_IMAGE_CHOC = 0.3;     // l'image du choc, au début de l'invincibilité
+    private static final double RECUL = 18;                 // en pixels, quand un racketteur l'attrape
 
     private final Clavier clavier;
     private int vies = VIES_AU_DEPART;
@@ -69,7 +76,7 @@ public class Joueur extends Personnage {
         vies--;
         commande = false;
         intouchable = INTOUCHABLE;
-        deplacer(coupVenantDeDroite ? -18 : 18, 0, niveau);
+        deplacer(coupVenantDeDroite ? -RECUL : RECUL, 0, niveau);
         Ressources.jouerSon("ui_refus");
     }
 
@@ -108,7 +115,7 @@ public class Joueur extends Personnage {
         if (frappe()) {
             return Ressources.image("heros_poing");
         }
-        if (intouchable > INTOUCHABLE - 0.3) {
+        if (intouchable > INTOUCHABLE - DUREE_IMAGE_CHOC) {
             return Ressources.image("heros_touche");
         }
         return super.image();

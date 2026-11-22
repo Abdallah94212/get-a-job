@@ -1,4 +1,6 @@
-package getajob;
+package getajob.entites;
+
+import getajob.monde.Niveau;
 
 /**
  * Un client qui attend sa commande devant chez lui. Il ne marche pas : il se tourne vers le héros quand celui-ci approche.

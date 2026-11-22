@@ -1,10 +1,17 @@
-package getajob;
+package getajob.monde;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
+import getajob.entites.Client;
+import getajob.entites.Ennemi;
+import getajob.entites.Entite;
+import getajob.entites.Joueur;
+import getajob.moteur.Clavier;
+import getajob.moteur.Ressources;
 
 /**
  * Le niveau : l'avenue, ses obstacles, et tout ce qui y vit (le héros, les racketteurs, les clients).

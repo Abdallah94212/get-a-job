@@ -1,10 +1,14 @@
-package getajob;
+package getajob.monde;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import getajob.entites.Client;
+import getajob.entites.Joueur;
+import getajob.moteur.Clavier;
 
 /** Les règles de la nuit : prendre, livrer, être payé, rentrer ; et les deux façons de perdre. */
 class TourneeTest {

@@ -1,9 +1,14 @@
-package getajob;
+package getajob.ecrans;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.util.List;
+
+import getajob.monde.Niveau;
+import getajob.moteur.Clavier;
+import getajob.moteur.Jeu;
+import getajob.moteur.Ressources;
 
 /** L'écran titre : l'avenue défile lentement derrière le nom du jeu. Entrée lance l'histoire, Échap quitte. */
 public class EcranTitre extends Ecran {

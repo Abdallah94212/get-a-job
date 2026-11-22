@@ -1,4 +1,6 @@
-package getajob;
+package getajob.moteur;
+
+import getajob.entites.Entite;
 
 /**
  * La caméra : le décor fait 4 260 pixels de large, l'écran 480. La caméra dit quelle partie de l'avenue on voit.

@@ -1,9 +1,14 @@
-package getajob;
+package getajob.entites;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+
+import getajob.monde.Niveau;
+import getajob.moteur.Animation;
+import getajob.moteur.Camera;
+import getajob.moteur.Ressources;
 
 /**
  * Une entité qui marche : elle a deux images de marche, regarde à gauche ou à droite, et ne traverse pas les obstacles.
@@ -13,7 +18,6 @@ import java.awt.image.BufferedImage;
 public abstract class Personnage extends Entite {
     private final Animation marche;
     protected boolean versDroite = true;
-    protected boolean enMarche;
 
     protected Personnage(double x, double y, String sprite) {
         super(x, y);
@@ -43,7 +47,6 @@ public abstract class Personnage extends Entite {
 
     /** Fait marcher (ou arrête) l'animation selon que le personnage bouge ce tour-ci. */
     protected void animer(double dt, boolean bouge) {
-        enMarche = bouge;
         if (bouge) {
             marche.avancer(dt);
         } else {
@@ -56,18 +59,16 @@ public abstract class Personnage extends Entite {
         return marche.imageCourante();
     }
 
-    /** Une ombre au sol, puis l'image, retournée si le personnage regarde à gauche. */
+    /** Une ombre au sol, puis l'image : telle quelle vers la droite, retournée (largeur négative) vers la gauche. */
     @Override
     public void dessiner(Graphics2D g, Camera camera) {
-        BufferedImage img = image();
-        int ecranX = (int) Math.round(x) - img.getWidth() / 2 - camera.x();
-        int ecranY = (int) Math.round(y) - img.getHeight();
         g.setColor(new Color(0, 0, 0, 90));
         g.fillOval((int) Math.round(x) - 9 - camera.x(), (int) Math.round(y) - 3, 18, 5);
         if (versDroite) {
-            g.drawImage(img, ecranX, ecranY, null);
+            super.dessiner(g, camera);
         } else {
-            g.drawImage(img, ecranX + img.getWidth(), ecranY, -img.getWidth(), img.getHeight(), null);   // largeur négative : miroir
+            BufferedImage img = image();
+            g.drawImage(img, ecranX(img, camera) + img.getWidth(), ecranY(img), -img.getWidth(), img.getHeight(), null);
         }
     }
 }

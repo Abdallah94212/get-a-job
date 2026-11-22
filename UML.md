@@ -1,7 +1,7 @@
 # GET A JOB — conception (UML)
 
 Les diagrammes sont écrits en [Mermaid](https://mermaid.js.org/) : GitHub les affiche directement.
-Ils décrivent le code tel qu'il est dans `src/getajob/`.
+Ils décrivent le code de `src/getajob/`, réparti en quatre packages : `moteur`, `entites`, `monde` et `ecrans`.
 
 1. [Diagramme de classes : les entités](#1-diagramme-de-classes--les-entités)
 2. [Diagramme de classes : le jeu, les écrans et les règles](#2-diagramme-de-classes--le-jeu-les-écrans-et-les-règles)
@@ -29,6 +29,8 @@ classDiagram
         +contact() Rectangle
         +touche(Entite autre) boolean
         +dessiner(Graphics2D g, Camera camera) void
+        #ecranX(BufferedImage img, Camera camera) int
+        #ecranY(BufferedImage img) int
         +placer(double x, double y) void
     }
 
@@ -36,7 +38,6 @@ classDiagram
         <<abstract>>
         -Animation marche
         #boolean versDroite
-        #boolean enMarche
         #deplacer(double dx, double dy, Niveau niveau) void
         #animer(double dt, boolean bouge) void
         #image() BufferedImage
@@ -107,7 +108,7 @@ classDiagram
     Joueur --> Clavier : lit les touches
 ```
 
-**À retenir pour la soutenance :**
+**Points clés :**
 - `deplacer` (collisions et glissement) n'est écrit **qu'une fois**, dans `Personnage`. Le joueur, les racketteurs et les clients s'en servent tous.
 - `mettreAJour` est **abstraite** : chaque sous-classe doit dire comment elle se comporte.
   - Le `Joueur` obéit au clavier.
@@ -261,7 +262,7 @@ classDiagram
     Niveau ..> Ressources : décor, obstacles
 ```
 
-**À retenir pour la soutenance :**
+**Points clés :**
 - **Séparation des responsabilités** :
   - le `Niveau` sait **où** sont les choses et si un endroit est libre ;
   - la `Tournee` sait **ce qui compte** : l'étape, l'argent, l'heure, la victoire ;
@@ -390,7 +391,7 @@ sequenceDiagram
 | **Game Loop** | `Jeu.tour()` | Une boucle à pas de temps mesuré (`dt`) : le jeu va à la même vitesse sur toutes les machines. |
 | **Update Method** | `Entite.mettreAJour`, appelée par `Niveau.mettreAJour` | Chaque entité sait se mettre à jour elle-même. Le niveau les parcourt sans savoir qui est qui. |
 | **State** | `Ecran` et ses trois sous-classes, `Jeu.changerEcran` | `Jeu` délègue à l'écran courant. Ajouter un écran, c'est ajouter une classe, sans toucher à `Jeu`. |
-| **Machine à états (enum)** | `Ennemi.Etat`, `Tournee.Etape` | La version simple du State : un `enum` et un `switch`. Ça suffit tant que chaque état reste court. |
+| **Machine à états (enum)** | `Ennemi.Etat`, `Tournee.Etape` | La version simple du State : un `enum` et un `switch`, suffisante tant que chaque état reste court. |
 | **Template Method** | `Entite.dessiner` appelle `image()`, abstraite | Le dessin est le même pour tous. Seule l'image change : la marche, le coup de poing, le choc. |
 | **Observer** | `Clavier extends KeyAdapter`, branché par `addKeyListener` | Swing prévient le `Clavier` à chaque touche. Le jeu lit ensuite l'état du clavier une fois par tour. |
 | **Cache (proche du Flyweight)** | `Ressources.image` | Chaque image n'est chargée qu'une fois et partagée par toutes les entités qui l'utilisent. |

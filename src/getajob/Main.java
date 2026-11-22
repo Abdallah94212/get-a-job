@@ -2,6 +2,8 @@ package getajob;
 
 import javax.swing.JFrame;
 
+import getajob.moteur.Jeu;
+
 /** Point d'entrée du programme : ouvre la fenêtre, y place le jeu, puis démarre la boucle de jeu. */
 public class Main {
     public static void main(String[] args) {

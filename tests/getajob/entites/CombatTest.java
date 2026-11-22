@@ -1,12 +1,17 @@
-package getajob;
+package getajob.entites;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.event.KeyEvent;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import getajob.monde.Niveau;
+import getajob.monde.Tournee;
+import getajob.moteur.Clavier;
 
 /** Les racketteurs : leur ronde, la poursuite, le coup de poing qui les étourdit, et ce qui arrive quand ils attrapent le héros. */
 class CombatTest {

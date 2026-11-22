@@ -1,9 +1,19 @@
-package getajob;
+package getajob.ecrans;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.util.List;
+
+import getajob.entites.Entite;
+import getajob.entites.Joueur;
+import getajob.monde.Niveau;
+import getajob.monde.Tournee;
+import getajob.moteur.Camera;
+import getajob.moteur.Clavier;
+import getajob.moteur.Jeu;
+import getajob.moteur.Ressources;
 
 /**
  * L'écran de la partie. Il relie les trois morceaux de la partie :
@@ -91,7 +101,7 @@ public class EcranPartie extends Ecran {
 
     /** Un liseré lumineux devant la porte où il faut aller : le comptoir, ou chez soi à la fin. */
     private void dessinerLesPortes(Graphics2D g) {
-        java.awt.Rectangle porte = switch (tournee.etape()) {
+        Rectangle porte = switch (tournee.etape()) {
             case CHERCHER_LA_COMMANDE -> Niveau.COMPTOIR;
             case RENTRER -> Niveau.CHEZ_TOI;
             case LIVRER -> null;

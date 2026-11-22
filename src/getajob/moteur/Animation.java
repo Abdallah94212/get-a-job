@@ -1,4 +1,4 @@
-package getajob;
+package getajob.moteur;
 
 import java.awt.image.BufferedImage;
 

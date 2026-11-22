@@ -1,12 +1,15 @@
-package getajob;
+package getajob.moteur;
 
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Graphics;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+
+import getajob.ecrans.Ecran;
+import getajob.ecrans.EcranTitre;
 
 /**
  * Le jeu : la zone de dessin de la fenêtre, et la boucle de jeu.
